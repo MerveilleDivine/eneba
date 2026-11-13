@@ -126,10 +126,7 @@ test("live database filter and empty states agree with the storefront", async ({
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
 });
 
-test("browser pagination covers all seeded SKUs without duplication", async ({
-  page,
-  request,
-}) => {
+test("browser pagination covers all seeded SKUs without duplication", async ({ page, request }) => {
   const first = await request.get("/api/v1/products?sort=name_asc&page=1&pageSize=12");
   const second = await request.get("/api/v1/products?sort=name_asc&page=2&pageSize=12");
   expect(first.status()).toBe(200);
