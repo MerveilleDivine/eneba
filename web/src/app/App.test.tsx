@@ -79,7 +79,7 @@ describe("catalog browsing application", () => {
   });
 
   it("submits a header search to the actual API", async () => {
-    const mock = vi.fn().mockResolvedValue(new Response(JSON.stringify(payload)));
+    const mock = vi.fn().mockImplementation(async () => new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);
     renderApp();
     const search = screen.getByRole("searchbox", { name: "Search games" });
