@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -18,9 +19,10 @@ const steam = {
 const xbox = {
   ...steam,
   id: "game-xbox",
-  slug: "lunar-legacy",
-  name: "Lunar Legacy",
+  slug: "the-last-outpost",
+  name: "The Last Outpost",
   platform: "xbox",
+  region: "europe",
 };
 
 function responseFor(product: typeof steam): Response {
@@ -43,6 +45,113 @@ afterEach(() => {
 });
 
 describe("catalog request lifecycle under competing results", () => {
+  it("keeps an in-flight request when navigating between equivalent catalog URLs", async () => {
+    let finish!: (response: Response) => void;
+    const pending = new Promise<Response>((resolve) => {
+      finish = resolve;
+    });
+    let signal: AbortSignal | undefined;
+    const fetchMock = vi.fn((_url: string, init: RequestInit) => {
+      signal = init.signal as AbortSignal;
+      return pending;
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <MemoryRouter initialEntries={["/catalog?sort=name_asc"]}>
+        <Link to="/catalog">Canonical catalog</Link>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(fetchMock).toHaveBeenCalledOnce();
+    await userEvent.click(screen.getByRole("link", { name: "Canonical catalog" }));
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(signal?.aborted).toBe(false);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading games");
+
+    await act(async () => {
+      finish(responseFor(steam));
+      await Promise.resolve();
+    });
+    expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("preserves a settled result across equivalent URL navigation", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(responseFor(steam));
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <MemoryRouter initialEntries={["/catalog?sort=name_asc"]}>
+        <Link to="/catalog">Canonical catalog</Link>
+        <App />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("link", { name: "Canonical catalog" }));
+    expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("handles Strict Mode effect replay without showing an obsolete result", async () => {
+    const signals: AbortSignal[] = [];
+    const fetchMock = vi.fn((_url: string, init: RequestInit) => {
+      signals.push(init.signal as AbortSignal);
+      if (signals.length === 1) return new Promise<Response>(() => {});
+      return Promise.resolve(responseFor(steam));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <StrictMode>
+        <MemoryRouter initialEntries={["/catalog?platform=steam"]}>
+          <App />
+        </MemoryRouter>
+      </StrictMode>,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(signals[0].aborted).toBe(true);
+    expect(signals[1].aborted).toBe(false);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("keeps a retry pending when its timed-out predecessor succeeds late", async () => {
+    vi.useFakeTimers();
+    let finishOld!: (response: Response) => void;
+    let finishRetry!: (response: Response) => void;
+    const previous = new Promise<Response>((resolve) => {
+      finishOld = resolve;
+    });
+    const retry = new Promise<Response>((resolve) => {
+      finishRetry = resolve;
+    });
+    const fetchMock = vi.fn().mockReturnValueOnce(previous).mockReturnValueOnce(retry);
+    vi.stubGlobal("fetch", fetchMock);
+    renderCatalog();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(6000);
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("took too long");
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Loading games");
+
+    await act(async () => {
+      finishOld(responseFor(xbox));
+      await Promise.resolve();
+    });
+    expect(screen.getByRole("status")).toHaveTextContent("Loading games");
+    expect(screen.queryByRole("heading", { name: "The Last Outpost" })).not.toBeInTheDocument();
+
+    await act(async () => {
+      finishRetry(responseFor(steam));
+      await Promise.resolve();
+    });
+    expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("ignores a rejected old request after a newer filter result succeeds", async () => {
     let rejectOld!: (reason: Error) => void;
     let oldSignal: AbortSignal | undefined;
@@ -60,13 +169,13 @@ describe("catalog request lifecycle under competing results", () => {
     renderCatalog();
 
     await userEvent.selectOptions(screen.getByLabelText("Platform"), "xbox");
-    expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "The Last Outpost" })).toBeInTheDocument();
     expect(oldSignal?.aborted).toBe(true);
     await act(async () => {
       rejectOld(new TypeError("sensitive old request failure"));
       await Promise.resolve();
     });
-    expect(screen.getByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "The Last Outpost" })).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
@@ -102,7 +211,7 @@ describe("catalog request lifecycle under competing results", () => {
       await Promise.resolve();
     });
     expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Lunar Legacy" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "The Last Outpost" })).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });

@@ -51,6 +51,9 @@ type ResultsProps = {
 };
 
 function CatalogResults({ query, onChange }: ResultsProps) {
+  // The parent key changes whenever the canonical request changes.
+  // Keep this query stable when only the URL spelling changes.
+  const [requestQuery] = useState(query);
   const [request, setRequest] = useState<RequestState>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
 
@@ -66,7 +69,7 @@ function CatalogResults({ query, onChange }: ResultsProps) {
       controller.abort();
       setRequest({ status: "failed", kind: "timeout" });
     }, 6000);
-    void fetchCatalog(query, controller.signal)
+    void fetchCatalog(requestQuery, controller.signal)
       .then((data) => {
         if (current && !timedOut) setRequest({ status: "ready", data });
       })
@@ -83,7 +86,7 @@ function CatalogResults({ query, onChange }: ResultsProps) {
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [query, attempt]);
+  }, [requestQuery, attempt]);
 
   const result = request.status === "ready" ? request.data : null;
   const pages = result ? Math.ceil(result.total / result.pageSize) : 0;

@@ -122,27 +122,69 @@ for (const { status, heading } of [
   });
 }
 
-test("a delayed obsolete server error cannot replace a newer catalog result", async ({ page }) => {
+test("an obsolete catalog request cannot replace the current result", async ({ page }) => {
+  let releaseOld!: () => void;
+  let oldStarted!: () => void;
+  const oldRelease = new Promise<void>((resolve) => {
+    releaseOld = resolve;
+  });
+  const oldSeen = new Promise<void>((resolve) => {
+    oldStarted = resolve;
+  });
+  let oldOutcome: "delivered" | "aborted" | undefined;
+
   await page.route("**/api/v1/products?*", async (route) => {
     const url = new URL(route.request().url());
     if (url.searchParams.get("platform") !== "steam") {
       await route.continue();
       return;
     }
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    oldStarted();
+    await oldRelease;
+    const failure = route.request().failure();
+    if (failure) {
+      expect(failure.errorText).toMatch(/ERR_ABORTED/i);
+      oldOutcome = "aborted";
+      return;
+    }
     try {
       await route.fulfill({ status: 503, body: "private obsolete outage" });
-    } catch {
-      // The browser may already have canceled this obsolete request.
+      oldOutcome = "delivered";
+    } catch (error) {
+      const cancellation = route.request().failure();
+      if (!cancellation) throw error;
+      expect(cancellation.errorText).toMatch(/ERR_ABORTED/i);
+      oldOutcome = "aborted";
     }
   });
+
   await page.goto("/catalog?platform=steam");
+  await oldSeen;
   await page.getByLabel("Platform").selectOption("xbox");
   await expect(page.getByRole("heading", { name: "The Last Outpost" })).toBeVisible();
-  await page.waitForTimeout(650);
+  releaseOld();
+  await expect.poll(() => oldOutcome).toMatch(/^(delivered|aborted)$/);
   await expect(page.getByRole("heading", { name: "The Last Outpost" })).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByText("private obsolete outage")).toHaveCount(0);
+});
+
+test("equivalent catalog links do not refetch the same results", async ({ page }) => {
+  const requests: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/v1/products") {
+      requests.push(request.url());
+    }
+  });
+  await page.goto("/catalog?sort=name_asc");
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+  // Strict Mode may start and cancel an extra initial request.
+  const initialRequests = requests.length;
+  expect(initialRequests).toBeGreaterThan(0);
+  await page.getByRole("link", { name: "Eneba demo catalog" }).click();
+  await expect(page).toHaveURL(/\/catalog$/);
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+  expect(requests).toHaveLength(initialRequests);
 });
 
 test("invalid links recover without an API call", async ({ page }) => {

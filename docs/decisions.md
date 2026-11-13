@@ -93,6 +93,20 @@ The catalog page owns its layout, results, loading, empty/error presentation, an
 
 Cover gradient variants derive deterministically from the product's stable ID instead of its position in a search or sorted list. The same product keeps its visual identity across filters, sorting, and pagination without per-product persisted state or a theme manager. Visual-device acceptance and real product artwork remain distinct from automated layout, CSS, and interaction checks.
 
+## D3 adversarial follow-up: canonical request identity and test evidence
+
+The query-keyed results component captures the initial query for its canonical API request.
+Equivalent URL spellings retain the same component and request rather than refetching due to
+a newly parsed query object. A changed canonical request still remounts and cancels the
+obsolete request. The request-owner timeout and retry state machine are unchanged.
+
+Adversarial tests now cover equivalent URLs with both pending and settled requests, a late
+successful response after a timeout while a newer retry is pending, and Strict Mode effect
+replay. Lifecycle fixtures align with the seeded product platform and region identities.
+The browser test coordinates obsolete request delivery explicitly and distinguishes
+intentional browser cancellation from unexpected route errors; fixed delays are not used
+to prove the race. Full deployment and manual device acceptance remain separate evidence.
+
 ## Catalog recovery and cancellation verification (Checkpoint D3)
 
 The catalog request lifecycle stays local to the results view and relies on a query-keyed
