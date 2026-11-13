@@ -1,4 +1,4 @@
-name: Foundation checks
+name: Engineering checks
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        postgres: ["17.11", "18.6"]
+        postgres: ["17.12", "18.7"]
     services:
       postgres:
         image: postgres:${{ matrix.postgres }}
@@ -54,6 +54,7 @@ jobs:
       - run: npm run db:seed
       - run: npm run db:seed
       - run: npm run verify
+      - run: npm run audit
       - run: npm run test:integration
       - run: npm run test:browser
       - name: Go race checks

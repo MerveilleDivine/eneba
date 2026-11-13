@@ -49,6 +49,18 @@ func TestFoundationDatabase(t *testing.T) {
 	}
 	defer conn.Close(ctx)
 
+	t.Run("application credentials are checked before migration discovery", func(t *testing.T) {
+		broken, err := url.Parse(appURL)
+		if err != nil {
+			t.Fatal("invalid test connection")
+		}
+		broken.User = url.UserPassword(broken.User.Username(), "intentionally-invalid")
+		_, err = Migrate(ctx, migrationURL, broken.String(), filepath.Join(t.TempDir(), "missing-migrations"))
+		if err == nil || !strings.Contains(err.Error(), "application credentials") {
+			t.Fatalf("authentication must fail before inspecting migrations: %v", err)
+		}
+	})
+
 	t.Run("seeded data is read from PostgreSQL", func(t *testing.T) {
 		var products, keys, sellers int
 		err := conn.QueryRow(ctx, "SELECT (SELECT count(*) FROM marketplace.products WHERE active), (SELECT count(*) FROM marketplace.digital_keys), (SELECT count(*) FROM marketplace.sellers)").Scan(&products, &keys, &sellers)

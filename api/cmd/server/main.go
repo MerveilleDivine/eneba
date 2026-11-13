@@ -40,9 +40,12 @@ func run(logger *slog.Logger) error {
 	if cfg.Environment == "production" {
 		host = "0.0.0.0"
 	}
+	mux := http.NewServeMux()
+	httpapi.RegisterHealth(mux, func(ctx context.Context) error { return database.CheckReadiness(ctx, pool) }, logger)
+	mux.HandleFunc("/", httpapi.NotFound)
 	server := &http.Server{
 		Addr:              net.JoinHostPort(host, cfg.Port),
-		Handler:           httpapi.NewHandler(func(ctx context.Context) error { return database.CheckReadiness(ctx, pool) }, logger),
+		Handler:           httpapi.Wrap(mux, logger),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,

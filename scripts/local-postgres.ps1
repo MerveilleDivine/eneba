@@ -5,10 +5,13 @@ $clusterRoot = [System.IO.Path]::GetFullPath((Join-Path $projectRoot '.local\pos
 if (-not $clusterRoot.StartsWith($projectRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
   throw 'Local PostgreSQL path must stay inside this checkout.'
 }
-$pgBin = if ($env:ENEBA_POSTGRES_BIN) { $env:ENEBA_POSTGRES_BIN } else { Join-Path $env:ProgramFiles 'PostgreSQL\18\bin' }
+$postgresVersion = (Get-Content -LiteralPath (Join-Path $projectRoot '.postgres-version') -Raw).Trim()
+$pgBin = if ($env:ENEBA_POSTGRES_BIN) { $env:ENEBA_POSTGRES_BIN } else { Join-Path $projectRoot ".tools\postgresql-$postgresVersion\pgsql\bin" }
 $pgCtl = Join-Path $pgBin 'pg_ctl.exe'
 $initDb = Join-Path $pgBin 'initdb.exe'
-if (-not (Test-Path -LiteralPath $pgCtl)) { throw 'PostgreSQL 18 binaries are required. Set ENEBA_POSTGRES_BIN if installed elsewhere.' }
+if (-not (Test-Path -LiteralPath $pgCtl)) { throw 'Run scripts\bootstrap.ps1 to install the pinned project PostgreSQL binaries.' }
+if (-not $env:ENEBA_POSTGRES_BIN -and -not (Test-Path -LiteralPath (Join-Path $projectRoot ".tools\postgresql-$postgresVersion\.complete"))) { throw 'PostgreSQL extraction is incomplete; rerun scripts\bootstrap.ps1.' }
+if ($Action -eq 'Start' -and (& (Join-Path $pgBin 'postgres.exe') --version) -ne "postgres (PostgreSQL) $postgresVersion") { throw 'PostgreSQL binaries do not match .postgres-version.' }
 $dataRoot = Join-Path $clusterRoot 'data'
 $adminFile = Join-Path $projectRoot '.env.bootstrap.local'
 

@@ -24,10 +24,7 @@ type localDatabase struct {
 }
 
 func ProvisionLocal(ctx context.Context, root string) error {
-	envPath := filepath.Join(root, ".env")
-	if _, err := os.Stat(envPath); err == nil {
-		return errors.New(".env already exists; provisioning will not overwrite existing configuration")
-	} else if !errors.Is(err, os.ErrNotExist) {
+	if err := checkProvisioningFiles(root); err != nil {
 		return err
 	}
 	if os.Getenv("PGPASSWORD") == "" {
@@ -62,11 +59,6 @@ func ProvisionLocal(ctx context.Context, root string) error {
 			return fmt.Errorf("database or role names for %s already exist; inspect them before provisioning", db.name)
 		}
 	}
-	roleTx, err := admin.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer roleTx.Rollback(ctx)
 	for i := range databases {
 		databases[i].ownerPassword, err = randomPassword()
 		if err != nil {
@@ -74,26 +66,6 @@ func ProvisionLocal(ctx context.Context, root string) error {
 		}
 		databases[i].appPassword, err = randomPassword()
 		if err != nil {
-			return err
-		}
-		for role, password := range map[string]string{databases[i].owner: databases[i].ownerPassword, databases[i].app: databases[i].appPassword} {
-			statement := "CREATE ROLE " + pgx.Identifier{role}.Sanitize() + " LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD '" + password + "'"
-			if _, err := roleTx.Exec(ctx, statement); err != nil {
-				return errors.New("cannot create isolated project roles")
-			}
-		}
-	}
-	if err := roleTx.Commit(ctx); err != nil {
-		return err
-	}
-	for _, db := range databases {
-		if _, err := admin.Exec(ctx, "CREATE DATABASE "+pgx.Identifier{db.name}.Sanitize()+" OWNER "+pgx.Identifier{db.owner}.Sanitize()); err != nil {
-			return fmt.Errorf("cannot create %s; role creation succeeded, so inspect partial provisioning before retrying", db.name)
-		}
-		if _, err := admin.Exec(ctx, "REVOKE ALL ON DATABASE "+pgx.Identifier{db.name}.Sanitize()+" FROM PUBLIC"); err != nil {
-			return err
-		}
-		if _, err := admin.Exec(ctx, "GRANT CONNECT ON DATABASE "+pgx.Identifier{db.name}.Sanitize()+" TO "+pgx.Identifier{db.app}.Sanitize()); err != nil {
 			return err
 		}
 	}
@@ -115,16 +87,89 @@ func ProvisionLocal(ctx context.Context, root string) error {
 		"TEST_DATABASE_URL=" + connection(databases[1], false),
 		"TEST_MIGRATION_DATABASE_URL=" + connection(databases[1], true),
 	}
-	envFile, err := os.OpenFile(envPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	return provisionWithRecovery(root, strings.Join(lines, "\n")+"\n", func() error {
+		return createLocalDatabases(ctx, admin, databases)
+	})
+}
+
+func createLocalDatabases(ctx context.Context, admin *pgx.Conn, databases []localDatabase) error {
+	roleTx, err := admin.Begin(ctx)
 	if err != nil {
-		return errors.New("databases created but .env could not be written; inspect local provisioning")
+		return errors.New("cannot begin role creation")
 	}
-	_, writeErr := envFile.WriteString(strings.Join(lines, "\n") + "\n")
-	closeErr := envFile.Close()
-	if writeErr != nil {
-		return writeErr
+	defer roleTx.Rollback(ctx)
+	for _, db := range databases {
+		for _, role := range []struct{ name, password string }{{db.owner, db.ownerPassword}, {db.app, db.appPassword}} {
+			// Generated passwords contain only URL-safe base64 characters.
+			statement := "CREATE ROLE " + pgx.Identifier{role.name}.Sanitize() + " LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD '" + role.password + "'"
+			if _, err := roleTx.Exec(ctx, statement); err != nil {
+				return errors.New("cannot create isolated project roles")
+			}
+		}
 	}
-	return closeErr
+	if err := roleTx.Commit(ctx); err != nil {
+		return errors.New("cannot commit project roles")
+	}
+	for _, db := range databases {
+		if _, err := admin.Exec(ctx, "CREATE DATABASE "+pgx.Identifier{db.name}.Sanitize()+" OWNER "+pgx.Identifier{db.owner}.Sanitize()); err != nil {
+			return fmt.Errorf("cannot create %s", db.name)
+		}
+		if _, err := admin.Exec(ctx, "REVOKE ALL ON DATABASE "+pgx.Identifier{db.name}.Sanitize()+" FROM PUBLIC"); err != nil {
+			return errors.New("cannot restrict project database access")
+		}
+		if _, err := admin.Exec(ctx, "GRANT CONNECT ON DATABASE "+pgx.Identifier{db.name}.Sanitize()+" TO "+pgx.Identifier{db.app}.Sanitize()); err != nil {
+			return errors.New("cannot grant project application access")
+		}
+	}
+	return nil
+}
+
+func checkProvisioningFiles(root string) error {
+	for _, name := range []string{".env", ".env.provisioning.local"} {
+		if _, err := os.Stat(filepath.Join(root, name)); err == nil {
+			return fmt.Errorf("%s already exists; preserve it and inspect provisioning before retrying", name)
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	}
+	return nil
+}
+
+// Files and CREATE DATABASE cannot share a transaction. Persist recovery first;
+// never retry by adopting resources or deleting an existing database.
+func provisionWithRecovery(root, contents string, create func() error) error {
+	if err := checkProvisioningFiles(root); err != nil {
+		return err
+	}
+	recovery := filepath.Join(root, ".env.provisioning.local")
+	if err := writePrivateConfiguration(recovery, contents); err != nil {
+		return errors.New("cannot persist recovery credentials; no database resources were created")
+	}
+	if err := create(); err != nil {
+		return fmt.Errorf("%w; credentials retained in .env.provisioning.local; inspect named project resources before retrying", err)
+	}
+	if err := writePrivateConfiguration(filepath.Join(root, ".env"), contents); err != nil {
+		return errors.New("cannot publish .env; credentials retained in .env.provisioning.local; inspect local configuration")
+	}
+	if err := os.Remove(recovery); err != nil {
+		return errors.New(".env saved; remove the redundant .env.provisioning.local after verifying it")
+	}
+	return nil
+}
+
+func writePrivateConfiguration(path, contents string) error {
+	envFile, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer envFile.Close()
+	if _, err := envFile.WriteString(contents); err != nil {
+		return err
+	}
+	if err := envFile.Sync(); err != nil {
+		return err
+	}
+	return envFile.Close()
 }
 
 func randomPassword() (string, error) {

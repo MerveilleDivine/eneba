@@ -6,8 +6,9 @@ $nodeBin = Join-Path $projectRoot ".tools\node-v$nodeVersion-win-x64"
 if (-not (Test-Path -LiteralPath (Join-Path $goBin 'go.exe'))) { throw 'Run scripts\bootstrap.ps1 first.' }
 if (-not (Test-Path -LiteralPath (Join-Path $nodeBin 'node.exe'))) { throw 'Run scripts\bootstrap.ps1 first.' }
 $env:PATH = "$nodeBin;$goBin;$env:PATH"
-$postgresBin = Join-Path $env:ProgramFiles 'PostgreSQL\18\bin'
-if (Test-Path -LiteralPath $postgresBin) { $env:PATH = "$env:PATH;$postgresBin" }
+$postgresVersion = (Get-Content -LiteralPath (Join-Path $projectRoot '.postgres-version') -Raw).Trim()
+$postgresBin = if ($env:ENEBA_POSTGRES_BIN) { $env:ENEBA_POSTGRES_BIN } else { Join-Path $projectRoot ".tools\postgresql-$postgresVersion\pgsql\bin" }
+if ($env:ENEBA_POSTGRES_BIN -or (Test-Path -LiteralPath (Join-Path $projectRoot ".tools\postgresql-$postgresVersion\.complete"))) { $env:PATH = "$postgresBin;$env:PATH" }
 $env:GOCACHE = Join-Path $projectRoot '.cache\go-build'
 $env:GOMODCACHE = Join-Path $projectRoot '.cache\go-mod'
 $env:GOPATH = Join-Path $projectRoot '.cache\go'

@@ -10,17 +10,21 @@ Prefer direct code to extra layers. Isolate unavoidable complexity in stable bou
 
 ## Native tools with an isolated local cluster
 
-Use the installed PostgreSQL 18 binaries and a checkout-owned cluster on loopback port 5433. Administrator access to the existing service was unavailable, so a separate cluster gives reproducible setup without modifying other applications' databases.
+Use checksum-pinned project-local PostgreSQL 18.7 binaries and a checkout-owned cluster on loopback port 5433. Administrator access to the existing service was unavailable, so a separate cluster gives reproducible setup without modifying other applications' databases. The project cluster was originally created with installed 18.6 binaries; patch updates preserve its data after a local backup. The original installed service is outside this update's scope.
 
 Go and Node are versioned local installations with verified archive checksums. This costs some checkout-local disk/cache space and avoids changing toolchains used by other projects.
 
 The selected TypeScript version is 6.0.3 because the current TypeScript ESLint release supports versions below 6.1; the newest TypeScript 7 release is incompatible with that range. Runtime dependencies and tool versions are pinned in the lockfiles.
 
+The root overrides minimatch to 11.0.1 only for ESLint, config-array and TypeScript-ESLint's parser infrastructure to address [GHSA-g3hv-75wg-m249](https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249). Version 11 removes APIs, so this is a deliberate cross-major override: the current consumers use retained constructors and match methods; test:tooling verifies discovery, ignored output and actual rule execution. Linux CI repeats it. Remove these overrides when parent packages require a patched version themselves; do not run audit fix --force to downgrade the lint stack.
+
 ## Direct PostgreSQL access and one migration authority
 
 Use pgx for explicit SQL and Goose for version tracking. Supabase supplies PostgreSQL hosting rather than application authentication or browser data access. A second migration history would create competing sources of truth.
 
-Schema ownership and runtime access use separate logins. Local development and integration tests also have separate databases/logins. Environment-specific grants are applied by the explicit migration command after Goose, rather than embedding local role names into portable schema SQL.
+Schema ownership and runtime access use separate logins. Local development and integration tests also have separate databases/logins. Environment-specific grants are applied by the explicit migration command after Goose, rather than embedding local role names into portable schema SQL. Before Goose starts, require matching explicit endpoints/databases (and Supabase pooler project suffixes), reject multi-host configurations, and authenticate both identities. Using different direct/pooler endpoints for owner and application is intentionally unsupported rather than inferred to be safe.
+
+Local provisioning persists recovery credentials before resource creation because CREATE DATABASE and a filesystem write cannot share a transaction. Failures keep the ignored recovery file for inspection; successful completion publishes .env exclusively. There is no automatic adoption, destructive cleanup or hidden retry state machine.
 
 Goose's operational ledger is explicitly qualified as public.goose_db_version. Application DDL uses the private search path, so bookkeeping must not depend on that path. A real-database run caught this boundary before the initial migration was accepted.
 
