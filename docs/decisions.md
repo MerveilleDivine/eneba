@@ -81,6 +81,12 @@ Catalog filters keep one local price draft for unsubmitted user input. Applied p
 
 The catalog route parses and owns the applied URL query and renders persistent filters. A results view keyed by the canonical request path owns its own loading, ready, failed and retry state. Changing the request replaces only the results view; the old view aborts its fetch and cannot write stale results. This removes the extra response-key field and the derived fallback loading state. Keep the results lifecycle local; do not add a generic fetching hook or state manager without a demonstrated need. The present error copy and filter draft synchronization remain separate review checkpoints.
 
+## Catalog component and visual ownership
+
+The catalog page owns its layout, results, loading, empty/error presentation, and pagination styles. Filter/Sort owns its form-control styles; the product card owns its cover, badge, price, and card presentation. Each component imports its own CSS module; the layout does not reach into filter or card internals. Media queries and reduced-motion behaviors stay with the components they affect. Style extraction preserves the existing declarations and breakpoints rather than redesigning the storefront during an architectural cleanup.
+
+Cover gradient variants derive deterministically from the product's stable ID instead of its position in a search or sorted list. The same product keeps its visual identity across filters, sorting, and pagination without per-product persisted state or a theme manager. Visual-device acceptance and real product artwork remain distinct from automated layout, CSS, and interaction checks.
+
 ## Catalog frontend response contract
 
 A successful catalog response must match its requested page and page size and contain the exact number of products implied by the total. An out-of-range page can legitimately return an empty array while retaining the total. Product identifiers must be distinct within a page; prices must be positive, JavaScript-safe integer cents or null for sold-out items. The frontend accepts the supported platform and region values and only root-relative asset paths or HTTPS cover URLs. The Go API remains authoritative for catalog business rules; this boundary detects inconsistent transport data without duplicating SQL or pricing logic.

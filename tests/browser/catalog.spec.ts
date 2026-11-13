@@ -189,3 +189,29 @@ test("frontend catalog facets and sort values match the live Go API", async ({ r
     }
   }
 });
+
+test("product covers keep stable styling across sorting and narrow screens", async ({ page }) => {
+  await page.goto("/catalog");
+  const card = page.locator("article").filter({
+    has: page.getByRole("heading", { name: "Solar Drift" }),
+  });
+  await expect(card).toBeVisible();
+  const cover = card.locator("[data-variation]");
+  const originalVariation = await cover.getAttribute("data-variation");
+  expect(originalVariation).toMatch(/^[0-3]$/);
+  await expect(cover).toHaveCSS("background-image", /linear-gradient/);
+  await expect(page.getByRole("complementary", { name: "Catalog filters" })).toHaveCSS(
+    "border-style",
+    "solid",
+  );
+
+  await page.getByLabel("Sort by").selectOption("price_asc");
+  await expect(card).toBeVisible();
+  await expect(cover).toHaveAttribute("data-variation", originalVariation!);
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(card).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(
+    true,
+  );
+});

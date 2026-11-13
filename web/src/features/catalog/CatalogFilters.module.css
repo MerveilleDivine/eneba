@@ -1,0 +1,144 @@
+.sidebar {
+  padding: 1.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.filterHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.filterHeading {
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.filterHeading h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.clear {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-purple);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.filterFields {
+  display: grid;
+  gap: 1.3rem;
+  padding-top: 1.3rem;
+}
+
+.field {
+  min-width: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.field > span,
+.priceForm legend {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
+.field select,
+.field input,
+.sortGroup select {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  border: 1px solid #aa98c34d;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  background: #1c1034;
+  color: var(--color-text);
+  font-size: 0.86rem;
+}
+
+.field input::placeholder {
+  color: #a998be;
+}
+
+.priceForm fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.priceForm legend {
+  margin-bottom: 0.75rem;
+}
+
+.priceRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.applyButton {
+  width: 100%;
+  margin-top: 0.85rem;
+  border: 1px solid #b89aff6b;
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  background: #39215e;
+  padding: 0.7rem 0.75rem;
+  font-weight: 750;
+}
+
+.applyButton:hover {
+  background: #4a2e74;
+}
+
+.fieldError {
+  font-size: 0.8rem;
+  color: #ffc7c0;
+  line-height: 1.5;
+}
+
+.sortGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.sortGroup label {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.sortGroup select {
+  width: auto;
+  max-width: 190px;
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    padding: 1rem;
+  }
+  .filterFields {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+@media (max-width: 610px) {
+  .filterFields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .priceForm {
+    grid-column: 1 / -1;
+  }
+}

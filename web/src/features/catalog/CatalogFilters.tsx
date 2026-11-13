@@ -7,7 +7,7 @@ import {
   type CatalogQuery,
   type Sort,
 } from "./catalog-query";
-import styles from "./CatalogPage.module.css";
+import styles from "./CatalogFilters.module.css";
 import { platformLabels, regionLabels } from "./catalog-labels";
 
 type Props = {

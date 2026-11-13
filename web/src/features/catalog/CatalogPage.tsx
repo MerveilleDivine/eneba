@@ -110,8 +110,8 @@ function CatalogResults({ query, onChange }: ResultsProps) {
       )}
       {result && result.items.length > 0 && (
         <div className={styles.grid}>
-          {result.items.map((product, index) => (
-            <ProductCard key={product.id} product={product} position={index} />
+          {result.items.map((product) => (
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       )}

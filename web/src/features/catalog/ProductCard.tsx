@@ -1,15 +1,24 @@
 import { useState } from "react";
 import { displayEuro, type CatalogProduct } from "./catalog-api";
-import styles from "./CatalogPage.module.css";
+import styles from "./ProductCard.module.css";
 import { platformLabels, regionLabels } from "./catalog-labels";
 
-type Props = { product: CatalogProduct; position: number };
+type Props = { product: CatalogProduct };
 
-export function ProductCard({ product, position }: Props) {
+// Use stable product identity rather than list order to choose a cover gradient.
+function coverVariation(id: string): number {
+  let variation = 0;
+  for (const character of id) {
+    variation = (variation * 31 + character.charCodeAt(0)) % 4;
+  }
+  return variation;
+}
+
+export function ProductCard({ product }: Props) {
   const [coverUnavailable, setCoverUnavailable] = useState(false);
   return (
     <article className={styles.productCard}>
-      <div className={styles.cover} data-variation={position % 4}>
+      <div className={styles.cover} data-variation={coverVariation(product.id)}>
         {!coverUnavailable && (
           <img
             src={product.coverUrl}
