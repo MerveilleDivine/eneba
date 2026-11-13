@@ -1,0 +1,10 @@
+docs/reference/blueprint-v3.2/
+docs/ai-history/
+db/
+.tools/
+.local/
+.cache/
+node_modules/
+web/dist/
+api/go.*
+api/bin/

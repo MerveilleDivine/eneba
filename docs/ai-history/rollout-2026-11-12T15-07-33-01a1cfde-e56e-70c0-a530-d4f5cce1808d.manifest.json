@@ -1,0 +1,21 @@
+{
+  "format": "codex-visible-transcript-v1",
+  "sourceFile": "rollout-2026-11-12T15-07-33-01a1cfde-e56e-70c0-a530-d4f5cce1808d.jsonl",
+  "exportedAt": "2026-11-13T06:42:33.067Z",
+  "status": "snapshot",
+  "includedEntries": 53,
+  "counts": {
+    "user": 9,
+    "assistant": 35,
+    "assistant questions": 5,
+    "user answers": 4
+  },
+  "firstIncludedTimestamp": "2026-11-12T13:07:46.293Z",
+  "lastIncludedTimestamp": "2026-11-13T06:40:12.347Z",
+  "redactions": 0,
+  "excludes": [
+    "system/developer instructions",
+    "hidden reasoning",
+    "unrelated tool internals"
+  ]
+}

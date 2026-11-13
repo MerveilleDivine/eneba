@@ -1,0 +1,17 @@
+node_modules/
+web/dist/
+api/bin/
+.tools/
+.local/
+.cache/
+.env
+.env.*.local
+!.env.example
+coverage/
+test-results/
+playwright-report/
+docs/ai-history/incoming/
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
