@@ -127,5 +127,4 @@ describe("catalog browsing application", () => {
     await Promise.resolve();
     expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
   });
-
 });
