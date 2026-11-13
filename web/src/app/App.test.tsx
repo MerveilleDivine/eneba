@@ -90,6 +90,23 @@ describe("catalog browsing application", () => {
     expect(mock.mock.calls[1][0]).not.toContain("platform=steam");
   });
 
+  it("recovers from a gateway timeout without changing the catalog query", async () => {
+    const mock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("private gateway detail", { status: 504 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+    renderApp("/catalog?platform=steam");
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("took too long");
+    expect(screen.queryByText("private gateway detail")).not.toBeInTheDocument();
+    await userEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(mock).toHaveBeenCalledTimes(2);
+    expect(mock.mock.calls[0][0]).toBe(mock.mock.calls[1][0]);
+  });
+
   it("offers an honest retry for a rejected default catalog request", async () => {
     const mock = vi
       .fn()
