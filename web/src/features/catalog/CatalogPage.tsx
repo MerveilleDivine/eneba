@@ -175,7 +175,11 @@ export function CatalogPage() {
             onChange={changeQuery}
             onClear={() => navigate("/catalog")}
           />
-          <CatalogResults key={catalogRequestPath(query)} query={query} onChange={changeQuery} />
+          <CatalogResults
+            key={catalogRequestPath(query)}
+            query={query}
+            onChange={changeQuery}
+          />
         </div>
       )}
     </div>

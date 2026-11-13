@@ -180,5 +180,4 @@ describe("catalog browsing application", () => {
     resolveNext(new Response(JSON.stringify({ ...payload, items: [products[1]], total: 1 })));
     expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
   });
-
 });
