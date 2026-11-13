@@ -3,9 +3,15 @@ import { CatalogRequestError, fetchCatalog, parseCatalogResponse } from "./catal
 import { defaultCatalogQuery } from "./catalog-query";
 
 const product = {
-  id: "game-1", slug: "solar-drift", name: "Solar Drift", edition: "Standard",
-  platform: "steam", region: "global", coverUrl: "/images/demo-cover.svg",
-  lowestPriceCents: 1999, available: true,
+  id: "game-1",
+  slug: "solar-drift",
+  name: "Solar Drift",
+  edition: "Standard",
+  platform: "steam",
+  region: "global",
+  coverUrl: "/images/demo-cover.svg",
+  lowestPriceCents: 1999,
+  available: true,
 };
 const payload = { items: [product], total: 1, page: 1, pageSize: 12, currency: "EUR" };
 
@@ -14,8 +20,9 @@ describe("catalog transport boundary", () => {
     expect(parseCatalogResponse(payload).items[0].name).toBe("Solar Drift");
   });
   it("refuses malformed products and inconsistent availability", () => {
-    expect(() => parseCatalogResponse({ ...payload, items: [{ ...product, lowestPriceCents: null }] }))
-      .toThrow(CatalogRequestError);
+    expect(() =>
+      parseCatalogResponse({ ...payload, items: [{ ...product, lowestPriceCents: null }] }),
+    ).toThrow(CatalogRequestError);
     expect(() => parseCatalogResponse({ ...payload, pageSize: 0 })).toThrow(CatalogRequestError);
   });
   it("makes the same-origin request with the expected pagination", async () => {

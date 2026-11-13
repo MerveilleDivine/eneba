@@ -38,24 +38,38 @@ function safeNumber(value: unknown): value is number {
 function isProduct(value: unknown): value is CatalogProduct {
   if (!record(value)) return false;
   const text = ["id", "slug", "name", "edition", "platform", "region", "coverUrl"];
-  return text.every((field) => typeof value[field] === "string" && value[field].length > 0) &&
+  return (
+    text.every((field) => typeof value[field] === "string" && value[field].length > 0) &&
     typeof value.available === "boolean" &&
     (value.lowestPriceCents === null ||
       (safeNumber(value.lowestPriceCents) && value.lowestPriceCents > 0)) &&
-    value.available === (value.lowestPriceCents !== null);
+    value.available === (value.lowestPriceCents !== null)
+  );
 }
 
 export function parseCatalogResponse(value: unknown): CatalogPageData {
-  if (!record(value) || !Array.isArray(value.items) || !value.items.every(isProduct) ||
-      !safeNumber(value.total) || !safeNumber(value.page) || value.page < 1 ||
-      !safeNumber(value.pageSize) || value.pageSize < 1 || value.pageSize > 50 ||
-      value.items.length > value.pageSize || value.currency !== "EUR") {
+  if (
+    !record(value) ||
+    !Array.isArray(value.items) ||
+    !value.items.every(isProduct) ||
+    !safeNumber(value.total) ||
+    !safeNumber(value.page) ||
+    value.page < 1 ||
+    !safeNumber(value.pageSize) ||
+    value.pageSize < 1 ||
+    value.pageSize > 50 ||
+    value.items.length > value.pageSize ||
+    value.currency !== "EUR"
+  ) {
     throw new CatalogRequestError("unexpected");
   }
   return value as CatalogPageData;
 }
 
-export async function fetchCatalog(query: CatalogQuery, signal: AbortSignal): Promise<CatalogPageData> {
+export async function fetchCatalog(
+  query: CatalogQuery,
+  signal: AbortSignal,
+): Promise<CatalogPageData> {
   const response = await fetch(catalogRequestPath(query), {
     signal,
     cache: "no-store",
@@ -63,8 +77,9 @@ export async function fetchCatalog(query: CatalogQuery, signal: AbortSignal): Pr
     headers: { Accept: "application/json" },
   });
   if (!response.ok) {
-    throw new CatalogRequestError(response.status === 503 ? "unavailable" :
-      response.status === 400 ? "invalid" : "unexpected");
+    throw new CatalogRequestError(
+      response.status === 503 ? "unavailable" : response.status === 400 ? "invalid" : "unexpected",
+    );
   }
   let data: unknown;
   try {

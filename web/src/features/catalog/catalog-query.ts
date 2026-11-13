@@ -17,13 +17,18 @@ export type CatalogQuery = {
   pageSize: number;
 };
 
-export type ParsedCatalogQuery =
-  | { ok: true; query: CatalogQuery }
-  | { ok: false; message: string };
+export type ParsedCatalogQuery = { ok: true; query: CatalogQuery } | { ok: false; message: string };
 
 export const CATALOG_PAGE_SIZE = 12;
 const permitted = new Set([
-  "q", "platform", "region", "sort", "minPriceCents", "maxPriceCents", "page", "pageSize",
+  "q",
+  "platform",
+  "region",
+  "sort",
+  "minPriceCents",
+  "maxPriceCents",
+  "page",
+  "pageSize",
 ]);
 const safeCents = Number.MAX_SAFE_INTEGER;
 
@@ -41,9 +46,7 @@ export function defaultCatalogQuery(q = ""): CatalogQuery {
 function parseInteger(value: string | null, minimum: number, maximum: number): number | null {
   if (value === null || !/^\d+$/.test(value)) return null;
   const number = Number(value);
-  return Number.isSafeInteger(number) && number >= minimum && number <= maximum
-    ? number
-    : null;
+  return Number.isSafeInteger(number) && number >= minimum && number <= maximum ? number : null;
 }
 
 export function parseCatalogSearch(search: string): ParsedCatalogQuery {
@@ -83,8 +86,11 @@ export function parseCatalogSearch(search: string): ParsedCatalogQuery {
       query[key] = amount;
     }
   }
-  if (query.minPriceCents !== undefined && query.maxPriceCents !== undefined &&
-      query.minPriceCents > query.maxPriceCents) {
+  if (
+    query.minPriceCents !== undefined &&
+    query.maxPriceCents !== undefined &&
+    query.minPriceCents > query.maxPriceCents
+  ) {
     return { ok: false, message: "The minimum price cannot exceed the maximum." };
   }
   if (params.has("page")) {

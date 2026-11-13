@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import {
-  catalogHref, defaultCatalogQuery, parseCatalogSearch, type CatalogQuery,
+  catalogHref,
+  defaultCatalogQuery,
+  parseCatalogSearch,
+  type CatalogQuery,
 } from "../../features/catalog/catalog-query";
 import styles from "./SiteHeader.module.css";
 
@@ -16,12 +19,20 @@ function HeaderSearch({ initialQuery, baseQuery, onCatalog }: SearchProps) {
   const [draft, setDraft] = useState(initialQuery);
   const [edited, setEdited] = useState(false);
 
-  const applySearch = useCallback((text: string) => {
-    const q = text.trim();
-    navigate(catalogHref({
-      ...baseQuery, q, page: 1, sort: q ? "relevance" : "name_asc",
-    }));
-  }, [baseQuery, navigate]);
+  const applySearch = useCallback(
+    (text: string) => {
+      const q = text.trim();
+      navigate(
+        catalogHref({
+          ...baseQuery,
+          q,
+          page: 1,
+          sort: q ? "relevance" : "name_asc",
+        }),
+      );
+    },
+    [baseQuery, navigate],
+  );
 
   useEffect(() => {
     if (!edited || !onCatalog) return;
@@ -40,7 +51,9 @@ function HeaderSearch({ initialQuery, baseQuery, onCatalog }: SearchProps) {
 
   return (
     <form onSubmit={submit} role="search" className={styles.search}>
-      <label htmlFor="global-game-search" className={styles.visuallyHidden}>Search games</label>
+      <label htmlFor="global-game-search" className={styles.visuallyHidden}>
+        Search games
+      </label>
       <input
         id="global-game-search"
         type="search"
@@ -48,7 +61,10 @@ function HeaderSearch({ initialQuery, baseQuery, onCatalog }: SearchProps) {
         autoComplete="off"
         maxLength={100}
         value={draft}
-        onChange={(event) => { setDraft(event.target.value); setEdited(true); }}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          setEdited(true);
+        }}
       />
       <button type="submit" aria-label="Search games">
         <span aria-hidden="true">⌕</span>
@@ -71,8 +87,12 @@ export function SiteHeader() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link className={styles.brand} to="/catalog" aria-label="Eneba demo catalog">
-          <span className={styles.brandMark} aria-hidden="true">e</span>
-          <span>eneba<span className={styles.brandDot}>.</span></span>
+          <span className={styles.brandMark} aria-hidden="true">
+            e
+          </span>
+          <span>
+            eneba<span className={styles.brandDot}>.</span>
+          </span>
         </Link>
         <HeaderSearch
           key={location.pathname + ":" + currentQuery}
@@ -81,7 +101,9 @@ export function SiteHeader() {
           onCatalog={location.pathname === "/catalog"}
         />
         <nav aria-label="Main navigation" className={styles.navigation}>
-          <Link to="/catalog" aria-current={location.pathname === "/catalog" ? "page" : undefined}>Browse games</Link>
+          <Link to="/catalog" aria-current={location.pathname === "/catalog" ? "page" : undefined}>
+            Browse games
+          </Link>
         </nav>
       </div>
       <div className={styles.demoStrip}>

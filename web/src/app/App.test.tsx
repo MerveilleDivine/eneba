@@ -5,19 +5,39 @@ import { MemoryRouter } from "react-router";
 import { App } from "./App";
 
 const products = [
-  { id: "1", slug: "solar-drift", name: "Solar Drift", edition: "Standard",
-    platform: "steam", region: "global", coverUrl: "/images/demo-cover.svg",
-    available: true, lowestPriceCents: 1136 },
-  { id: "2", slug: "lunar-legacy", name: "Lunar Legacy", edition: "Standard",
-    platform: "xbox", region: "europe", coverUrl: "/images/demo-cover.svg",
-    available: false, lowestPriceCents: null },
+  {
+    id: "1",
+    slug: "solar-drift",
+    name: "Solar Drift",
+    edition: "Standard",
+    platform: "steam",
+    region: "global",
+    coverUrl: "/images/demo-cover.svg",
+    available: true,
+    lowestPriceCents: 1136,
+  },
+  {
+    id: "2",
+    slug: "lunar-legacy",
+    name: "Lunar Legacy",
+    edition: "Standard",
+    platform: "xbox",
+    region: "europe",
+    coverUrl: "/images/demo-cover.svg",
+    available: false,
+    lowestPriceCents: null,
+  },
 ];
 const payload = { items: products, total: 2, page: 1, pageSize: 12, currency: "EUR" };
 
 afterEach(() => vi.unstubAllGlobals());
 
 function renderApp(path = "/catalog") {
-  return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <App />
+    </MemoryRouter>,
+  );
 }
 
 describe("catalog browsing application", () => {
@@ -30,12 +50,15 @@ describe("catalog browsing application", () => {
     expect(screen.getByText("€11.36")).toBeInTheDocument();
     expect(screen.getByText("Currently unavailable")).toBeInTheDocument();
     expect(screen.getByText("Unofficial demo")).toBeInTheDocument();
-    expect(mock).toHaveBeenCalledWith(expect.stringContaining("/api/v1/products?"),
-      expect.objectContaining({ credentials: "same-origin" }));
+    expect(mock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/products?"),
+      expect.objectContaining({ credentials: "same-origin" }),
+    );
   });
 
   it("recovers from a service outage using Retry", async () => {
-    const mock = vi.fn()
+    const mock = vi
+      .fn()
       .mockResolvedValueOnce(new Response("sensitive response", { status: 503 }))
       .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);

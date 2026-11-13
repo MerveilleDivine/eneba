@@ -3,11 +3,16 @@ import { displayEuro, type CatalogProduct } from "./catalog-api";
 import styles from "./CatalogPage.module.css";
 
 const platformLabels: Record<string, string> = {
-  steam: "Steam", xbox: "Xbox", playstation: "PlayStation",
-  nintendo: "Nintendo", other: "Other",
+  steam: "Steam",
+  xbox: "Xbox",
+  playstation: "PlayStation",
+  nintendo: "Nintendo",
+  other: "Other",
 };
 const regionLabels: Record<string, string> = {
-  global: "Global", europe: "Europe", "united-states": "United States",
+  global: "Global",
+  europe: "Europe",
+  "united-states": "United States",
 };
 
 type Props = { product: CatalogProduct; position: number };
@@ -17,8 +22,14 @@ export function ProductCard({ product, position }: Props) {
   return (
     <article className={styles.productCard}>
       <div className={styles.cover} data-variation={position % 4}>
-        {!coverUnavailable && <img src={product.coverUrl} alt="" loading="lazy"
-          onError={() => setCoverUnavailable(true)} />}
+        {!coverUnavailable && (
+          <img
+            src={product.coverUrl}
+            alt=""
+            loading="lazy"
+            onError={() => setCoverUnavailable(true)}
+          />
+        )}
         <div className={styles.coverText} aria-hidden="true">
           <span className={styles.coverEdition}>{product.edition} edition</span>
           <span className={styles.coverTitle}>{product.name}</span>

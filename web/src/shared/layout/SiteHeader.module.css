@@ -37,7 +37,9 @@
   transform: rotate(-8deg);
 }
 
-.brandDot { color: var(--color-accent); }
+.brandDot {
+  color: var(--color-accent);
+}
 
 .visuallyHidden {
   position: absolute;
@@ -78,8 +80,12 @@
   outline: none;
 }
 
-.search input::placeholder { color: #c8badc; }
-.search input::-webkit-search-cancel-button { cursor: pointer; }
+.search input::placeholder {
+  color: #c8badc;
+}
+.search input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
 
 .search button {
   border: 0;
@@ -94,10 +100,17 @@
   gap: 0.4rem;
 }
 
-.search button:hover { background: #f1ffb5; }
-.search button span:first-child { font-size: 1.5rem; line-height: 0.8; }
+.search button:hover {
+  background: #f1ffb5;
+}
+.search button span:first-child {
+  font-size: 1.5rem;
+  line-height: 0.8;
+}
 
-.navigation { margin-left: auto; }
+.navigation {
+  margin-left: auto;
+}
 
 .navigation a {
   display: inline-flex;
@@ -108,8 +121,13 @@
   white-space: nowrap;
 }
 
-.navigation a[aria-current="page"] { color: var(--color-accent); }
-.navigation a:hover { text-decoration: underline; text-underline-offset: 0.4rem; }
+.navigation a[aria-current="page"] {
+  color: var(--color-accent);
+}
+.navigation a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.4rem;
+}
 
 .demoStrip {
   width: min(100% - 3rem, 1440px);
@@ -135,15 +153,38 @@
     gap: 0.85rem;
   }
 
-  .brand { grid-column: 1; grid-row: 1; }
-  .navigation { grid-column: 2; grid-row: 1; }
-  .search { grid-column: 1 / -1; grid-row: 2; max-width: none; width: 100%; }
+  .brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .navigation {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .search {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-width: none;
+    width: 100%;
+  }
 }
 
 @media (max-width: 380px) {
-  .brand { font-size: 1.5rem; }
-  .brandMark { width: 30px; height: 30px; }
-  .navigation a { font-size: 0.8rem; }
-  .search button { min-width: 50px; padding: 0.5rem 0.7rem; }
-  .searchButtonText { display: none; }
+  .brand {
+    font-size: 1.5rem;
+  }
+  .brandMark {
+    width: 30px;
+    height: 30px;
+  }
+  .navigation a {
+    font-size: 0.8rem;
+  }
+  .search button {
+    min-width: 50px;
+    padding: 0.5rem 0.7rem;
+  }
+  .searchButtonText {
+    display: none;
+  }
 }

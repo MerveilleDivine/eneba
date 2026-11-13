@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  catalogHref, catalogRequestPath, defaultCatalogQuery, euroInput,
-  parseCatalogSearch, parseEuroInput,
+  catalogHref,
+  catalogRequestPath,
+  defaultCatalogQuery,
+  euroInput,
+  parseCatalogSearch,
+  parseEuroInput,
 } from "./catalog-query";
 
 describe("catalog URL state", () => {
@@ -10,15 +14,29 @@ describe("catalog URL state", () => {
     const parsed = parseCatalogSearch("?q=solar&platform=steam&sort=price_asc&page=2");
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
-    expect(parsed.query).toMatchObject({ q: "solar", platform: "steam", sort: "price_asc", page: 2, pageSize: 12 });
+    expect(parsed.query).toMatchObject({
+      q: "solar",
+      platform: "steam",
+      sort: "price_asc",
+      page: 2,
+      pageSize: 12,
+    });
     expect(catalogHref(parsed.query)).toBe("/catalog?q=solar&platform=steam&sort=price_asc&page=2");
     expect(catalogRequestPath(parsed.query)).toContain("pageSize=12");
   });
 
   it.each([
-    "?platform=pc", "?region=mars", "?sort=DROP", "?q=one&q=two", "?unknown=1",
-    "?page=0", "?page=1.1", "?pageSize=51", "?minPriceCents=-1",
-    "?maxPriceCents=999999999999999999", "?minPriceCents=300&maxPriceCents=200",
+    "?platform=pc",
+    "?region=mars",
+    "?sort=DROP",
+    "?q=one&q=two",
+    "?unknown=1",
+    "?page=0",
+    "?page=1.1",
+    "?pageSize=51",
+    "?minPriceCents=-1",
+    "?maxPriceCents=999999999999999999",
+    "?minPriceCents=300&maxPriceCents=200",
   ])("rejects invalid browsing state: %s", (search) => {
     expect(parseCatalogSearch(search).ok).toBe(false);
   });

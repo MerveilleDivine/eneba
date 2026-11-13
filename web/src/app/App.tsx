@@ -9,7 +9,9 @@ function NotFound() {
       <p className={styles.eyebrow}>Page not found</p>
       <h1>That page doesn't exist.</h1>
       <p>Explore the games available in our catalog instead.</p>
-      <Link to="/catalog" className={styles.backLink}>Browse games</Link>
+      <Link to="/catalog" className={styles.backLink}>
+        Browse games
+      </Link>
     </section>
   );
 }
@@ -17,7 +19,9 @@ function NotFound() {
 export function App() {
   return (
     <div className={styles.app}>
-      <a href="#main" className={styles.skipLink}>Skip to content</a>
+      <a href="#main" className={styles.skipLink}>
+        Skip to content
+      </a>
       <SiteHeader />
       <main id="main" className={styles.main}>
         <Routes>

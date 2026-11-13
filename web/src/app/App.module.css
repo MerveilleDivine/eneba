@@ -16,9 +16,13 @@
   font-weight: 700;
 }
 
-.skipLink:focus { top: 0.75rem; }
+.skipLink:focus {
+  top: 0.75rem;
+}
 
-.main { flex: 1; }
+.main {
+  flex: 1;
+}
 
 .footer {
   width: min(100% - 3rem, 1440px);
@@ -44,7 +48,9 @@
   margin: 0.4rem 0 1rem;
 }
 
-.notFound p { color: var(--color-muted); }
+.notFound p {
+  color: var(--color-muted);
+}
 
 .eyebrow {
   color: var(--color-purple);
@@ -66,5 +72,9 @@
 }
 
 @media (max-width: 640px) {
-  .footer { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
 }
