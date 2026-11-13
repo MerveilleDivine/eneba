@@ -43,27 +43,19 @@
 
 .resultsToolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .resultsToolbar h2 {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: clamp(1.2rem, 2vw, 1.45rem);
 }
 
 .results {
   min-width: 0;
-}
-
-.resultsToolbar {
-  margin-bottom: 1.5rem;
-  align-items: flex-end;
-}
-
-.resultsToolbar h2 {
-  font-size: clamp(1.2rem, 2vw, 1.45rem);
 }
 
 .count {

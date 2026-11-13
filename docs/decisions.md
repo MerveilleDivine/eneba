@@ -149,6 +149,31 @@ coverage. D3 remains the broader adversarial recovery and overlapping-request re
 
 A successful catalog response must match its requested page and page size and contain the exact number of products implied by the total. An out-of-range page can legitimately return an empty array while retaining the total. Product identifiers must be distinct within a page; prices must be positive, JavaScript-safe integer cents or null for sold-out items. The frontend accepts the supported platform and region values and only root-relative asset paths or HTTPS cover URLs. The Go API remains authoritative for catalog business rules; this boundary detects inconsistent transport data without duplicating SQL or pricing logic.
 
+## Slice 2 final architectural review (Checkpoint D5)
+
+Reviewed catalog URL and draft-state ownership, API/request lifecycle, feature and shared-module
+boundaries, Go handler/service/repository separation, PostgreSQL inventory and price projections,
+CSS module ownership, API-to-browser acceptance, and automated accessibility/responsive checks.
+The feature's URL remains the authority for applied controls; query-keyed results own fetch/retry
+and timeout state; temporary search and price drafts stay local. Shared layout does not import
+catalog feature code. Handler validation and database constraints deliberately repeat policy at
+different trust boundaries; they are not accidental duplication.
+
+The review found no demonstrated need for global state, generalized fetching, a new repository
+interface, service decomposition, or a cross-layer DTO generator. It consolidated a duplicate
+`resultsToolbar` CSS block and a duplicate `filterHeading` block without changing their
+effective style. The prior D3 canonical-request, cancellation, retry, and fixture defects already
+have dedicated regression coverage. D4 confirms real PostgreSQL inventory and search values
+through Go, the same-origin development proxy, and Chromium.
+
+Remaining user-experience and delivery limitations are explicit: product-card navigation,
+seller offers, authentication, cart and checkout are later slices, not inert placeholder controls.
+The reusable seed cover treatment is an interim catalog visual; original/licensed artwork and
+hands-on mobile and accessibility review remain separate visual acceptance. A public HTTPS
+frontend/API/database deployment was not made; the user deferred it. This prevents declaring
+Slice 2 fully released even with passing automated checks. Any future contract extension must
+update API, schema, and frontend compatibility checks together.
+
 ## Evidence before claims
 
 Local checks, browser observations, remote CI, and public deployment are distinct evidence. Document pending checks rather than inferring that generated configuration has worked. Preserve complete user prompts and visible assistant responses, including user-input decisions, without hidden model reasoning or credentials.

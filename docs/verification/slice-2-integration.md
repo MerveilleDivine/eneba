@@ -42,9 +42,10 @@ No custom browser measurements or performance figures are inferred.
   project name or the GitHub repository URL at the time of this review.
 - No dedicated Eneba Supabase project appeared among connected projects.
   Existing unrelated application databases must not be reused.
-- Render service inspection was not authorized because the connection requires
-  explicit confirmation of a selected workspace. No backend deployment status
-  is inferred.
+- The user confirmed Render's "My Workspace" for read-only inspection.
+  That workspace lists an unrelated `roomwise-reservations` web service,
+  no Eneba Go service, and no Render PostgreSQL instance.
+  No other service was changed.
 - Public HTTPS routing, Vercel-to-Render API proxying, hosted `/readyz`,
   production browser data access, CORS/origin enforcement, and cookies under
   actual production domains remain untested. Authentication and cookie behavior
@@ -55,6 +56,18 @@ No custom browser measurements or performance figures are inferred.
 - Release preparation requires deployment configuration, a dedicated database,
   approved environment credentials, and a smoke test against a real public URL.
   No production environment is provisioned or changed by D4.
+
+## Final D4 CI evidence
+
+The final D4 commit `c2091aee64e8e5f33fa1fbaa0dd51d3e927d0722` completed
+both feature-push and draft-PR Engineering checks on PostgreSQL 17.12 and 18.7.
+The feature-push run was
+[43497479363](https://github.com/MerveilleDivine/eneba/actions/runs/43497479363)
+and the draft-PR run was
+[43497493394](https://github.com/MerveilleDivine/eneba/actions/runs/43497493394).
+Each completed successfully: 92 frontend unit tests and 29 browser tests,
+plus Go verification, integration/race checks, formatting, builds and audits.
+This is CI/local service evidence, not a hosted release.
 
 ## Review and next gate
 
