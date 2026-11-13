@@ -136,3 +136,39 @@ test("submitting immediately creates only one search history entry", async ({ pa
   await expect(page).toHaveURL(/\/catalog$/);
   await expect(search).toHaveValue("");
 });
+
+test("price drafts survive unrelated filters and Clear all resets even unapplied values", async ({ page }) => {
+  await page.goto("/catalog?platform=steam");
+  const minimum = page.getByRole("textbox", { name: "Min" });
+  await minimum.fill("8.75");
+  await page.getByLabel("Region").selectOption("global");
+  await expect(page).toHaveURL(/region=global/);
+  await expect(minimum).toHaveValue("8.75");
+
+  await page.getByRole("button", { name: "Clear all" }).click();
+  await expect(page).toHaveURL(/\/catalog$/);
+  await expect(minimum).toHaveValue("");
+});
+
+test("applying prices preserves input identity and browser history restores URL values", async ({
+  page,
+}) => {
+  await page.goto("/catalog?platform=steam");
+  const minimum = page.getByRole("textbox", { name: "Min" });
+  const maximum = page.getByRole("textbox", { name: "Max" });
+  const originalInput = await minimum.elementHandle();
+
+  await minimum.fill("11.36");
+  await maximum.fill("11.36");
+  await minimum.press("Enter");
+  await expect(page).toHaveURL(/minPriceCents=1136/);
+  await expect(minimum).toHaveValue("11.36");
+  await expect(minimum).toBeFocused();
+  expect(await originalInput?.evaluate((element) => element.isConnected)).toBe(true);
+
+  await page.goBack();
+  await expect(minimum).toHaveValue("");
+  await page.goForward();
+  await expect(minimum).toHaveValue("11.36");
+  expect(await originalInput?.evaluate((element) => element.isConnected)).toBe(true);
+});

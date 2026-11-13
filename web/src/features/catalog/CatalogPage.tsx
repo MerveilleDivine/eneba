@@ -168,7 +168,6 @@ export function CatalogPage() {
       ) : (
         <div className={styles.browseLayout}>
           <CatalogFilters
-            key={String(query.minPriceCents) + ":" + String(query.maxPriceCents)}
             query={query}
             onChange={changeQuery}
             onClear={() => navigate("/catalog")}

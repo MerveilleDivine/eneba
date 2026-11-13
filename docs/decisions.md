@@ -67,6 +67,10 @@ Count and page use the same filtered SQL in a read-only repeatable-read transact
 
 Integer cents must fit JavaScript's safe range at the request and projection boundaries. Search uses literal escaped ILIKE and a fixed word_similarity threshold of 0.4 for three-or-more-character queries. At demo scale, bounded set-based scans are an explicit cost; the fuzzy function is not presented as an indexed search. Query deadlines, stable ties and real database tests give us useful guarantees before adding optimization or another service.
 
+## Filter drafts and applied URL state
+
+Catalog filters keep one local price draft for unsubmitted user input. Applied prices remain authoritative in the URL: when the applied price range changes, the draft resets to those values without remounting the filter controls. Unrelated platform, region, sorting and search changes preserve unfinished price edits; Clear all explicitly clears them even when no price range was previously applied. Invalid price input stays local until corrected, and unchanged submissions do not create redundant navigation. This avoids additional state managers, DOM synchronization effects and keyed remounts of the entire filter panel.
+
 ## Catalog results request ownership
 
 The catalog route parses and owns the applied URL query and renders persistent filters. A results view keyed by the canonical request path owns its own loading, ready, failed and retry state. Changing the request replaces only the results view; the old view aborts its fetch and cannot write stale results. This removes the extra response-key field and the derived fallback loading state. Keep the results lifecycle local; do not add a generic fetching hook or state manager without a demonstrated need. The present error copy and filter draft synchronization remain separate review checkpoints.
