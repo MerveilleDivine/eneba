@@ -54,6 +54,24 @@ describe("catalog price-filter drafts", () => {
     expect(maximum).toHaveValue("");
   });
 
+  it("does not resurrect an old draft when navigating back to an earlier price range", async () => {
+    const { rerender, onChange, onClear } = renderFilters();
+    const minimum = screen.getByRole("textbox", { name: "Min" });
+    await userEvent.type(minimum, "9.99");
+
+    rerender(
+      <CatalogFilters
+        query={{ ...baseQuery, minPriceCents: 1500 }}
+        onChange={onChange}
+        onClear={onClear}
+      />,
+    );
+    expect(minimum).toHaveValue("15.00");
+
+    rerender(<CatalogFilters query={baseQuery} onChange={onChange} onClear={onClear} />);
+    expect(minimum).toHaveValue("");
+  });
+
   it("clears an unsubmitted draft even when the URL has no applied price range", async () => {
     const { onClear } = renderFilters({ ...baseQuery, platform: "steam" });
     const minimum = screen.getByRole("textbox", { name: "Min" });
