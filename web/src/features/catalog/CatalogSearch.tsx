@@ -1,4 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, type ChangeEvent, type CompositionEvent, type FormEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ChangeEvent,
+  type CompositionEvent,
+  type FormEvent,
+} from "react";
 import { useLocation, useNavigate } from "react-router";
 import {
   catalogHref,
