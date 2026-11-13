@@ -28,6 +28,12 @@ describe("catalog transport boundary", () => {
     expect(parseCatalogResponse(withHttpsCover, query).total).toBe(1);
   });
 
+  it("accepts sold-out products without a price", () => {
+    const soldOut = { ...product, available: false, lowestPriceCents: null };
+    const parsed = parseCatalogResponse({ ...payload, items: [soldOut] }, query);
+    expect(parsed.items[0].available).toBe(false);
+  });
+
   it("accepts the last partial page and an out-of-range empty page", () => {
     const secondPage = { ...query, page: 2 };
     expect(parseCatalogResponse({ ...payload, page: 2, total: 13 }, secondPage).items).toHaveLength(
