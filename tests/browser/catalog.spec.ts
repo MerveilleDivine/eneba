@@ -59,6 +59,36 @@ test("service errors recover without clearing filters", async ({ page }) => {
   await expect(page).toHaveURL(/platform=steam/);
 });
 
+test("API-rejected filters offer reset without showing server details", async ({ page }) => {
+  await page.route("**/api/v1/products?*", async (route) => {
+    await route.fulfill({ status: 400, body: "private server validation" });
+  });
+  await page.goto("/catalog?platform=steam");
+  const alert = page.getByRole("alert");
+  await expect(alert).toContainText("Those filters couldn't be applied");
+  await expect(alert).not.toContainText("private server validation");
+  await page.unroute("**/api/v1/products?*");
+  await page.getByRole("link", { name: "Reset filters" }).click();
+  await expect(page).toHaveURL(/\/catalog$/);
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+});
+
+test("unexpected server errors offer retry without claiming a temporary outage", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/products?*", async (route) => {
+    await route.fulfill({ status: 500, body: "private stack trace" });
+  });
+  await page.goto("/catalog");
+  const alert = page.getByRole("alert");
+  await expect(alert).toContainText("We couldn't load the games");
+  await expect(alert).not.toContainText("temporarily unavailable");
+  await expect(alert).not.toContainText("private stack trace");
+  await page.unroute("**/api/v1/products?*");
+  await page.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+});
+
 test("invalid links recover without an API call", async ({ page }) => {
   await page.goto("/catalog?sort=not-a-sort");
   await expect(page.getByRole("alert")).toContainText("sorting option");

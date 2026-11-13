@@ -93,6 +93,21 @@ The catalog page owns its layout, results, loading, empty/error presentation, an
 
 Cover gradient variants derive deterministically from the product's stable ID instead of its position in a search or sorted list. The same product keeps its visual identity across filters, sorting, and pagination without per-product persisted state or a theme manager. Visual-device acceptance and real product artwork remain distinct from automated layout, CSS, and interaction checks.
 
+## Catalog frontend failure classification (Checkpoint D2)
+
+The catalog transport boundary distinguishes invalid HTTP requests (400), temporarily unavailable
+services (503), unexpected HTTP or malformed-data failures, and browser network failures.
+It does not display raw server response bodies or JavaScript exception details. The results view
+classifies its own six-second request deadline as a timeout; canceling a stale request during
+navigation does not render an error.
+
+The UI provides contextual messages: an invalid filtered query offers Reset filters (or Retry
+for an already-unfiltered URL); unavailable services, unexpected responses, network failures,
+and timeouts offer Retry without changing the applied URL. Error copy belongs to the catalog
+presentation layer, not to the Go API and not to a generic notification framework. This
+checkpoint establishes the categories and messages; dedicated timeout/cancellation and
+failure-recovery edge-case coverage remains in D3.
+
 ## Catalog frontend response contract
 
 A successful catalog response must match its requested page and page size and contain the exact number of products implied by the total. An out-of-range page can legitimately return an empty array while retaining the total. Product identifiers must be distinct within a page; prices must be positive, JavaScript-safe integer cents or null for sold-out items. The frontend accepts the supported platform and region values and only root-relative asset paths or HTTPS cover URLs. The Go API remains authoritative for catalog business rules; this boundary detects inconsistent transport data without duplicating SQL or pricing logic.

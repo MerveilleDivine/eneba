@@ -27,8 +27,10 @@ export type CatalogPageData = {
   currency: "EUR";
 };
 
+export type CatalogFailureKind = "invalid" | "unavailable" | "unexpected" | "network" | "timeout";
+
 export class CatalogRequestError extends Error {
-  constructor(public readonly kind: "unavailable" | "invalid" | "unexpected") {
+  constructor(public readonly kind: CatalogFailureKind) {
     super(kind);
     this.name = "CatalogRequestError";
   }
@@ -111,12 +113,18 @@ export async function fetchCatalog(
   query: CatalogQuery,
   signal: AbortSignal,
 ): Promise<CatalogPageData> {
-  const response = await fetch(catalogRequestPath(query), {
-    signal,
-    cache: "no-store",
-    credentials: "same-origin",
-    headers: { Accept: "application/json" },
-  });
+  let response: Response;
+  try {
+    response = await fetch(catalogRequestPath(query), {
+      signal,
+      cache: "no-store",
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    });
+  } catch (error) {
+    if (signal.aborted) throw error;
+    throw new CatalogRequestError(error instanceof TypeError ? "network" : "unexpected");
+  }
   if (!response.ok) {
     throw new CatalogRequestError(
       response.status === 503 ? "unavailable" : response.status === 400 ? "invalid" : "unexpected",

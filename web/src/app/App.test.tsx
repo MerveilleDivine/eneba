@@ -70,6 +70,66 @@ describe("catalog browsing application", () => {
     expect(mock).toHaveBeenCalledTimes(2);
   });
 
+  it("offers a filter reset when the API rejects the selection", async () => {
+    const mock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("private server detail", { status: 400 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+    renderApp("/catalog?platform=steam");
+
+    const alert = await screen.findByRole("alert");
+    expect(
+      within(alert).getByRole("heading", { name: "Those filters couldn't be applied" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("private server detail")).not.toBeInTheDocument();
+    await userEvent.click(within(alert).getByRole("link", { name: "Reset filters" }));
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(mock).toHaveBeenCalledTimes(2);
+    expect(mock.mock.calls[1][0]).not.toContain("platform=steam");
+  });
+
+  it("does not describe unexpected server failures as temporary outages", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("private stack", { status: 500 })),
+    );
+    renderApp();
+    const alert = await screen.findByRole("alert");
+    expect(
+      within(alert).getByRole("heading", { name: "We couldn't load the games" }),
+    ).toBeInTheDocument();
+    expect(alert).not.toHaveTextContent("temporarily unavailable");
+    expect(screen.queryByText("private stack")).not.toBeInTheDocument();
+    expect(within(alert).getByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
+
+  it("explains network failures and allows retry without leaking details", async () => {
+    const mock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("private network address"))
+      .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+    renderApp();
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByRole("heading", { name: "Connection problem" })).toBeInTheDocument();
+    expect(alert).toHaveTextContent("Check your connection");
+    expect(screen.queryByText("private network address")).not.toBeInTheDocument();
+    await userEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(mock).toHaveBeenCalledTimes(2);
+  });
+
+  it("treats a malformed success response as an unexpected failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{private", { status: 200 })));
+    renderApp();
+    const alert = await screen.findByRole("alert");
+    expect(
+      within(alert).getByRole("heading", { name: "We couldn't load the games" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("{private")).not.toBeInTheDocument();
+  });
+
   it("rejects malformed links without sending an HTTP request", () => {
     const mock = vi.fn();
     vi.stubGlobal("fetch", mock);

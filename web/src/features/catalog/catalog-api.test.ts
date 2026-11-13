@@ -95,6 +95,32 @@ describe("catalog transport boundary", () => {
     });
   });
 
+  it.each([
+    { status: 400, kind: "invalid" },
+    { status: 503, kind: "unavailable" },
+    { status: 500, kind: "unexpected" },
+  ])("classifies HTTP $status without reading server details", async ({ status, kind }) => {
+    const mock = vi.fn().mockResolvedValue(new Response("private backend error", { status }));
+    vi.stubGlobal("fetch", mock);
+    await expect(fetchCatalog(query, new AbortController().signal)).rejects.toMatchObject({
+      kind,
+    });
+  });
+
+  it("classifies network failures without exposing their details", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("private network address")));
+    await expect(fetchCatalog(query, new AbortController().signal)).rejects.toMatchObject({
+      kind: "network",
+    });
+  });
+
+  it("classifies malformed JSON as an unexpected response", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{invalid", { status: 200 })));
+    await expect(fetchCatalog(query, new AbortController().signal)).rejects.toMatchObject({
+      kind: "unexpected",
+    });
+  });
+
   it("requests the same-origin API with the expected pagination", async () => {
     const mock = vi.fn().mockResolvedValue(new Response(JSON.stringify(payload), { status: 200 }));
     vi.stubGlobal("fetch", mock);

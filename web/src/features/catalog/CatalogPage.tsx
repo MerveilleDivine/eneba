@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { CatalogFilters, CatalogSort } from "./CatalogFilters";
 import { ProductCard } from "./ProductCard";
-import { CatalogRequestError, fetchCatalog, type CatalogPageData } from "./catalog-api";
+import {
+  CatalogRequestError,
+  fetchCatalog,
+  type CatalogFailureKind,
+  type CatalogPageData,
+} from "./catalog-api";
 import {
   catalogHref,
   catalogRequestPath,
@@ -15,7 +20,30 @@ import styles from "./CatalogPage.module.css";
 type RequestState =
   | { status: "loading" }
   | { status: "ready"; data: CatalogPageData }
-  | { status: "failed"; message: string };
+  | { status: "failed"; kind: CatalogFailureKind };
+
+const failureMessages: Record<CatalogFailureKind, { title: string; description: string }> = {
+  invalid: {
+    title: "Those filters couldn't be applied",
+    description: "The catalog couldn't use this selection. Change the filters or reset them.",
+  },
+  unavailable: {
+    title: "Games are temporarily unavailable",
+    description: "The catalog service isn't available right now. Please try again shortly.",
+  },
+  unexpected: {
+    title: "We couldn't load the games",
+    description: "Something went wrong while loading the catalog. Please try again.",
+  },
+  network: {
+    title: "Connection problem",
+    description: "We couldn't reach the catalog. Check your connection and try again.",
+  },
+  timeout: {
+    title: "The catalog took too long to respond",
+    description: "The service didn't respond in time. Please try again.",
+  },
+};
 
 type ResultsProps = {
   query: CatalogQuery;
@@ -36,11 +64,12 @@ function CatalogResults({ query, onChange }: ResultsProps) {
       })
       .catch((error: unknown) => {
         if (!current) return;
-        const message =
-          error instanceof CatalogRequestError && error.kind === "invalid"
-            ? "The selected filters could not be applied. Please adjust them and try again."
-            : "We couldn't load the games right now. Please try again.";
-        setRequest({ status: "failed", message });
+        const kind: CatalogFailureKind = controller.signal.aborted
+          ? "timeout"
+          : error instanceof CatalogRequestError
+            ? error.kind
+            : "unexpected";
+        setRequest({ status: "failed", kind });
       })
       .finally(() => window.clearTimeout(timeout));
     return () => {
@@ -54,6 +83,7 @@ function CatalogResults({ query, onChange }: ResultsProps) {
   const pages = result ? Math.ceil(result.total / result.pageSize) : 0;
   const showPrevious = result !== null && query.page > 1;
   const showNext = result !== null && query.page < pages;
+  const failure = request.status === "failed" ? failureMessages[request.kind] : null;
 
   return (
     <section className={styles.results} aria-label="Game results">
@@ -76,20 +106,26 @@ function CatalogResults({ query, onChange }: ResultsProps) {
           </div>
         </div>
       )}
-      {request.status === "failed" && (
+      {request.status === "failed" && failure && (
         <section className={styles.feedback} role="alert">
-          <h3>Games are temporarily unavailable</h3>
-          <p>{request.message}</p>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={() => {
-              setRequest({ status: "loading" });
-              setAttempt((value) => value + 1);
-            }}
-          >
-            Try again
-          </button>
+          <h3>{failure.title}</h3>
+          <p>{failure.description}</p>
+          {request.kind === "invalid" && catalogHref(query) !== "/catalog" ? (
+            <Link className={styles.primaryLink} to="/catalog">
+              Reset filters
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className={styles.primaryButton}
+              onClick={() => {
+                setRequest({ status: "loading" });
+                setAttempt((value) => value + 1);
+              }}
+            >
+              Try again
+            </button>
+          )}
         </section>
       )}
       {result && result.items.length === 0 && (
