@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Implement one complete, testable slice at a time. The current milestone is the foundation; marketplace routes belong to later slices. Continue through agreed scope after checks pass, with a concise explanation at each milestone. The archived master prompt does not override this agreement.
+Implement one complete, testable slice at a time. Foundation repairs are accepted at checkpoint 46f514e. Slice 1, the catalog API, is implemented and locally verified; the next milestone is catalog/header UI in Slice 2. Continue through agreed scope after checks pass, with a concise explanation at each milestone. The archived master prompt does not override this agreement.
 
 ## Boundaries
 

@@ -28,4 +28,4 @@
 ## External and remaining evidence
 
 - GitHub Actions now targets PostgreSQL 17.12/18.7, lint discovery, advisory scans and Linux race checks. Remote execution remains pending publication; no local PostgreSQL 17 or Linux result is claimed.
-- The accessible AI transcript remains a snapshot. Its source is not a live export of this implementation conversation. Refresh/import the actual accessible conversation exports before submission; never reconstruct missing exchanges.
+- At the Slice 1 checkpoint the live user-facing VS Code conversation source was located and its snapshot refreshed. Its manifest records the exported boundary; the active final response needs the next refresh. Earlier unavailable conversations still need actual exports before submission and must not be reconstructed.

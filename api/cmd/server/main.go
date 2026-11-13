@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/MerveilleDivine/eneba/api/internal/catalog"
 	"github.com/MerveilleDivine/eneba/api/internal/config"
 	"github.com/MerveilleDivine/eneba/api/internal/database"
 	"github.com/MerveilleDivine/eneba/api/internal/httpapi"
@@ -42,6 +43,9 @@ func run(logger *slog.Logger) error {
 	}
 	mux := http.NewServeMux()
 	httpapi.RegisterHealth(mux, func(ctx context.Context) error { return database.CheckReadiness(ctx, pool) }, logger)
+	catalogRepository := catalog.NewRepository(pool)
+	catalogService := catalog.NewService(catalogRepository)
+	catalog.NewHandler(catalogService, logger).RegisterRoutes(mux)
 	mux.HandleFunc("/", httpapi.NotFound)
 	server := &http.Server{
 		Addr:              net.JoinHostPort(host, cfg.Port),

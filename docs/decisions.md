@@ -49,7 +49,15 @@ A seed_versions table records each fixture filename and SHA-256. Applied files a
 
 ## Contracts grow with implemented behavior
 
-The foundation exposes health and readiness only. Feature DTOs, business errors, authentication, and state management are introduced with their owning slices. The initial interface contains working connection recovery rather than inactive shopping controls.
+The foundation introduced health and readiness. Slice 1 adds the public catalog projection and query rules; catalog/header UI follows in Slice 2. Feature DTOs, business errors, authentication, and state management are introduced with their owning slices. The initial interface contains working connection recovery.
+
+## Catalog reads and consistency
+
+The catalog owns one validated read use case and one SQL repository, wired with concrete constructors. No interface is needed for tests because query behavior is exercised against PostgreSQL and validation is a plain function. DTOs are feature-owned read projections; there is no generic entity/repository layer.
+
+Count and page use the same filtered SQL in a read-only repeatable-read transaction. This costs two data reads plus transaction commands, keeps their snapshot consistent and preserves totals on empty pages without elaborate window-count mapping. Availability and lowest prices come from active offers with unallocated keys, before filters/sorting/pagination. This snapshot does not reserve inventory; later quote/checkout still verifies current server prices and stock.
+
+Integer cents must fit JavaScript's safe range at the request and projection boundaries. Search uses literal escaped ILIKE and a fixed word_similarity threshold of 0.4 for three-or-more-character queries. At demo scale, bounded set-based scans are an explicit cost; the fuzzy function is not presented as an indexed search. Query deadlines, stable ties and real database tests give us useful guarantees before adding optimization or another service.
 
 ## Evidence before claims
 

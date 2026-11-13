@@ -75,8 +75,8 @@ func (w *responseRecorder) WriteHeader(code int) {
 	if w.status != 0 {
 		return
 	}
-	w.status = code
 	w.ResponseWriter.WriteHeader(code)
+	w.status = code
 }
 
 func (w *responseRecorder) Write(body []byte) (int, error) {
@@ -116,6 +116,7 @@ func Wrap(next http.Handler, logger *slog.Logger) http.Handler {
 			if status == 0 {
 				status = http.StatusOK
 			}
+			failed = failed || status >= http.StatusInternalServerError
 			logger.Info("http request",
 				"request_id", requestID,
 				"method", r.Method,

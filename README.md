@@ -2,7 +2,7 @@
 
 An unofficial game marketplace built as an engineering internship project. React and TypeScript provide the interface, a single Go REST API owns business rules, and PostgreSQL owns durable data and integrity constraints.
 
-**Current milestone: foundation.** The application boots, checks database readiness, and handles connection failures. Shopping, authentication, and checkout are subsequent slices. All seeded games are fictional and all keys visibly nonredeemable.
+**Current milestone: Slice 1, catalog API.** The foundation is verified and the public catalog now supports active/sold-out SKUs, available seller pricing, filters, ordered name/typo search and pagination. The current React shell checks connectivity; catalog/header UI follows in Slice 2. All seeded games are fictional and all keys visibly nonredeemable.
 
 ## Run locally on Windows
 
@@ -77,6 +77,7 @@ Local verification evidence and reviewed screenshots are recorded in docs/verifi
 - api/internal/database contains connection and readiness operations.
 - api/internal/database/maintenance isolates provisioning, Goose, and fixture operations from the server's runtime dependency graph.
 - api/internal/httpapi owns routing, health responses, and transport logging.
+- api/internal/catalog owns catalog handlers, query policy and SQL reads; dependencies are wired explicitly in the server entry point.
 - web/src/app owns application composition and the current shell.
 - web/src/shared/api contains the same-origin readiness request.
 - web/src/styles contains shared visual foundations; component styles remain colocated.
@@ -97,13 +98,18 @@ The original integrity constraints remain: one key per order item, unique key al
 
 ## HTTP contract
 
-| Endpoint      | Response                                                                                            |
-| ------------- | --------------------------------------------------------------------------------------------------- |
-| GET /healthz  | 200 with status: ok; independent of PostgreSQL                                                      |
-| GET /readyz   | 200 with status: ready when required schema/data access works; otherwise 503 with status: not_ready |
-| Unknown route | 404 with error.code: not_found                                                                      |
+| Endpoint             | Response                                                                                            |
+| -------------------- | --------------------------------------------------------------------------------------------------- |
+| GET /healthz         | 200 with status: ok; independent of PostgreSQL                                                      |
+| GET /readyz          | 200 with status: ready when required schema/data access works; otherwise 503 with status: not_ready |
+| GET /api/v1/products | Public catalog with query/filter/sort/pagination; see docs/api/catalog.md                           |
+| Unknown route        | 404 with error.code: not_found                                                                      |
 
 Responses are JSON and not cached. Request IDs appear in response headers and structured logs. Readiness failures expose no database details. The browser shows a generic recovery message and supports retry.
+
+The complete catalog parameters, safe numeric bounds, JSON projection and error contract are documented in [Catalog API](docs/api/catalog.md). For example, request /api/v1/products?q=solr or /api/v1/products?sort=price_desc&pageSize=1 through the local Vite server. Product detail, home blocks and purchase endpoints belong to their later slices.
+
+Slice 1's local tests, browser/proxy results, design costs and pending external checks are recorded in [Catalog verification](docs/verification/catalog.md).
 
 Development binds to loopback. APP_ENV=production binds Go to all interfaces using PORT, as required by Render. Application startup never migrates or seeds a database.
 
@@ -121,4 +127,4 @@ A production Dockerfile will pin the Go build environment during the early-deplo
 
 See docs/ai-history/README.md for conversation preservation and docs/decisions.md for the reasons behind these choices.
 
-Next slices: catalog API → catalog/header UI → independent homepage blocks → product/cart → authentication → quote/checkout → orders/key delivery → release verification.
+Next slices: catalog/header UI → independent homepage blocks → product/cart → authentication → quote/checkout → orders/key delivery → release verification.

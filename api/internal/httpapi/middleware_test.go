@@ -26,10 +26,18 @@ func TestHealthMethods(t *testing.T) {
 }
 
 func TestRequestLoggingAndPanicHandling(t *testing.T) {
-	for _, phase := range []string{"implicit success", "panic before headers", "panic after headers", "panic after flush"} {
+	for _, phase := range []string{"implicit success", "handled unavailable", "invalid status", "panic before headers", "panic after headers", "panic after flush"} {
 		t.Run(phase, func(t *testing.T) {
 			var logs bytes.Buffer
 			handler := Wrap(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				if phase == "handled unavailable" {
+					WriteError(w, 503, "service_unavailable", "Please try again.")
+					return
+				}
+				if phase == "invalid status" {
+					w.WriteHeader(99)
+					return
+				}
 				if phase == "panic after flush" {
 					_ = http.NewResponseController(w).Flush()
 				}
@@ -54,8 +62,11 @@ func TestRequestLoggingAndPanicHandling(t *testing.T) {
 				t.Fatalf("unexpected panic: %v", caught)
 			}
 			want := 200
-			if phase == "panic before headers" {
+			if phase == "panic before headers" || phase == "invalid status" {
 				want = 500
+			}
+			if phase == "handled unavailable" {
+				want = 503
 			}
 			if response.Code != want {
 				t.Fatalf("status=%d want=%d", response.Code, want)
