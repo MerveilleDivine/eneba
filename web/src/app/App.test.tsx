@@ -133,4 +133,52 @@ describe("catalog browsing application", () => {
     await Promise.resolve();
     expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
   });
+  it("aborts an obsolete catalog request when a filter changes", async () => {
+    let resolveOld!: (response: Response) => void;
+    const oldResponse = new Promise<Response>((resolve) => {
+      resolveOld = resolve;
+    });
+    let oldSignal: AbortSignal | undefined;
+    const updated = { ...payload, items: [products[1]], total: 1 };
+    const mock = vi.fn((url: string, options: RequestInit) => {
+      if (!url.includes("platform=xbox")) {
+        oldSignal = options.signal as AbortSignal;
+        return oldResponse;
+      }
+      return Promise.resolve(new Response(JSON.stringify(updated)));
+    });
+    vi.stubGlobal("fetch", mock);
+    renderApp();
+
+    await userEvent.selectOptions(screen.getByLabelText("Platform"), "xbox");
+    expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
+    expect(oldSignal?.aborted).toBe(true);
+
+    resolveOld(new Response(JSON.stringify(payload)));
+    await Promise.resolve();
+    expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
+  });
+
+  it("shows loading instead of previous results while a new filter is pending", async () => {
+    let resolveNext!: (response: Response) => void;
+    const nextResponse = new Promise<Response>((resolve) => {
+      resolveNext = resolve;
+    });
+    const mock = vi.fn((url: string) =>
+      url.includes("platform=xbox")
+        ? nextResponse
+        : Promise.resolve(new Response(JSON.stringify(payload))),
+    );
+    vi.stubGlobal("fetch", mock);
+    renderApp();
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+
+    await userEvent.selectOptions(screen.getByLabelText("Platform"), "xbox");
+    expect(screen.getByRole("status")).toHaveTextContent("Loading games");
+    expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
+
+    resolveNext(new Response(JSON.stringify({ ...payload, items: [products[1]], total: 1 })));
+    expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
+  });
+
 });
