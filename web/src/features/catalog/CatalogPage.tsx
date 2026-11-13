@@ -90,7 +90,10 @@ function CatalogResults({ query, onChange }: ResultsProps) {
   const showPrevious = result !== null && query.page > 1;
   const showNext = result !== null && query.page < pages;
   const failure = request.status === "failed" ? failureMessages[request.kind] : null;
-  const canReset = request.status === "failed" && request.kind === "invalid" && catalogHref(query) !== "/catalog";
+  const canReset =
+    request.status === "failed" &&
+    request.kind === "invalid" &&
+    catalogHref(query) !== "/catalog";
 
   return (
     <section className={styles.results} aria-label="Game results">
