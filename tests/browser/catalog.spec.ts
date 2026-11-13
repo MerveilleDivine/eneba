@@ -1,38 +1,67 @@
 import { expect, test } from "@playwright/test";
 
-test("catalog reads through the same-origin browser proxy", async ({ page }) => {
+test("global search uses the real API and finds typo matches", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
-  await expect(page.getByText("Connection established")).toBeVisible();
-
-  const search = await page.evaluate(async () => {
-    const response = await fetch("/api/v1/products?q=circut");
-    return { status: response.status, body: await response.json() };
-  });
-  expect(search.status).toBe(200);
-  expect(search.body).toMatchObject({
-    currency: "EUR",
-    total: 1,
-    items: [{ name: "Neon Circuit", lowestPriceCents: 1410, available: true }],
-  });
-
-  const soldOut = await page.evaluate(async () => {
-    const response = await fetch("/api/v1/products?q=lunra");
-    return response.json();
-  });
-  expect(soldOut).toMatchObject({
-    total: 1,
-    items: [{ name: "Lunar Legacy", lowestPriceCents: null, available: false }],
-  });
-  const expensive = await page.request.get("/api/v1/products?sort=price_desc&pageSize=1");
-  expect(expensive.status()).toBe(200);
-  expect(await expensive.json()).toMatchObject({
-    total: 16,
-    items: [{ name: "Deep Signal", lowestPriceCents: 3304 }],
-  });
-  const invalid = await page.request.get("/api/v1/products?pageSize=51");
-  expect(invalid.status()).toBe(400);
-  expect(await invalid.json()).toMatchObject({ error: { code: "invalid_query" } });
+  await page.goto("/catalog");
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+  const search = page.getByRole("searchbox", { name: "Search games" });
+  await search.fill("circut");
+  await search.press("Enter");
+  await expect(page).toHaveURL(/q=circut/);
+  await expect(page.getByRole("heading", { name: "Neon Circuit" })).toBeVisible();
+  await expect(page.getByText("1 game", { exact: true })).toBeVisible();
+  await search.fill("lunra");
+  await search.press("Enter");
+  await expect(page.getByRole("heading", { name: "Lunar Legacy" })).toBeVisible();
+  await expect(page.getByText("Currently unavailable")).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("filters, prices, sorting, pagination and history use URL state", async ({ page }) => {
+  await page.goto("/catalog");
+  await expect(page.getByText("16 games", { exact: true })).toBeVisible();
+  await page.getByLabel("Platform").selectOption("steam");
+  await expect(page).toHaveURL(/platform=steam/);
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+  await page.getByLabel("Region").selectOption("global");
+  await expect(page).toHaveURL(/region=global/);
+  await page.getByLabel("Min").fill("11.36");
+  await page.getByLabel("Max").fill("11.36");
+  await page.getByRole("button", { name: "Apply price" }).click();
+  await expect(page).toHaveURL(/minPriceCents=1136/);
+  await expect(page.getByText("1 game", { exact: true })).toBeVisible();
+  await page.goBack();
+  await expect(page).not.toHaveURL(/minPriceCents/);
+  await page.getByRole("button", { name: "Clear all" }).click();
+  await expect(page).toHaveURL(/\/catalog$/);
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Next" })).toBeVisible();
+  await page.getByRole("link", { name: "Next" }).click();
+  await expect(page).toHaveURL(/page=2/);
+  await expect(page.getByText("Page 2 of 2")).toBeVisible();
+  await page.getByLabel("Sort by").selectOption("price_desc");
+  await expect(page).toHaveURL(/sort=price_desc/);
+  await expect(page.getByRole("heading", { name: "Deep Signal" })).toBeVisible();
+});
+
+test("service errors recover without clearing filters", async ({ page }) => {
+  await page.route("**/api/v1/products?*", async (route) => {
+    await route.fulfill({ status: 503, body: "internal-only-data" });
+  });
+  await page.goto("/catalog?platform=steam");
+  await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
+  await expect(page.getByText("internal-only-data")).toHaveCount(0);
+  await page.unroute("**/api/v1/products?*");
+  await page.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+  await expect(page).toHaveURL(/platform=steam/);
+});
+
+test("invalid links recover without an API call", async ({ page }) => {
+  await page.goto("/catalog?sort=not-a-sort");
+  await expect(page.getByRole("alert")).toContainText("sorting option");
+  await page.getByRole("link", { name: "Reset catalog" }).click();
+  await expect(page).toHaveURL(/\/catalog$/);
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
 });

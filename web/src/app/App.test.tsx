@@ -1,48 +1,67 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router";
 import { App } from "./App";
 
-describe("marketplace connection", () => {
-  it("shows a successful connection using the same-origin readiness endpoint", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ status: "ready" })));
-    vi.stubGlobal("fetch", fetchMock);
-    render(<App />);
-    expect(await screen.findByText("Connection established")).toBeInTheDocument();
+const products = [
+  { id: "1", slug: "solar-drift", name: "Solar Drift", edition: "Standard",
+    platform: "steam", region: "global", coverUrl: "/images/demo-cover.svg",
+    available: true, lowestPriceCents: 1136 },
+  { id: "2", slug: "lunar-legacy", name: "Lunar Legacy", edition: "Standard",
+    platform: "xbox", region: "europe", coverUrl: "/images/demo-cover.svg",
+    available: false, lowestPriceCents: null },
+];
+const payload = { items: products, total: 2, page: 1, pageSize: 12, currency: "EUR" };
+
+afterEach(() => vi.unstubAllGlobals());
+
+function renderApp(path = "/catalog") {
+  return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
+}
+
+describe("catalog browsing application", () => {
+  it("renders real catalog products including the sold-out state", async () => {
+    const mock = vi.fn().mockResolvedValue(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+    renderApp();
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
+    expect(screen.getByText("€11.36")).toBeInTheDocument();
+    expect(screen.getByText("Currently unavailable")).toBeInTheDocument();
     expect(screen.getByText("Unofficial demo")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/readyz",
-      expect.objectContaining({ cache: "no-store", credentials: "same-origin" }),
-    );
+    expect(mock).toHaveBeenCalledWith(expect.stringContaining("/api/v1/products?"),
+      expect.objectContaining({ credentials: "same-origin" }));
   });
 
-  it("preserves a useful error state and retries without displaying server details", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(new Response("password=private", { status: 503 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ status: "ready" })));
-    vi.stubGlobal("fetch", fetchMock);
-    const user = userEvent.setup();
-    render(<App />);
+  it("recovers from a service outage using Retry", async () => {
+    const mock = vi.fn()
+      .mockResolvedValueOnce(new Response("sensitive response", { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+    renderApp();
     expect(await screen.findByRole("alert")).toHaveTextContent("temporarily unavailable");
-    expect(screen.queryByText(/password=private/)).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Check connection" }));
-    expect(await screen.findByText("Connection established")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(screen.queryByText("sensitive response")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(mock).toHaveBeenCalledTimes(2);
   });
 
-  it("handles a network failure", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
-    render(<App />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("temporarily unavailable");
+  it("rejects malformed links without sending an HTTP request", () => {
+    const mock = vi.fn();
+    vi.stubGlobal("fetch", mock);
+    renderApp("/catalog?pageSize=100");
+    expect(screen.getByRole("alert")).toHaveTextContent("page size is invalid");
+    expect(mock).not.toHaveBeenCalled();
   });
 
-  it("rejects an unexpected successful response", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(new Response(JSON.stringify({ status: "unknown" }))),
-    );
-    render(<App />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("temporarily unavailable");
+  it("submits a header search to the actual API", async () => {
+    const mock = vi.fn().mockResolvedValue(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+    renderApp();
+    const search = screen.getByRole("searchbox", { name: "Search games" });
+    await userEvent.type(search, "solar{enter}");
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(mock.mock.calls.some((call) => String(call[0]).includes("q=solar"))).toBe(true);
   });
 });
