@@ -1,19 +1,7 @@
 import { useState } from "react";
 import { displayEuro, type CatalogProduct } from "./catalog-api";
 import styles from "./CatalogPage.module.css";
-
-const platformLabels: Record<string, string> = {
-  steam: "Steam",
-  xbox: "Xbox",
-  playstation: "PlayStation",
-  nintendo: "Nintendo",
-  other: "Other",
-};
-const regionLabels: Record<string, string> = {
-  global: "Global",
-  europe: "Europe",
-  "united-states": "United States",
-};
+import { platformLabels, regionLabels } from "./catalog-labels";
 
 type Props = { product: CatalogProduct; position: number };
 
@@ -40,8 +28,8 @@ export function ProductCard({ product, position }: Props) {
         <h3>{product.name}</h3>
         <p className={styles.productEdition}>{product.edition} edition</p>
         <div className={styles.productBadges}>
-          <span>{platformLabels[product.platform] ?? product.platform}</span>
-          <span>{regionLabels[product.region] ?? product.region}</span>
+          <span>{platformLabels[product.platform]}</span>
+          <span>{regionLabels[product.region]}</span>
         </div>
         {product.available && product.lowestPriceCents !== null ? (
           <div className={styles.productPrice}>

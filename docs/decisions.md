@@ -67,6 +67,12 @@ Count and page use the same filtered SQL in a read-only repeatable-read transact
 
 Integer cents must fit JavaScript's safe range at the request and projection boundaries. Search uses literal escaped ILIKE and a fixed word_similarity threshold of 0.4 for three-or-more-character queries. At demo scale, bounded set-based scans are an explicit cost; the fuzzy function is not presented as an indexed search. Query deadlines, stable ties and real database tests give us useful guarantees before adding optimization or another service.
 
+## Catalog facets and cross-layer contract changes
+
+The frontend URL contract owns the supported platform and region values used by search, filters, and response validation. One feature-owned label mapping supplies their human-readable names to filters and product cards; typed exhaustive mappings prevent UI labels drifting from accepted values. The backend independently validates those values, while PostgreSQL constraints prevent invalid stored SKUs. These checks protect different trust boundaries and must not be removed simply to eliminate textual repetition.
+
+When a platform or region changes, update the PostgreSQL constraint through a new migration, Go query validation, and the frontend contract together. Browser integration tests exercise every frontend-supported platform, region and sort against the real Go API; database integration tests check that the supported platform and region values are insertable. This detects drift without introducing runtime schema fetches, generated clients, or a second migration authority. Search length, money, pagination bounds and defaults remain boundary-specific, with targeted tests for the shared invariants.
+
 ## Filter drafts and applied URL state
 
 Catalog filters keep one local price draft for unsubmitted user input. Applied prices remain authoritative in the URL: when the applied price range changes, the draft resets to those values without remounting the filter controls. Unrelated platform, region, sorting and search changes preserve unfinished price edits; Clear all explicitly clears them even when no price range was previously applied. Invalid price input stays local until corrected, and unchanged submissions do not create redundant navigation. This avoids additional state managers, DOM synchronization effects and keyed remounts of the entire filter panel.

@@ -2,25 +2,13 @@ import { useState, type FormEvent } from "react";
 import {
   euroInput,
   parseEuroInput,
+  platforms,
+  regions,
   type CatalogQuery,
-  type Platform,
-  type Region,
   type Sort,
 } from "./catalog-query";
 import styles from "./CatalogPage.module.css";
-
-const platformOptions: { value: Platform; label: string }[] = [
-  { value: "steam", label: "Steam" },
-  { value: "xbox", label: "Xbox" },
-  { value: "playstation", label: "PlayStation" },
-  { value: "nintendo", label: "Nintendo" },
-  { value: "other", label: "Other" },
-];
-const regionOptions: { value: Region; label: string }[] = [
-  { value: "global", label: "Global" },
-  { value: "europe", label: "Europe" },
-  { value: "united-states", label: "United States" },
-];
+import { platformLabels, regionLabels } from "./catalog-labels";
 
 type Props = {
   query: CatalogQuery;
@@ -104,9 +92,9 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
             }
           >
             <option value="">All platforms</option>
-            {platformOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+            {platforms.map((platform) => (
+              <option key={platform} value={platform}>
+                {platformLabels[platform]}
               </option>
             ))}
           </select>
@@ -120,9 +108,9 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
             }
           >
             <option value="">All regions</option>
-            {regionOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+            {regions.map((region) => (
+              <option key={region} value={region}>
+                {regionLabels[region]}
               </option>
             ))}
           </select>

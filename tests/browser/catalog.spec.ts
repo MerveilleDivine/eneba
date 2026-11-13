@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { platforms, regions, sorts } from "../../web/src/features/catalog/catalog-query";
 
 test("global search uses the real API and finds typo matches", async ({ page }) => {
   const errors: string[] = [];
@@ -173,4 +174,18 @@ test("applying prices preserves input identity and browser history restores URL 
   await page.goForward();
   await expect(minimum).toHaveValue("11.36");
   expect(await originalInput?.evaluate((element) => element.isConnected)).toBe(true);
+});
+
+test("frontend catalog facets and sort values match the live Go API", async ({ request }) => {
+  for (const [field, values] of [
+    ["platform", platforms],
+    ["region", regions],
+    ["sort", sorts],
+  ] as const) {
+    for (const value of values) {
+      const response = await request.get(`/api/v1/products?${field}=${value}&pageSize=1`);
+      expect(response.status(), `${field}=${value}`).toBe(200);
+      expect(await response.json()).toMatchObject({ page: 1, pageSize: 1, currency: "EUR" });
+    }
+  }
 });
