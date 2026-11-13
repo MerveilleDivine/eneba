@@ -138,9 +138,9 @@ test("a delayed obsolete server error cannot replace a newer catalog result", as
   });
   await page.goto("/catalog?platform=steam");
   await page.getByLabel("Platform").selectOption("xbox");
-  await expect(page.getByRole("heading", { name: "Lunar Legacy" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The Last Outpost" })).toBeVisible();
   await page.waitForTimeout(650);
-  await expect(page.getByRole("heading", { name: "Lunar Legacy" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The Last Outpost" })).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByText("private obsolete outage")).toHaveCount(0);
 });
