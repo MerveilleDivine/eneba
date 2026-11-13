@@ -67,6 +67,8 @@ Run npm run test:browser for isolated Chrome checks at 1280px, 768px, and 360px,
 
 For a manual outage check, keep the catalog open, run npm run db:local:stop, and change a filter or reload. The catalog should show a recoverable error while /readyz returns 503. Run npm run db:local:start externally and select Try again. Keep other database checks idle during this maintenance check.
 
+Slice 2's full frontend–Go–PostgreSQL integration acceptance, evidence boundaries, and outstanding public-deployment checks are recorded in [Slice 2 integration verification](docs/verification/slice-2-integration.md).
+
 Earlier foundation verification evidence and reviewed screenshots are recorded in docs/verification/foundation.md. The subsequent safety fixes, security update and fresh-install checks are recorded in docs/verification/foundation-repairs.md.
 
 ## Repository boundaries
