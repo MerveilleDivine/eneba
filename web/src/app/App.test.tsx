@@ -114,15 +114,21 @@ describe("catalog browsing application", () => {
       finishFirst = resolve;
     });
     const second = { ...payload, items: [products[1]], total: 1 };
-    const mock = vi.fn((url: string) =>
-      url.includes("q=solar") ? first : Promise.resolve(new Response(JSON.stringify(second))),
-    );
+    let firstSignal: AbortSignal | undefined;
+    const mock = vi.fn((url: string, init: RequestInit) => {
+      if (url.includes("q=solar")) {
+        firstSignal = init.signal as AbortSignal;
+        return first;
+      }
+      return Promise.resolve(new Response(JSON.stringify(second)));
+    });
     vi.stubGlobal("fetch", mock);
     renderApp("/catalog?q=solar");
     const search = screen.getByRole("searchbox", { name: "Search games" });
     await userEvent.clear(search);
     await userEvent.type(search, "lunra{enter}");
     expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
+    expect(firstSignal?.aborted).toBe(true);
     finishFirst(new Response(JSON.stringify(payload)));
     await Promise.resolve();
     expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();

@@ -93,3 +93,34 @@ test("filter navigation cancels an uncommitted search draft", async ({ page }) =
   await page.waitForTimeout(450);
   await expect(page).not.toHaveURL(/q=solar/);
 });
+
+test("navigating to the same catalog URL cancels pending search", async ({ page }) => {
+  await page.goto("/catalog");
+  const search = page.getByRole("searchbox", { name: "Search games" });
+  await search.fill("solar");
+  await page.getByRole("link", { name: "Eneba demo catalog" }).click();
+  await expect(search).toHaveValue("");
+  await page.waitForTimeout(500);
+  await expect(page).toHaveURL(/\/catalog$/);
+});
+
+test("IME composition never submits an unfinished search", async ({ page }) => {
+  await page.goto("/catalog");
+  const search = page.getByRole("searchbox", { name: "Search games" });
+  await search.dispatchEvent("compositionstart", { data: "s" });
+  await search.fill("sol");
+  await page.waitForTimeout(450);
+  await expect(page).toHaveURL(/\/catalog$/);
+  await search.dispatchEvent("compositionend", { data: "sol" });
+  await expect(page).toHaveURL(/q=sol$/);
+  await expect(search).toBeFocused();
+});
+
+test("submitting an unchanged search restores canonical input text", async ({ page }) => {
+  await page.goto("/catalog?q=sol");
+  const search = page.getByRole("searchbox", { name: "Search games" });
+  await search.fill(" sol ");
+  await search.press("Enter");
+  await expect(page).toHaveURL(/q=sol$/);
+  await expect(search).toHaveValue("sol");
+});

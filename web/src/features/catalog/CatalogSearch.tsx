@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, type ChangeEvent, type CompositionEvent, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router";
 import {
   catalogHref,
@@ -24,6 +24,7 @@ export function CatalogSearch() {
   );
   const query = parsed.ok ? parsed.query : defaultCatalogQuery();
   const input = useRef<HTMLInputElement>(null);
+  const composing = useRef(false);
   const pending = useRef<number | null>(null);
   const internalNavigation = useRef<string | null>(null);
 
@@ -34,10 +35,9 @@ export function CatalogSearch() {
     }
   }
 
-  // Back/Forward and filter navigation restore the applied URL state.
-  // Our own debounced navigation must not erase typing done after the request
-  // was scheduled but before the router committed the previous query.
-  useEffect(() => {
+  // Synchronize all external navigation, including a new history entry with
+  // the same URL. Our own search commits preserve input focus and newer typing.
+  useLayoutEffect(() => {
     const href = location.pathname + location.search;
     const fromThisInput = internalNavigation.current === href;
     internalNavigation.current = null;
@@ -49,7 +49,7 @@ export function CatalogSearch() {
     if (input.current && input.current.value !== query.q) {
       input.current.value = query.q;
     }
-  }, [location.pathname, location.search, query.q]);
+  }, [location.key, location.pathname, location.search, query.q]);
 
   useEffect(() => {
     return () => {
@@ -57,10 +57,9 @@ export function CatalogSearch() {
     };
   }, []);
 
-  function onInputChange(event: ChangeEvent<HTMLInputElement>) {
+  function scheduleSearch(text: string) {
     cancelPending();
-    if (location.pathname !== "/catalog") return;
-    const text = event.currentTarget.value;
+    if (composing.current || location.pathname !== "/catalog") return;
     const href = searchTarget(query, text);
     if (href === location.pathname + location.search) return;
     pending.current = window.setTimeout(() => {
@@ -70,13 +69,31 @@ export function CatalogSearch() {
     }, DEBOUNCE_MS);
   }
 
+  function onInputChange(event: ChangeEvent<HTMLInputElement>) {
+    scheduleSearch(event.currentTarget.value);
+  }
+
+  function onCompositionStart() {
+    composing.current = true;
+    cancelPending();
+  }
+
+  function onCompositionEnd(event: CompositionEvent<HTMLInputElement>) {
+    composing.current = false;
+    scheduleSearch(event.currentTarget.value);
+  }
+
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (composing.current) return;
     cancelPending();
     const href = searchTarget(query, input.current?.value ?? "");
     if (href !== location.pathname + location.search) {
       internalNavigation.current = href;
       navigate(href);
+    } else if (input.current) {
+      // Enter with a logically unchanged query normalizes the visible draft.
+      input.current.value = query.q;
     }
   }
 
@@ -94,6 +111,8 @@ export function CatalogSearch() {
         maxLength={100}
         defaultValue={query.q}
         onChange={onInputChange}
+        onCompositionStart={onCompositionStart}
+        onCompositionEnd={onCompositionEnd}
       />
       <button type="submit" aria-label="Search games">
         <span aria-hidden="true">⌕</span>
