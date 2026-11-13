@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { platformLabels, regionLabels } from "./catalog-labels";
+import { platformLabels, regionLabels, sortLabels } from "./catalog-labels";
 import {
   catalogHref,
   catalogRequestPath,
@@ -9,6 +9,7 @@ import {
   parseEuroInput,
   platforms,
   regions,
+  sorts,
 } from "./catalog-query";
 
 describe("catalog URL state", () => {
@@ -47,8 +48,10 @@ describe("catalog URL state", () => {
   it("keeps UI labels exhaustive and aligned with supported catalog values", () => {
     expect(Object.keys(platformLabels)).toEqual([...platforms]);
     expect(Object.keys(regionLabels)).toEqual([...regions]);
+    expect(Object.keys(sortLabels)).toEqual([...sorts]);
     for (const platform of platforms) expect(platformLabels[platform]).toBeTruthy();
     for (const region of regions) expect(regionLabels[region]).toBeTruthy();
+    for (const sort of sorts) expect(sortLabels[sort]).toBeTruthy();
   });
 
   it("converts euro inputs to safe integer cents", () => {

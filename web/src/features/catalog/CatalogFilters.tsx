@@ -4,11 +4,12 @@ import {
   parseEuroInput,
   platforms,
   regions,
+  sorts,
   type CatalogQuery,
   type Sort,
 } from "./catalog-query";
 import styles from "./CatalogFilters.module.css";
-import { platformLabels, regionLabels } from "./catalog-labels";
+import { platformLabels, regionLabels, sortLabels } from "./catalog-labels";
 
 type Props = {
   query: CatalogQuery;
@@ -168,10 +169,11 @@ export function CatalogSort({ query, onChange }: Pick<Props, "query" | "onChange
         value={query.sort}
         onChange={(event) => onChange({ ...query, sort: event.target.value as Sort, page: 1 })}
       >
-        <option value="relevance">Relevance</option>
-        <option value="name_asc">Name A–Z</option>
-        <option value="price_asc">Price: low to high</option>
-        <option value="price_desc">Price: high to low</option>
+        {sorts.map((sort) => (
+          <option key={sort} value={sort}>
+            {sortLabels[sort]}
+          </option>
+        ))}
       </select>
     </div>
   );

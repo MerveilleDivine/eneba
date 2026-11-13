@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CatalogFilters } from "./CatalogFilters";
-import { defaultCatalogQuery, type CatalogQuery } from "./catalog-query";
+import { defaultCatalogQuery, sorts, type CatalogQuery } from "./catalog-query";
 
 describe("catalog price-filter drafts", () => {
   const baseQuery = defaultCatalogQuery();
@@ -13,6 +13,14 @@ describe("catalog price-filter drafts", () => {
     const view = render(<CatalogFilters query={query} onChange={onChange} onClear={onClear} />);
     return { ...view, onChange, onClear };
   }
+
+  it("renders every supported sorting option exactly once", () => {
+    renderFilters();
+    const select = screen.getByRole("combobox", { name: "Sort by" });
+    const options = Array.from(select.querySelectorAll("option"));
+    expect(options.map((option) => option.value)).toEqual([...sorts]);
+    expect(options.every((option) => option.textContent?.trim())).toBe(true);
+  });
 
   it("preserves an unsubmitted draft and input identity across unrelated filter changes", async () => {
     const query: CatalogQuery = { ...baseQuery, platform: "steam" };

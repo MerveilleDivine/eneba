@@ -81,6 +81,12 @@ Catalog filters keep one local price draft for unsubmitted user input. Applied p
 
 The catalog route parses and owns the applied URL query and renders persistent filters. A results view keyed by the canonical request path owns its own loading, ready, failed and retry state. Changing the request replaces only the results view; the old view aborts its fetch and cannot write stale results. This removes the extra response-key field and the derived fallback loading state. Keep the results lifecycle local; do not add a generic fetching hook or state manager without a demonstrated need. The present error copy and filter draft synchronization remain separate review checkpoints.
 
+## Architecture review after frontend cleanups 1–5
+
+The production-facing catalog code was reviewed for change amplification, unknown dependencies, and unnecessary abstraction. Catalog query values own the frontend platform, region, and sort vocabularies, while one feature-local label mapping provides UI presentation for all three. Filter controls derive their options from those values; the API and database independently enforce the public and storage contracts. A contract update requires reviewing all three boundaries and their integration tests, not introducing a runtime metadata service.
+
+The catalog route composes filters and a request-keyed results view. The URL holds applied state; the search input and price fields hold temporary drafts. This keeps request cancellation, browser navigation and form drafts locally understandable. Remaining work is deliberately assigned to Checkpoint D (error classification/recovery) and subsequent visual and deployment acceptance. Green CI verifies automated behavior only; it does not establish live hosting or manual accessibility/device quality.
+
 ## Catalog component and visual ownership
 
 The catalog page owns its layout, results, loading, empty/error presentation, and pagination styles. Filter/Sort owns its form-control styles; the product card owns its cover, badge, price, and card presentation. Each component imports its own CSS module; the layout does not reach into filter or card internals. Media queries and reduced-motion behaviors stay with the components they affect. Style extraction preserves the existing declarations and breakpoints rather than redesigning the storefront during an architectural cleanup.
