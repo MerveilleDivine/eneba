@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { CatalogFilters } from "./CatalogFilters";
+import { CatalogFilters, CatalogSort } from "./CatalogFilters";
 import { defaultCatalogQuery, sorts, type CatalogQuery } from "./catalog-query";
 
 describe("catalog price-filter drafts", () => {
@@ -15,7 +15,7 @@ describe("catalog price-filter drafts", () => {
   }
 
   it("renders every supported sorting option exactly once", () => {
-    renderFilters();
+    render(<CatalogSort query={baseQuery} onChange={vi.fn()} />);
     const select = screen.getByRole("combobox", { name: "Sort by" });
     const options = Array.from(select.querySelectorAll("option"));
     expect(options.map((option) => option.value)).toEqual([...sorts]);

@@ -27,6 +27,7 @@ export function CatalogSearch() {
   const location = useLocation();
   const navigate = useNavigate();
   const navigationType = useNavigationType();
+  const fromCatalogSearch = location.state?.fromCatalogSearch === true;
   const parsed = useMemo(
     () => parseCatalogSearch(location.pathname === "/catalog" ? location.search : ""),
     [location.pathname, location.search],
@@ -46,7 +47,7 @@ export function CatalogSearch() {
   // Only search-triggered PUSH navigation preserves a newer draft. Back/Forward,
   // filters, and ordinary links restore the search from the applied URL.
   useLayoutEffect(() => {
-    if (navigationType === "PUSH" && location.state?.fromCatalogSearch === true) return;
+    if (navigationType === "PUSH" && fromCatalogSearch) return;
     if (pending.current !== null) {
       window.clearTimeout(pending.current);
       pending.current = null;
@@ -54,7 +55,7 @@ export function CatalogSearch() {
     if (input.current && input.current.value !== query.q) {
       input.current.value = query.q;
     }
-  }, [location.key, location.pathname, location.search, navigationType, query.q]);
+  }, [fromCatalogSearch, location.key, location.pathname, location.search, navigationType, query.q]);
 
   useEffect(() => {
     return () => {
