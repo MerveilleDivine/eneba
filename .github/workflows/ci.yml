@@ -58,5 +58,4 @@ jobs:
       - run: npm run test:integration
       - run: npm run test:browser
       - name: Go race checks
-        working-directory: api
-        run: go test -race -tags=integration -p 1 ./...
+        run: node scripts/run-go.mjs test -race -tags=integration -p 1 ./... -count=1
