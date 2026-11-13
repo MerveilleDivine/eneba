@@ -63,11 +63,7 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
       return;
     }
     setDraft((previous) => ({ ...previous, error: "" }));
-    if (
-      minimum !== query.minPriceCents ||
-      maximum !== query.maxPriceCents ||
-      query.page !== 1
-    ) {
+    if (minimum !== query.minPriceCents || maximum !== query.maxPriceCents || query.page !== 1) {
       onChange({ ...query, minPriceCents: minimum, maxPriceCents: maximum, page: 1 });
     }
   }

@@ -137,7 +137,9 @@ test("submitting immediately creates only one search history entry", async ({ pa
   await expect(search).toHaveValue("");
 });
 
-test("price drafts survive unrelated filters and Clear all resets even unapplied values", async ({ page }) => {
+test("price drafts survive unrelated filters and Clear all resets even unapplied values", async ({
+  page,
+}) => {
   await page.goto("/catalog?platform=steam");
   const minimum = page.getByRole("textbox", { name: "Min" });
   await minimum.fill("8.75");
