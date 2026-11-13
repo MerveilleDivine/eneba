@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { App } from "./App";
@@ -83,10 +83,93 @@ describe("catalog browsing application", () => {
       within(alert).getByRole("heading", { name: "Those filters couldn't be applied" }),
     ).toBeInTheDocument();
     expect(screen.queryByText("private server detail")).not.toBeInTheDocument();
+    expect(within(alert).getByRole("button", { name: "Try again" })).toBeInTheDocument();
     await userEvent.click(within(alert).getByRole("link", { name: "Reset filters" }));
     expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
     expect(mock.mock.calls[1][0]).not.toContain("platform=steam");
+  });
+
+  it("offers an honest retry for a rejected default catalog request", async () => {
+    const mock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("private rejection detail", { status: 400 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+    renderApp();
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("choose a platform or search");
+    expect(within(alert).queryByRole("link", { name: "Reset filters" })).not.toBeInTheDocument();
+    expect(screen.queryByText("private rejection detail")).not.toBeInTheDocument();
+    await userEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(mock).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows an explicit timeout even when the request ignores cancellation", async () => {
+    vi.useFakeTimers();
+    let resolveRequest!: (value: Response) => void;
+    const pending = new Promise<Response>((resolve) => {
+      resolveRequest = resolve;
+    });
+    let aborted = false;
+    const mock = vi.fn((_url: string, options: RequestInit) => {
+      (options.signal as AbortSignal).addEventListener("abort", () => {
+        aborted = true;
+      });
+      return pending;
+    });
+    vi.stubGlobal("fetch", mock);
+
+    try {
+      renderApp();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(6000);
+      });
+      expect(aborted).toBe(true);
+      expect(screen.getByRole("alert")).toHaveTextContent("took too long");
+
+      await act(async () => {
+        resolveRequest(new Response(JSON.stringify(payload)));
+        await Promise.resolve();
+      });
+      expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent("took too long");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("recovers on retry after a timed-out request", async () => {
+    vi.useFakeTimers();
+    let aborts = 0;
+    const mock = vi
+      .fn()
+      .mockImplementationOnce((_url: string, options: RequestInit) => {
+        (options.signal as AbortSignal).addEventListener("abort", () => {
+          aborts += 1;
+        });
+        return new Promise<Response>(() => {});
+      })
+      .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+
+    try {
+      renderApp();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(6000);
+      });
+      expect(aborts).toBe(1);
+      fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+      expect(mock).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("does not describe unexpected server failures as temporary outages", async () => {
@@ -128,6 +211,44 @@ describe("catalog browsing application", () => {
       within(alert).getByRole("heading", { name: "We couldn't load the games" }),
     ).toBeInTheDocument();
     expect(screen.queryByText("{private")).not.toBeInTheDocument();
+  });
+
+  it("classifies a failed response body read as a connection problem", async () => {
+    const response = new Response(JSON.stringify(payload));
+    vi.spyOn(response, "json").mockRejectedValue(new TypeError("private stream address"));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
+    renderApp();
+
+    const alert = await screen.findByRole("alert");
+    expect(within(alert).getByRole("heading", { name: "Connection problem" })).toBeInTheDocument();
+    expect(alert).not.toHaveTextContent("private stream address");
+  });
+
+  it("does not show a cancellation error when changing catalog filters", async () => {
+    let oldSignal: AbortSignal | undefined;
+    const newResults = { ...payload, items: [products[1]], total: 1 };
+    const mock = vi.fn((url: string, init: RequestInit) => {
+      if (url.includes("platform=xbox")) {
+        return Promise.resolve(new Response(JSON.stringify(newResults)));
+      }
+      const signal = init.signal as AbortSignal;
+      oldSignal = signal;
+      return new Promise<Response>((_resolve, reject) => {
+        signal.addEventListener(
+          "abort",
+          () => reject(new DOMException("Request cancelled", "AbortError")),
+          { once: true },
+        );
+      });
+    });
+    vi.stubGlobal("fetch", mock);
+    renderApp();
+
+    await userEvent.selectOptions(screen.getByLabelText("Platform"), "xbox");
+    expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
+    expect(oldSignal?.aborted).toBe(true);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(mock).toHaveBeenCalledTimes(2);
   });
 
   it("rejects malformed links without sending an HTTP request", () => {

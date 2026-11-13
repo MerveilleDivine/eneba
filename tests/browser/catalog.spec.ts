@@ -89,6 +89,39 @@ test("unexpected server errors offer retry without claiming a temporary outage",
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
 });
 
+test("a rejected default catalog request keeps retry and alternate search available", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/products?*", async (route) => {
+    await route.fulfill({ status: 400, body: "private validation detail" });
+  });
+  await page.goto("/catalog");
+  const alert = page.getByRole("alert");
+  await expect(alert).toContainText("choose a platform or search");
+  await expect(alert).not.toContainText("private validation detail");
+  await expect(alert.getByRole("link", { name: "Reset filters" })).toHaveCount(0);
+
+  await page.unroute("**/api/v1/products?*");
+  await alert.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+});
+
+for (const { status, heading } of [
+  { status: 502, heading: "Games are temporarily unavailable" },
+  { status: 504, heading: "The catalog took too long to respond" },
+]) {
+  test(`gateway response ${status} has an accurate recovery message`, async ({ page }) => {
+    await page.route("**/api/v1/products?*", async (route) => {
+      await route.fulfill({ status, body: "private proxy detail" });
+    });
+    await page.goto("/catalog");
+    const alert = page.getByRole("alert");
+    await expect(alert.getByRole("heading", { name: heading })).toBeVisible();
+    await expect(alert).not.toContainText("private proxy detail");
+    await expect(alert.getByRole("button", { name: "Try again" })).toBeVisible();
+  });
+}
+
 test("invalid links recover without an API call", async ({ page }) => {
   await page.goto("/catalog?sort=not-a-sort");
   await expect(page.getByRole("alert")).toContainText("sorting option");

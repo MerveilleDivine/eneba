@@ -56,20 +56,26 @@ function CatalogResults({ query, onChange }: ResultsProps) {
 
   useEffect(() => {
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 6000);
     let current = true;
+    let timedOut = false;
+    // Own the deadline here. Some transports ignore abort, so the timeout
+    // must remain visible and late responses must never replace it.
+    const timeout = window.setTimeout(() => {
+      if (!current) return;
+      timedOut = true;
+      controller.abort();
+      setRequest({ status: "failed", kind: "timeout" });
+    }, 6000);
     void fetchCatalog(query, controller.signal)
       .then((data) => {
-        if (current) setRequest({ status: "ready", data });
+        if (current && !timedOut) setRequest({ status: "ready", data });
       })
       .catch((error: unknown) => {
-        if (!current) return;
-        const kind: CatalogFailureKind = controller.signal.aborted
-          ? "timeout"
-          : error instanceof CatalogRequestError
-            ? error.kind
-            : "unexpected";
-        setRequest({ status: "failed", kind });
+        if (!current || timedOut) return;
+        setRequest({
+          status: "failed",
+          kind: error instanceof CatalogRequestError ? error.kind : "unexpected",
+        });
       })
       .finally(() => window.clearTimeout(timeout));
     return () => {
@@ -84,6 +90,7 @@ function CatalogResults({ query, onChange }: ResultsProps) {
   const showPrevious = result !== null && query.page > 1;
   const showNext = result !== null && query.page < pages;
   const failure = request.status === "failed" ? failureMessages[request.kind] : null;
+  const canReset = request.status === "failed" && request.kind === "invalid" && catalogHref(query) !== "/catalog";
 
   return (
     <section className={styles.results} aria-label="Game results">
@@ -108,13 +115,17 @@ function CatalogResults({ query, onChange }: ResultsProps) {
       )}
       {request.status === "failed" && failure && (
         <section className={styles.feedback} role="alert">
-          <h3>{failure.title}</h3>
-          <p>{failure.description}</p>
-          {request.kind === "invalid" && catalogHref(query) !== "/catalog" ? (
-            <Link className={styles.primaryLink} to="/catalog">
-              Reset filters
-            </Link>
-          ) : (
+          <h3>
+            {request.kind === "invalid" && !canReset
+              ? "We couldn't open the catalog"
+              : failure.title}
+          </h3>
+          <p>
+            {request.kind === "invalid" && !canReset
+              ? "We couldn't load the catalog. Try again, or choose a platform or search to continue browsing."
+              : failure.description}
+          </p>
+          <div className={styles.failureActions}>
             <button
               type="button"
               className={styles.primaryButton}
@@ -125,7 +136,12 @@ function CatalogResults({ query, onChange }: ResultsProps) {
             >
               Try again
             </button>
-          )}
+            {canReset && (
+              <Link className={styles.primaryLink} to="/catalog">
+                Reset filters
+              </Link>
+            )}
+          </div>
         </section>
       )}
       {result && result.items.length === 0 && (

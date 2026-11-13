@@ -95,18 +95,25 @@ Cover gradient variants derive deterministically from the product's stable ID in
 
 ## Catalog frontend failure classification (Checkpoint D2)
 
-The catalog transport boundary distinguishes invalid HTTP requests (400), temporarily unavailable
-services (503), unexpected HTTP or malformed-data failures, and browser network failures.
-It does not display raw server response bodies or JavaScript exception details. The results view
-classifies its own six-second request deadline as a timeout; canceling a stale request during
-navigation does not render an error.
+The transport boundary classifies 400 as an invalid query, 502/503 as service unavailability,
+408/504 as a request/gateway timeout, unexpected HTTP or malformed JSON as unexpected, and
+browser network failures as network errors. Failure while reading a successful response body
+is a network error only for a TypeError; invalid JSON remains unexpected. Aborted reads
+propagate cancellation rather than being misreported as network failures.
 
-The UI provides contextual messages: an invalid filtered query offers Reset filters (or Retry
-for an already-unfiltered URL); unavailable services, unexpected responses, network failures,
-and timeouts offer Retry without changing the applied URL. Error copy belongs to the catalog
-presentation layer, not to the Go API and not to a generic notification framework. This
-checkpoint establishes the categories and messages; dedicated timeout/cancellation and
-failure-recovery edge-case coverage remains in D3.
+The results view owns its six-second client-side deadline. It aborts at that deadline and
+shows a timeout even when the underlying transport ignores AbortSignal. Responses arriving
+after the deadline cannot replace the timeout state; navigating away also aborts obsolete
+requests without showing their errors. Transport classification does not own this deadline.
+
+All failures offer Retry without losing the applied query. Rejected queries with non-default
+catalog options additionally offer Reset filters. A rejected default query instead explains
+that the catalog could not be opened and suggests retrying or choosing another search or
+platform. The UI never shows raw HTTP bodies, backend messages, or JavaScript exceptions.
+The catalog feature owns its messages and actions without a generic notification framework.
+
+Timeout, cancellation, gateway, and response-body failure paths have focused regression
+coverage. D3 remains the broader adversarial recovery and overlapping-request review.
 
 ## Catalog frontend response contract
 

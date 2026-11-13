@@ -36,6 +36,21 @@ export class CatalogRequestError extends Error {
   }
 }
 
+function classifyHttpFailure(status: number): CatalogFailureKind {
+  switch (status) {
+    case 400:
+      return "invalid";
+    case 408:
+    case 504:
+      return "timeout";
+    case 502:
+    case 503:
+      return "unavailable";
+    default:
+      return "unexpected";
+  }
+}
+
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -126,15 +141,14 @@ export async function fetchCatalog(
     throw new CatalogRequestError(error instanceof TypeError ? "network" : "unexpected");
   }
   if (!response.ok) {
-    throw new CatalogRequestError(
-      response.status === 503 ? "unavailable" : response.status === 400 ? "invalid" : "unexpected",
-    );
+    throw new CatalogRequestError(classifyHttpFailure(response.status));
   }
   let data: unknown;
   try {
     data = await response.json();
-  } catch {
-    throw new CatalogRequestError("unexpected");
+  } catch (error) {
+    if (signal.aborted) throw error;
+    throw new CatalogRequestError(error instanceof TypeError ? "network" : "unexpected");
   }
   return parseCatalogResponse(data, query);
 }

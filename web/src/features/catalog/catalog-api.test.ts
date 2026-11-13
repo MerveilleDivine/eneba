@@ -97,7 +97,10 @@ describe("catalog transport boundary", () => {
 
   it.each([
     { status: 400, kind: "invalid" },
+    { status: 408, kind: "timeout" },
+    { status: 502, kind: "unavailable" },
     { status: 503, kind: "unavailable" },
+    { status: 504, kind: "timeout" },
     { status: 500, kind: "unexpected" },
   ])("classifies HTTP $status without reading server details", async ({ status, kind }) => {
     const mock = vi.fn().mockResolvedValue(new Response("private backend error", { status }));
@@ -118,6 +121,30 @@ describe("catalog transport boundary", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{invalid", { status: 200 })));
     await expect(fetchCatalog(query, new AbortController().signal)).rejects.toMatchObject({
       kind: "unexpected",
+    });
+  });
+
+  it("classifies an interrupted response body as a network problem", async () => {
+    const response = new Response(JSON.stringify(payload));
+    vi.spyOn(response, "json").mockRejectedValue(new TypeError("private stream failure"));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
+
+    await expect(fetchCatalog(query, new AbortController().signal)).rejects.toMatchObject({
+      kind: "network",
+    });
+  });
+
+  it("preserves cancellation while reading a response body", async () => {
+    const controller = new AbortController();
+    const response = new Response(JSON.stringify(payload));
+    vi.spyOn(response, "json").mockImplementation(async () => {
+      controller.abort();
+      throw new DOMException("The request was aborted", "AbortError");
+    });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
+
+    await expect(fetchCatalog(query, controller.signal)).rejects.toMatchObject({
+      name: "AbortError",
     });
   });
 
