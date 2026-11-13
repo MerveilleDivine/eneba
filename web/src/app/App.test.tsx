@@ -108,4 +108,24 @@ describe("catalog browsing application", () => {
     expect(await screen.findByRole("heading", { name: "Explore games" })).toBeInTheDocument();
     expect(catalogLink).toHaveAttribute("aria-current", "page");
   });
+  it("ignores an obsolete response after navigation to a newer search", async () => {
+    let finishFirst!: (response: Response) => void;
+    const first = new Promise<Response>((resolve) => {
+      finishFirst = resolve;
+    });
+    const second = { ...payload, items: [products[1]], total: 1 };
+    const mock = vi.fn((url: string) =>
+      url.includes("q=solar") ? first : Promise.resolve(new Response(JSON.stringify(second))),
+    );
+    vi.stubGlobal("fetch", mock);
+    renderApp("/catalog?q=solar");
+    const search = screen.getByRole("searchbox", { name: "Search games" });
+    await userEvent.clear(search);
+    await userEvent.type(search, "lunra{enter}");
+    expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
+    finishFirst(new Response(JSON.stringify(payload)));
+    await Promise.resolve();
+    expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
+  });
+
 });

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, type ChangeEvent, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router";
 import {
   catalogHref,
@@ -8,87 +8,97 @@ import {
 } from "./catalog-query";
 import styles from "./CatalogSearch.module.css";
 
-type SearchProps = {
-  initialQuery: string;
-  baseQuery: CatalogQuery;
-  onCatalog: boolean;
-};
+const DEBOUNCE_MS = 350;
 
-function HeaderSearch({ initialQuery, baseQuery, onCatalog }: SearchProps) {
+function searchTarget(query: CatalogQuery, text: string): string {
+  const q = text.trim();
+  return catalogHref({ ...query, q, page: 1, sort: q ? "relevance" : "name_asc" });
+}
+
+export function CatalogSearch() {
+  const location = useLocation();
   const navigate = useNavigate();
-  const [draft, setDraft] = useState(initialQuery);
-  const [edited, setEdited] = useState(false);
-
-  const applySearch = useCallback(
-    (text: string) => {
-      const q = text.trim();
-      navigate(
-        catalogHref({
-          ...baseQuery,
-          q,
-          page: 1,
-          sort: q ? "relevance" : "name_asc",
-        }),
-      );
-    },
-    [baseQuery, navigate],
+  const parsed = useMemo(
+    () => parseCatalogSearch(location.pathname === "/catalog" ? location.search : ""),
+    [location.pathname, location.search],
   );
+  const query = parsed.ok ? parsed.query : defaultCatalogQuery();
+  const input = useRef<HTMLInputElement>(null);
+  const pending = useRef<number | null>(null);
+  const internalNavigation = useRef<string | null>(null);
+
+  function cancelPending() {
+    if (pending.current !== null) {
+      window.clearTimeout(pending.current);
+      pending.current = null;
+    }
+  }
+
+  // Back/Forward and filter navigation restore the applied URL state.
+  // Our own debounced navigation must not erase typing done after the request
+  // was scheduled but before the router committed the previous query.
+  useEffect(() => {
+    const href = location.pathname + location.search;
+    const fromThisInput = internalNavigation.current === href;
+    internalNavigation.current = null;
+    if (fromThisInput) return;
+    if (pending.current !== null) {
+      window.clearTimeout(pending.current);
+      pending.current = null;
+    }
+    if (input.current && input.current.value !== query.q) {
+      input.current.value = query.q;
+    }
+  }, [location.pathname, location.search, query.q]);
 
   useEffect(() => {
-    if (!edited || !onCatalog) return;
-    const timeout = window.setTimeout(() => {
-      applySearch(draft);
-      setEdited(false);
-    }, 350);
-    return () => window.clearTimeout(timeout);
-  }, [draft, edited, onCatalog, applySearch]);
+    return () => {
+      if (pending.current !== null) window.clearTimeout(pending.current);
+    };
+  }, []);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  function onInputChange(event: ChangeEvent<HTMLInputElement>) {
+    cancelPending();
+    if (location.pathname !== "/catalog") return;
+    const text = event.currentTarget.value;
+    const href = searchTarget(query, text);
+    if (href === location.pathname + location.search) return;
+    pending.current = window.setTimeout(() => {
+      pending.current = null;
+      internalNavigation.current = href;
+      navigate(href);
+    }, DEBOUNCE_MS);
+  }
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setEdited(false);
-    applySearch(draft);
+    cancelPending();
+    const href = searchTarget(query, input.current?.value ?? "");
+    if (href !== location.pathname + location.search) {
+      internalNavigation.current = href;
+      navigate(href);
+    }
   }
 
   return (
-    <form onSubmit={submit} role="search" className={styles.search}>
+    <form onSubmit={onSubmit} role="search" className={styles.search}>
       <label htmlFor="global-game-search" className={styles.visuallyHidden}>
         Search games
       </label>
       <input
+        ref={input}
         id="global-game-search"
         type="search"
         placeholder="Search games"
         autoComplete="off"
         maxLength={100}
-        value={draft}
-        onChange={(event) => {
-          setDraft(event.target.value);
-          setEdited(true);
-        }}
+        defaultValue={query.q}
+        onChange={onInputChange}
       />
       <button type="submit" aria-label="Search games">
         <span aria-hidden="true">⌕</span>
         <span className={styles.searchButtonText}>Search</span>
       </button>
     </form>
-  );
-}
-
-export function CatalogSearch() {
-  const location = useLocation();
-  const parsed = useMemo(
-    () => parseCatalogSearch(location.pathname === "/catalog" ? location.search : ""),
-    [location.pathname, location.search],
-  );
-  const baseQuery = parsed.ok ? parsed.query : defaultCatalogQuery();
-  const currentQuery = baseQuery.q;
-
-  return (
-    <HeaderSearch
-      key={location.pathname + ":" + currentQuery}
-      initialQuery={currentQuery}
-      baseQuery={baseQuery}
-      onCatalog={location.pathname === "/catalog"}
-    />
   );
 }

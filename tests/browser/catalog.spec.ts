@@ -65,3 +65,31 @@ test("invalid links recover without an API call", async ({ page }) => {
   await expect(page).toHaveURL(/\/catalog$/);
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
 });
+
+test("debounced typing preserves focus and browser search history", async ({ page }) => {
+  await page.goto("/catalog");
+  const search = page.getByRole("searchbox", { name: "Search games" });
+  await search.focus();
+  await search.fill("sol");
+  await expect(page).toHaveURL(/q=sol$/);
+  await expect(search).toBeFocused();
+  await search.pressSequentially("ar", { delay: 40 });
+  await expect(page).toHaveURL(/q=solar$/);
+  await expect(search).toHaveValue("solar");
+  await expect(search).toBeFocused();
+  await page.goBack();
+  await expect(search).toHaveValue("sol");
+  await page.goForward();
+  await expect(search).toHaveValue("solar");
+});
+
+test("filter navigation cancels an uncommitted search draft", async ({ page }) => {
+  await page.goto("/catalog");
+  const search = page.getByRole("searchbox", { name: "Search games" });
+  await search.fill("solar");
+  await page.getByLabel("Platform").selectOption("steam");
+  await expect(page).toHaveURL(/platform=steam/);
+  await expect(search).toHaveValue("");
+  await page.waitForTimeout(450);
+  await expect(page).not.toHaveURL(/q=solar/);
+});

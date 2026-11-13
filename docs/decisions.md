@@ -55,6 +55,10 @@ The foundation introduced health and readiness. Slice 1 added public catalog pro
 
 The app composes routing, shared layout and feature-owned UI. The header owns navigation and the location of its search slot, while the catalog owns search behavior and styling. Shared modules must not import features; lint enforces this direction. React Router supplies active-link semantics instead of manually mirroring route state. Component styling stays local so visual changes do not require changing business or transport code. The app remains a draft until visual and public deployment checks pass.
 
+## Catalog interaction-state ownership
+
+The catalog URL is the single source of truth for applied search and filters. The header search field keeps an uncommitted native input draft, without mirroring it in React state or recreating the input for every debounced query. Debounced search commits via navigation, preserves focus, and adds a history entry after the user pauses. External navigation (Back/Forward or filter changes) cancels pending draft work and restores the applied URL state. An internal navigation marker protects newer keystrokes from being overwritten by an older debounced commit. The catalog request effect cancels obsolete requests; a resolved stale response must not update the current view. These are behavioral invariants rather than reasons to add a global state library.
+
 ## Catalog reads and consistency
 
 The catalog owns one validated read use case and one SQL repository, wired with concrete constructors. No interface is needed for tests because query behavior is exercised against PostgreSQL and validation is a plain function. DTOs are feature-owned read projections; there is no generic entity/repository layer.
