@@ -1,6 +1,7 @@
 import { Link, Navigate, Route, Routes } from "react-router";
 import { SiteHeader } from "../shared/layout/SiteHeader";
 import { CatalogPage } from "../features/catalog/CatalogPage";
+import { CatalogSearch } from "../features/catalog/CatalogSearch";
 import styles from "./App.module.css";
 
 function NotFound() {
@@ -22,7 +23,7 @@ export function App() {
       <a href="#main" className={styles.skipLink}>
         Skip to content
       </a>
-      <SiteHeader />
+      <SiteHeader search={<CatalogSearch />} />
       <main id="main" className={styles.main}>
         <Routes>
           <Route path="/" element={<Navigate to="/catalog" replace />} />

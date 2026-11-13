@@ -87,4 +87,14 @@ describe("catalog browsing application", () => {
     expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
     expect(mock.mock.calls.some((call) => String(call[0]).includes("q=solar"))).toBe(true);
   });
+  it("searches from another page through the shared header", async () => {
+    const mock = vi.fn().mockImplementation(async () => new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+    renderApp("/not-a-page");
+    expect(screen.getByRole("heading", { name: "That page doesn't exist." })).toBeInTheDocument();
+    const search = screen.getByRole("searchbox", { name: "Search games" });
+    await userEvent.type(search, "solar{enter}");
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(mock.mock.calls.some((call) => String(call[0]).includes("q=solar"))).toBe(true);
+  });
 });
