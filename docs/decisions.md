@@ -67,6 +67,10 @@ Count and page use the same filtered SQL in a read-only repeatable-read transact
 
 Integer cents must fit JavaScript's safe range at the request and projection boundaries. Search uses literal escaped ILIKE and a fixed word_similarity threshold of 0.4 for three-or-more-character queries. At demo scale, bounded set-based scans are an explicit cost; the fuzzy function is not presented as an indexed search. Query deadlines, stable ties and real database tests give us useful guarantees before adding optimization or another service.
 
+## Catalog frontend response contract
+
+A successful catalog response must match its requested page and page size and contain the exact number of products implied by the total. An out-of-range page can legitimately return an empty array while retaining the total. Product identifiers must be distinct within a page; prices must be positive, JavaScript-safe integer cents or null for sold-out items. The frontend accepts the supported platform and region values and only root-relative asset paths or HTTPS cover URLs. The Go API remains authoritative for catalog business rules; this boundary detects inconsistent transport data without duplicating SQL or pricing logic.
+
 ## Evidence before claims
 
 Local checks, browser observations, remote CI, and public deployment are distinct evidence. Document pending checks rather than inferring that generated configuration has worked. Preserve complete user prompts and visible assistant responses, including user-input decisions, without hidden model reasoning or credentials.

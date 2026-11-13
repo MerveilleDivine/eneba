@@ -1,12 +1,19 @@
-import { catalogRequestPath, type CatalogQuery } from "./catalog-query";
+import {
+  catalogRequestPath,
+  platforms,
+  regions,
+  type CatalogQuery,
+  type Platform,
+  type Region,
+} from "./catalog-query";
 
 export type CatalogProduct = {
   id: string;
   slug: string;
   name: string;
   edition: string;
-  platform: string;
-  region: string;
+  platform: Platform;
+  region: Region;
   coverUrl: string;
   lowestPriceCents: number | null;
   available: boolean;
@@ -35,11 +42,28 @@ function safeNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }
 
+function nonEmptyText(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function validCoverUrl(value: unknown): value is string {
+  if (!nonEmptyText(value)) return false;
+  if (value.startsWith("/") && !value.startsWith("//") && !value.includes("\\")) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && Boolean(url.hostname) && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
 function isProduct(value: unknown): value is CatalogProduct {
   if (!record(value)) return false;
-  const text = ["id", "slug", "name", "edition", "platform", "region", "coverUrl"];
   return (
-    text.every((field) => typeof value[field] === "string" && value[field].length > 0) &&
+    ["id", "slug", "name", "edition"].every((field) => nonEmptyText(value[field])) &&
+    platforms.includes(value.platform as Platform) &&
+    regions.includes(value.region as Region) &&
+    validCoverUrl(value.coverUrl) &&
     typeof value.available === "boolean" &&
     (value.lowestPriceCents === null ||
       (safeNumber(value.lowestPriceCents) && value.lowestPriceCents > 0)) &&
@@ -47,7 +71,10 @@ function isProduct(value: unknown): value is CatalogProduct {
   );
 }
 
-export function parseCatalogResponse(value: unknown): CatalogPageData {
+export function parseCatalogResponse(
+  value: unknown,
+  expected: Pick<CatalogQuery, "page" | "pageSize">,
+): CatalogPageData {
   if (
     !record(value) ||
     !Array.isArray(value.items) ||
@@ -58,8 +85,22 @@ export function parseCatalogResponse(value: unknown): CatalogPageData {
     !safeNumber(value.pageSize) ||
     value.pageSize < 1 ||
     value.pageSize > 50 ||
-    value.items.length > value.pageSize ||
+    value.page !== expected.page ||
+    value.pageSize !== expected.pageSize ||
     value.currency !== "EUR"
+  ) {
+    throw new CatalogRequestError("unexpected");
+  }
+
+  const items = value.items as CatalogProduct[];
+  const total = value.total as number;
+  const page = value.page as number;
+  const pageSize = value.pageSize as number;
+  const offset = (page - 1) * pageSize;
+  const expectedCount = offset >= total ? 0 : Math.min(pageSize, total - offset);
+  if (
+    items.length !== expectedCount ||
+    new Set(items.map((product) => product.id)).size !== items.length
   ) {
     throw new CatalogRequestError("unexpected");
   }
@@ -87,7 +128,7 @@ export async function fetchCatalog(
   } catch {
     throw new CatalogRequestError("unexpected");
   }
-  return parseCatalogResponse(data);
+  return parseCatalogResponse(data, query);
 }
 
 export function displayEuro(cents: number): string {
