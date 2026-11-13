@@ -21,9 +21,11 @@ afterEach(() => vi.unstubAllGlobals());
 describe("catalog transport boundary", () => {
   it("accepts the complete valid server response", () => {
     expect(parseCatalogResponse(payload, query).items[0].name).toBe("Solar Drift");
-    expect(
-      parseCatalogResponse({ ...payload, items: [{ ...product, coverUrl: "https://cdn.example.com/game.png" }] }, query),
-    ).toMatchObject({ total: 1 });
+    const withHttpsCover = {
+      ...payload,
+      items: [{ ...product, coverUrl: "https://cdn.example.com/game.png" }],
+    };
+    expect(parseCatalogResponse(withHttpsCover, query).total).toBe(1);
   });
 
   it("accepts the last partial page and an out-of-range empty page", () => {
