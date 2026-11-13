@@ -124,3 +124,15 @@ test("submitting an unchanged search restores canonical input text", async ({ pa
   await expect(page).toHaveURL(/q=sol$/);
   await expect(search).toHaveValue("sol");
 });
+
+test("submitting immediately creates only one search history entry", async ({ page }) => {
+  await page.goto("/catalog");
+  const search = page.getByRole("searchbox", { name: "Search games" });
+  await search.fill("solar");
+  await search.press("Enter");
+  await expect(page).toHaveURL(/\/catalog\?q=solar$/);
+  await page.waitForTimeout(450);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/catalog$/);
+  await expect(search).toHaveValue("");
+});

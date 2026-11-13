@@ -7,7 +7,7 @@ import {
   type CompositionEvent,
   type FormEvent,
 } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate, useNavigationType } from "react-router";
 import {
   catalogHref,
   defaultCatalogQuery,
@@ -26,6 +26,7 @@ function searchTarget(query: CatalogQuery, text: string): string {
 export function CatalogSearch() {
   const location = useLocation();
   const navigate = useNavigate();
+  const navigationType = useNavigationType();
   const parsed = useMemo(
     () => parseCatalogSearch(location.pathname === "/catalog" ? location.search : ""),
     [location.pathname, location.search],
@@ -34,7 +35,6 @@ export function CatalogSearch() {
   const input = useRef<HTMLInputElement>(null);
   const composing = useRef(false);
   const pending = useRef<number | null>(null);
-  const internalNavigation = useRef<string | null>(null);
 
   function cancelPending() {
     if (pending.current !== null) {
@@ -43,13 +43,10 @@ export function CatalogSearch() {
     }
   }
 
-  // Synchronize all external navigation, including a new history entry with
-  // the same URL. Our own search commits preserve input focus and newer typing.
+  // Only search-triggered PUSH navigation preserves a newer draft. Back/Forward,
+  // filters, and ordinary links restore the search from the applied URL.
   useLayoutEffect(() => {
-    const href = location.pathname + location.search;
-    const fromThisInput = internalNavigation.current === href;
-    internalNavigation.current = null;
-    if (fromThisInput) return;
+    if (navigationType === "PUSH" && location.state?.fromCatalogSearch === true) return;
     if (pending.current !== null) {
       window.clearTimeout(pending.current);
       pending.current = null;
@@ -57,7 +54,7 @@ export function CatalogSearch() {
     if (input.current && input.current.value !== query.q) {
       input.current.value = query.q;
     }
-  }, [location.key, location.pathname, location.search, query.q]);
+  }, [location.key, location.pathname, location.search, navigationType, query.q]);
 
   useEffect(() => {
     return () => {
@@ -72,8 +69,7 @@ export function CatalogSearch() {
     if (href === location.pathname + location.search) return;
     pending.current = window.setTimeout(() => {
       pending.current = null;
-      internalNavigation.current = href;
-      navigate(href);
+      navigate(href, { state: { fromCatalogSearch: true } });
     }, DEBOUNCE_MS);
   }
 
@@ -97,8 +93,7 @@ export function CatalogSearch() {
     cancelPending();
     const href = searchTarget(query, input.current?.value ?? "");
     if (href !== location.pathname + location.search) {
-      internalNavigation.current = href;
-      navigate(href);
+      navigate(href, { state: { fromCatalogSearch: true } });
     } else if (input.current) {
       // Enter with a logically unchanged query normalizes the visible draft.
       input.current.value = query.q;
