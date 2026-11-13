@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, NavLink } from "react-router";
 import styles from "./SiteHeader.module.css";
 
 export function SiteHeader({ search }: { search: ReactNode }) {
-  const location = useLocation();
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
@@ -15,11 +14,11 @@ export function SiteHeader({ search }: { search: ReactNode }) {
             eneba<span className={styles.brandDot}>.</span>
           </span>
         </Link>
-        {search}
+        <div className={styles.searchSlot}>{search}</div>
         <nav aria-label="Main navigation" className={styles.navigation}>
-          <Link to="/catalog" aria-current={location.pathname === "/catalog" ? "page" : undefined}>
+          <NavLink to="/catalog" end>
             Browse games
-          </Link>
+          </NavLink>
         </nav>
       </div>
       <div className={styles.demoStrip}>

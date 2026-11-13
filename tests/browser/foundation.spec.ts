@@ -25,3 +25,17 @@ for (const width of [1280, 768, 360]) {
     await page.screenshot({ path: testInfo.outputPath("catalog-shell.png"), fullPage: true });
   });
 }
+
+test("unknown routes retain navigation and direct catalog reload", async ({ page }) => {
+  await page.goto("/missing-page");
+  await expect(page.getByRole("heading", { name: "That page doesn't exist." })).toBeVisible();
+  const catalogLink = page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", {
+    name: "Browse games",
+  });
+  await expect(catalogLink).not.toHaveAttribute("aria-current", "page");
+  await catalogLink.click();
+  await expect(page).toHaveURL(/\/catalog$/);
+  await expect(catalogLink).toHaveAttribute("aria-current", "page");
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+});

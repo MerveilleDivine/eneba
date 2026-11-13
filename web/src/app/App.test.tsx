@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { App } from "./App";
@@ -96,5 +96,16 @@ describe("catalog browsing application", () => {
     await userEvent.type(search, "solar{enter}");
     expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
     expect(mock.mock.calls.some((call) => String(call[0]).includes("q=solar"))).toBe(true);
+  });
+  it("keeps shared navigation functional on unknown routes", async () => {
+    const mock = vi.fn().mockImplementation(async () => new Response(JSON.stringify(payload)));
+    vi.stubGlobal("fetch", mock);
+    renderApp("/missing");
+    const navigation = screen.getByRole("navigation", { name: "Main navigation" });
+    const catalogLink = within(navigation).getByRole("link", { name: "Browse games" });
+    expect(catalogLink).not.toHaveAttribute("aria-current");
+    await userEvent.click(catalogLink);
+    expect(await screen.findByRole("heading", { name: "Explore games" })).toBeInTheDocument();
+    expect(catalogLink).toHaveAttribute("aria-current", "page");
   });
 });

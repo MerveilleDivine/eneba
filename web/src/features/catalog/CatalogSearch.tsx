@@ -6,7 +6,7 @@ import {
   parseCatalogSearch,
   type CatalogQuery,
 } from "./catalog-query";
-import styles from "../../shared/layout/SiteHeader.module.css";
+import styles from "./CatalogSearch.module.css";
 
 type SearchProps = {
   initialQuery: string;

@@ -20,4 +20,20 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ["src/shared/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/features/**"],
+              message: "Shared modules cannot import features; compose them in app.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);
