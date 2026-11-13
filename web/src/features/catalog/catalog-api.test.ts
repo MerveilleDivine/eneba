@@ -30,9 +30,9 @@ describe("catalog transport boundary", () => {
 
   it("accepts the last partial page and an out-of-range empty page", () => {
     const secondPage = { ...query, page: 2 };
-    expect(
-      parseCatalogResponse({ ...payload, page: 2, total: 13 }, secondPage).items,
-    ).toHaveLength(1);
+    expect(parseCatalogResponse({ ...payload, page: 2, total: 13 }, secondPage).items).toHaveLength(
+      1,
+    );
     expect(
       parseCatalogResponse({ ...payload, page: 2, total: 1, items: [] }, secondPage).items,
     ).toHaveLength(0);
@@ -78,9 +78,11 @@ describe("catalog transport boundary", () => {
   });
 
   it("rejects a result from an unexpected page even when its shape is valid", async () => {
-    const mock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ ...payload, page: 2, items: [] }), { status: 200 }),
-    );
+    const mock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ ...payload, page: 2, items: [] }), { status: 200 }),
+      );
     vi.stubGlobal("fetch", mock);
     await expect(fetchCatalog(query, new AbortController().signal)).rejects.toMatchObject({
       kind: "unexpected",
