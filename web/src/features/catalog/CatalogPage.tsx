@@ -61,9 +61,7 @@ function CatalogResults({ query, onChange }: ResultsProps) {
         <div>
           <h2>Browse games</h2>
           <p aria-live="polite" aria-atomic="true" className={styles.count}>
-            {result
-              ? result.total + (result.total === 1 ? " game" : " games")
-              : "Discover games"}
+            {result ? result.total + (result.total === 1 ? " game" : " games") : "Discover games"}
           </p>
         </div>
         <CatalogSort query={query} onChange={onChange} />
@@ -175,11 +173,7 @@ export function CatalogPage() {
             onChange={changeQuery}
             onClear={() => navigate("/catalog")}
           />
-          <CatalogResults
-            key={catalogRequestPath(query)}
-            query={query}
-            onChange={changeQuery}
-          />
+          <CatalogResults key={catalogRequestPath(query)} query={query} onChange={changeQuery} />
         </div>
       )}
     </div>
