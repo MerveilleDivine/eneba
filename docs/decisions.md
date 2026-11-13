@@ -93,6 +93,22 @@ The catalog page owns its layout, results, loading, empty/error presentation, an
 
 Cover gradient variants derive deterministically from the product's stable ID instead of its position in a search or sorted list. The same product keeps its visual identity across filters, sorting, and pagination without per-product persisted state or a theme manager. Visual-device acceptance and real product artwork remain distinct from automated layout, CSS, and interaction checks.
 
+## Catalog recovery and cancellation verification (Checkpoint D3)
+
+The catalog request lifecycle stays local to the results view and relies on a query-keyed
+component identity, an abort controller, and a six-second deadline. D3 tests the behavior
+under intentionally hostile ordering rather than adding another state manager or transport
+abstraction. Acceptance includes A-to-B-to-A navigation with out-of-order responses, an old
+request rejecting after a newer query succeeds, retries while the timed-out request rejects,
+slow response-body parsing after the deadline, route departure canceling obsolete requests,
+and avoiding a timeout after successful completion. The browser suite also covers late
+server errors after filters change. The newest request alone may own the visible result.
+
+This checkpoint verifies these behaviors in the automated test environment; external
+network proxies, mobile browsers, accessibility review, and deployed integrations still
+require their own acceptance. Retain the current request boundary unless a test exposes
+an actual correctness problem.
+
 ## Catalog frontend failure classification (Checkpoint D2)
 
 The transport boundary classifies 400 as an invalid query, 502/503 as service unavailability,

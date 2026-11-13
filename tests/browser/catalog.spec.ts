@@ -122,6 +122,29 @@ for (const { status, heading } of [
   });
 }
 
+test("a delayed obsolete server error cannot replace a newer catalog result", async ({ page }) => {
+  await page.route("**/api/v1/products?*", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("platform") !== "steam") {
+      await route.continue();
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      await route.fulfill({ status: 503, body: "private obsolete outage" });
+    } catch {
+      // The browser may already have canceled this obsolete request.
+    }
+  });
+  await page.goto("/catalog?platform=steam");
+  await page.getByLabel("Platform").selectOption("xbox");
+  await expect(page.getByRole("heading", { name: "Lunar Legacy" })).toBeVisible();
+  await page.waitForTimeout(650);
+  await expect(page.getByRole("heading", { name: "Lunar Legacy" })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByText("private obsolete outage")).toHaveCount(0);
+});
+
 test("invalid links recover without an API call", async ({ page }) => {
   await page.goto("/catalog?sort=not-a-sort");
   await expect(page.getByRole("alert")).toContainText("sorting option");
