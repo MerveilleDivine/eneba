@@ -2,7 +2,7 @@
 
 An unofficial game marketplace built as an engineering internship project. React and TypeScript provide the interface, a single Go REST API owns business rules, and PostgreSQL owns durable data and integrity constraints.
 
-**Current milestone: Slice 2, catalog frontend (verification underway).** The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
+**Current milestone: Slice 2 catalog frontend, under architectural review.** The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
 
 ## Run locally on Windows
 
@@ -67,7 +67,7 @@ Run npm run test:browser for isolated Chrome checks at 1280px, 768px, and 360px,
 
 For a manual outage check, keep the catalog open, run npm run db:local:stop, and change a filter or reload. The catalog should show a recoverable error while /readyz returns 503. Run npm run db:local:start externally and select Try again. Keep other database checks idle during this maintenance check.
 
-Local verification evidence and reviewed screenshots are recorded in docs/verification/foundation.md. The subsequent safety fixes, security update and fresh-install checks are recorded in docs/verification/foundation-repairs.md.
+Earlier foundation verification evidence and reviewed screenshots are recorded in docs/verification/foundation.md. The subsequent safety fixes, security update and fresh-install checks are recorded in docs/verification/foundation-repairs.md.
 
 ## Repository boundaries
 
@@ -79,7 +79,7 @@ Local verification evidence and reviewed screenshots are recorded in docs/verifi
 - api/internal/httpapi owns routing, health responses, and transport logging.
 - api/internal/catalog owns catalog handlers, query policy and SQL reads; dependencies are wired explicitly in the server entry point.
 - web/src/app owns route composition; web/src/shared/layout owns the global header and navigation.
-- web/src/features/catalog owns typed catalog reads, URL query policy, browsing state and presentation; web/src/shared/api retains the readiness helper.
+- web/src/features/catalog owns typed catalog reads, URL query policy, browsing state and presentation. Catalog requests run directly; backend /readyz remains an infrastructure health endpoint, not a frontend prerequisite.
 - web/src/styles contains shared visual foundations; component styles remain colocated.
 - db contains application migrations and immutable fixture versions.
 - docs/reference contains unchanged supplied material; docs/decisions.md records adopted choices.

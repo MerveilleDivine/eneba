@@ -45,11 +45,11 @@ A seed_versions table records each fixture filename and SHA-256. Applied files a
 - Preserve composite key/offer identity and unique key allocation in the database.
 - The pgcrypto extension is unnecessary for the supported PostgreSQL versions' built-in gen_random_uuid. Keep pg_trgm for the planned search.
 - Future migration examples do not reserve a particular numeric version.
-- The user's approved cadence allows continuation through agreed slices after checks pass. The archived per-session stop instruction is not active.
+- Development proceeds one reviewed checkpoint at a time within each slice. Passing checks alone do not constitute architectural acceptance or authorization to proceed to the next checkpoint.
 
 ## Contracts grow with implemented behavior
 
-The foundation introduced health and readiness. Slice 1 adds the public catalog projection and query rules; catalog/header UI follows in Slice 2. Feature DTOs, business errors, authentication, and state management are introduced with their owning slices. The initial interface contains working connection recovery.
+The foundation introduced health and readiness. Slice 1 added public catalog projections and query rules; the Slice 2 draft now renders a routed catalog with a shared header. The temporary connection-check screen was replaced, so the frontend no longer makes a preliminary readiness request. Feature DTOs, business errors, authentication, and state management are introduced with their owning slices. Architecture and visual acceptance are separate from CI success.
 
 ## Catalog reads and consistency
 
