@@ -55,7 +55,14 @@ export function CatalogSearch() {
     if (input.current && input.current.value !== query.q) {
       input.current.value = query.q;
     }
-  }, [fromCatalogSearch, location.key, location.pathname, location.search, navigationType, query.q]);
+  }, [
+    fromCatalogSearch,
+    location.key,
+    location.pathname,
+    location.search,
+    navigationType,
+    query.q,
+  ]);
 
   useEffect(() => {
     return () => {
