@@ -35,7 +35,7 @@
 
 .browseLayout {
   display: grid;
-  grid-template-columns: minmax(205px, 248px) minmax(0, 1fr);
+  grid-template-columns: minmax(13rem, 15.5rem) minmax(0, 1fr);
   gap: clamp(1.5rem, 3vw, 3.2rem);
   align-items: start;
   padding-top: 2rem;
@@ -66,7 +66,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Let enlarged text reduce the column count before card content is clipped. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(9rem, 22vw, 11rem)), 1fr));
   gap: clamp(0.8rem, 1.7vw, 1.5rem);
 }
 
@@ -148,18 +149,9 @@
   opacity: 0.4;
 }
 
-@media (max-width: 1160px) {
-  .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 860px) {
   .browseLayout {
     grid-template-columns: 1fr;
-  }
-  .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -170,9 +162,6 @@
   .resultsToolbar {
     align-items: flex-start;
     flex-wrap: wrap;
-  }
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .pagination {
     gap: 0.55rem;
