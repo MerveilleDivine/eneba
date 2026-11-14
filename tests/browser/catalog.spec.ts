@@ -1,6 +1,20 @@
 import { expect, test } from "@playwright/test";
 import { platforms, regions, sorts } from "../../web/src/features/catalog/catalog-query";
 
+test("sorting preserves keyboard focus across request replacement", async ({ page }) => {
+  await page.goto("/catalog");
+  await expect(page.getByText("16 games", { exact: true })).toBeVisible();
+  const sort = page.getByLabel("Sort by");
+  await sort.focus();
+  await sort.selectOption("price_desc");
+  await expect(sort).toBeFocused();
+  await expect(page.getByRole("heading", { name: "Deep Signal" })).toBeVisible();
+  await expect(sort).toBeFocused();
+  await sort.press("Home");
+  await expect(sort).toHaveValue("relevance");
+  await expect(sort).toBeFocused();
+});
+
 test("global search uses the real API and finds typo matches", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

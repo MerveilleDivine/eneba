@@ -46,7 +46,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.3rem;
 }
 
 .resultsToolbar h2 {
@@ -59,7 +59,7 @@
 }
 
 .count {
-  margin: 0.3rem 0 0;
+  margin: 0 0 1.5rem;
   color: var(--color-muted);
   font-size: 0.86rem;
 }

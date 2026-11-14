@@ -47,10 +47,9 @@ const failureMessages: Record<CatalogFailureKind, { title: string; description: 
 
 type ResultsProps = {
   query: CatalogQuery;
-  onChange: (next: CatalogQuery) => void;
 };
 
-function CatalogResults({ query, onChange }: ResultsProps) {
+function CatalogResults({ query }: ResultsProps) {
   // The parent key changes whenever the canonical request changes.
   // Keep this query stable when only the URL spelling changes.
   const [requestQuery] = useState(query);
@@ -97,16 +96,10 @@ function CatalogResults({ query, onChange }: ResultsProps) {
     request.status === "failed" && request.kind === "invalid" && catalogHref(query) !== "/catalog";
 
   return (
-    <section className={styles.results} aria-label="Game results">
-      <div className={styles.resultsToolbar}>
-        <div>
-          <h2>Browse games</h2>
-          <p aria-live="polite" aria-atomic="true" className={styles.count}>
-            {result ? result.total + (result.total === 1 ? " game" : " games") : "Discover games"}
-          </p>
-        </div>
-        <CatalogSort query={query} onChange={onChange} />
-      </div>
+    <div>
+      <p aria-live="polite" aria-atomic="true" className={styles.count}>
+        {result ? result.total + (result.total === 1 ? " game" : " games") : "Discover games"}
+      </p>
       {request.status === "loading" && (
         <div role="status" className={styles.loadingArea}>
           <p>Loading games…</p>
@@ -188,7 +181,7 @@ function CatalogResults({ query, onChange }: ResultsProps) {
           )}
         </nav>
       )}
-    </section>
+    </div>
   );
 }
 
@@ -228,7 +221,13 @@ export function CatalogPage() {
             onChange={changeQuery}
             onClear={() => navigate("/catalog")}
           />
-          <CatalogResults key={catalogRequestPath(query)} query={query} onChange={changeQuery} />
+          <section className={styles.results} aria-label="Game results">
+            <div className={styles.resultsToolbar}>
+              <h2>Browse games</h2>
+              <CatalogSort query={query} onChange={changeQuery} />
+            </div>
+            <CatalogResults key={catalogRequestPath(query)} query={query} />
+          </section>
         </div>
       )}
     </div>
