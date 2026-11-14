@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Implement and review one coherent checkpoint at a time within each slice. Foundation and the catalog API have verified CI evidence; Slice 2 remains an unmerged draft while its architecture, behavior, and visual acceptance are reviewed. A passing CI run is necessary but does not authorize automatic advancement to the next checkpoint. Stop after each checkpoint's findings, changes, and verification have been reported. The archived master prompt does not override this agreement.
+Implement and review one coherent checkpoint at a time within each slice. Foundation, the catalog API, and Slice 2 catalog frontend have verified CI evidence; public deployment and manual visual acceptance remain pending. A passing CI run alone does not authorize advancement or merging; require explicit user approval for each merge. Stop after each checkpoint's findings, changes, and verification have been reported. The archived master prompt does not override this agreement.
 
 ## Boundaries
 

@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useLocation, useNavigate, useNavigationType } from "react-router";
 import {
+  CATALOG_SEARCH_MAX_LENGTH,
   catalogHref,
   defaultCatalogQuery,
   parseCatalogSearch,
@@ -17,6 +18,10 @@ import {
 import styles from "./CatalogSearch.module.css";
 
 const DEBOUNCE_MS = 350;
+
+function capSearchText(value: string): string {
+  return Array.from(value).slice(0, CATALOG_SEARCH_MAX_LENGTH).join("");
+}
 
 function searchTarget(query: CatalogQuery, text: string): string {
   const q = text.trim();
@@ -82,7 +87,10 @@ export function CatalogSearch() {
   }
 
   function onInputChange(event: ChangeEvent<HTMLInputElement>) {
-    scheduleSearch(event.currentTarget.value);
+    if (composing.current) return;
+    const text = capSearchText(event.currentTarget.value);
+    if (text !== event.currentTarget.value) event.currentTarget.value = text;
+    scheduleSearch(text);
   }
 
   function onCompositionStart() {
@@ -92,14 +100,18 @@ export function CatalogSearch() {
 
   function onCompositionEnd(event: CompositionEvent<HTMLInputElement>) {
     composing.current = false;
-    scheduleSearch(event.currentTarget.value);
+    const text = capSearchText(event.currentTarget.value);
+    if (text !== event.currentTarget.value) event.currentTarget.value = text;
+    scheduleSearch(text);
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (composing.current) return;
     cancelPending();
-    const href = searchTarget(query, input.current?.value ?? "");
+    const text = capSearchText(input.current?.value ?? "");
+    if (input.current && text !== input.current.value) input.current.value = text;
+    const href = searchTarget(query, text);
     if (href !== location.pathname + location.search) {
       navigate(href, { state: { fromCatalogSearch: true } });
     } else if (input.current) {
@@ -119,7 +131,6 @@ export function CatalogSearch() {
         type="search"
         placeholder="Search games"
         autoComplete="off"
-        maxLength={100}
         defaultValue={query.q}
         onChange={onInputChange}
         onCompositionStart={onCompositionStart}

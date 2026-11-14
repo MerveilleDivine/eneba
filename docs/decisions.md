@@ -174,6 +174,22 @@ frontend/API/database deployment was not made; the user deferred it. This preven
 Slice 2 fully released even with passing automated checks. Any future contract extension must
 update API, schema, and frontend compatibility checks together.
 
+## Pre-merge catalog correctness review
+
+The final Slice 2 review verified and corrected two boundary inconsistencies. Monetary
+display previously divided safe integer cents by 100, losing cent precision near the
+supported maximum. It now uses BigInt for the whole-euro/fraction split and the same
+locale formatter for separators and currency symbols; accepted cents remain exact.
+The header search formerly used HTML maxlength=100, which counts UTF-16 code units
+instead of the 100 Unicode code points accepted by the frontend URL parser and Go
+API. Search now caps code points without splitting surrogate pairs and waits until
+composition ends before enforcing that limit. Regression tests cover both boundaries.
+
+No other application feature was added during this review. Automated acceptance
+remains distinct from visual/device review and public hosting. Product-card detail
+navigation, purchasing and authentication remain later vertical slices; do not
+introduce inert UI controls to imply otherwise.
+
 ## Evidence before claims
 
 Local checks, browser observations, remote CI, and public deployment are distinct evidence. Document pending checks rather than inferring that generated configuration has worked. Preserve complete user prompts and visible assistant responses, including user-input decisions, without hidden model reasoning or credentials.

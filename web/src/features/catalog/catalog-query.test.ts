@@ -45,6 +45,13 @@ describe("catalog URL state", () => {
     expect(parseCatalogSearch(search).ok).toBe(false);
   });
 
+  it("accepts 100 Unicode code points, including astral characters, but rejects 101", () => {
+    const valid = encodeURIComponent("🧠".repeat(100));
+    const invalid = encodeURIComponent("🧠".repeat(101));
+    expect(parseCatalogSearch("?q=" + valid).ok).toBe(true);
+    expect(parseCatalogSearch("?q=" + invalid).ok).toBe(false);
+  });
+
   it("keeps UI labels exhaustive and aligned with supported catalog values", () => {
     expect(Object.keys(platformLabels)).toEqual([...platforms]);
     expect(Object.keys(regionLabels)).toEqual([...regions]);
@@ -61,5 +68,7 @@ describe("catalog URL state", () => {
     expect(parseEuroInput("2.345")).toBeNull();
     expect(parseEuroInput("-1")).toBeNull();
     expect(euroInput(1999)).toBe("19.99");
+    expect(parseEuroInput("90071992547409.91")).toBe(Number.MAX_SAFE_INTEGER);
+    expect(parseEuroInput("90071992547409.92")).toBeNull();
   });
 });

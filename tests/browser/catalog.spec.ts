@@ -233,6 +233,18 @@ test("navigating to the same catalog URL cancels pending search", async ({ page 
   await expect(page).toHaveURL(/\/catalog$/);
 });
 
+test("search accepts 100 Unicode code points without truncating surrogate pairs", async ({
+  page,
+}) => {
+  await page.goto("/catalog");
+  const search = page.getByRole("searchbox", { name: "Search games" });
+  const characters = "🧠".repeat(100);
+  await search.fill(characters + "🧠");
+  await expect(search).toHaveValue(characters);
+  await search.press("Enter");
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe(characters);
+});
+
 test("IME composition never submits an unfinished search", async ({ page }) => {
   await page.goto("/catalog");
   const search = page.getByRole("searchbox", { name: "Search games" });

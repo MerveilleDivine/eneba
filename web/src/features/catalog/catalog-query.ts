@@ -20,6 +20,7 @@ export type CatalogQuery = {
 export type ParsedCatalogQuery = { ok: true; query: CatalogQuery } | { ok: false; message: string };
 
 export const CATALOG_PAGE_SIZE = 12;
+export const CATALOG_SEARCH_MAX_LENGTH = 100;
 const permitted = new Set([
   "q",
   "platform",
@@ -57,7 +58,7 @@ export function parseCatalogSearch(search: string): ParsedCatalogQuery {
     }
   }
   const q = (params.get("q") ?? "").trim();
-  if (Array.from(q).length > 100 || q.includes("\0")) {
+  if (Array.from(q).length > CATALOG_SEARCH_MAX_LENGTH || q.includes("\0")) {
     return { ok: false, message: "The search must be 100 characters or fewer." };
   }
   const query = defaultCatalogQuery(q);

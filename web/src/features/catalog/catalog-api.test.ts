@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CatalogRequestError, fetchCatalog, parseCatalogResponse } from "./catalog-api";
+import { CatalogRequestError, displayEuro, fetchCatalog, parseCatalogResponse } from "./catalog-api";
 import { defaultCatalogQuery } from "./catalog-query";
 
 const query = defaultCatalogQuery();
@@ -146,6 +146,13 @@ describe("catalog transport boundary", () => {
     await expect(fetchCatalog(query, controller.signal)).rejects.toMatchObject({
       name: "AbortError",
     });
+  });
+
+  it("displays exact integer cents even at the safe-integer boundary", () => {
+    expect(displayEuro(1136)).toBe("€11.36");
+    expect(displayEuro(1999)).toBe("€19.99");
+    expect(displayEuro(Number.MAX_SAFE_INTEGER)).toBe("€90,071,992,547,409.91");
+    expect(displayEuro(Number.MAX_SAFE_INTEGER - 4)).toBe("€90,071,992,547,409.87");
   });
 
   it("requests the same-origin API with the expected pagination", async () => {
