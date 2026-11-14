@@ -45,11 +45,19 @@ A seed_versions table records each fixture filename and SHA-256. Applied files a
 - Preserve composite key/offer identity and unique key allocation in the database.
 - The pgcrypto extension is unnecessary for the supported PostgreSQL versions' built-in gen_random_uuid. Keep pg_trgm for the planned search.
 - Future migration examples do not reserve a particular numeric version.
-- The user's approved cadence allows continuation through agreed slices after checks pass. The archived per-session stop instruction is not active.
+- Development proceeds one reviewed checkpoint at a time within each slice. Passing checks alone do not constitute architectural acceptance or authorization to proceed to the next checkpoint.
 
 ## Contracts grow with implemented behavior
 
-The foundation introduced health and readiness. Slice 1 adds the public catalog projection and query rules; catalog/header UI follows in Slice 2. Feature DTOs, business errors, authentication, and state management are introduced with their owning slices. The initial interface contains working connection recovery.
+The foundation introduced health and readiness. Slice 1 added public catalog projections and query rules; the Slice 2 draft now renders a routed catalog with a shared header. The temporary connection-check screen was replaced, so the frontend no longer makes a preliminary readiness request. Feature DTOs, business errors, authentication, and state management are introduced with their owning slices. Architecture and visual acceptance are separate from CI success.
+
+## Frontend composition and design freedom
+
+The app composes routing, shared layout and feature-owned UI. The header owns navigation and the location of its search slot, while the catalog owns search behavior and styling. Shared modules must not import features; lint enforces this direction. React Router supplies active-link semantics instead of manually mirroring route state. Component styling stays local so visual changes do not require changing business or transport code. The app remains a draft until visual and public deployment checks pass.
+
+## Catalog interaction-state ownership
+
+The catalog URL is the single source of truth for applied search and filters. The header keeps an uncommitted native input draft, without mirroring it in React state or recreating the input for every debounced query. Debounced search commits via navigation and preserves focus. External navigation (Back/Forward, filter changes, and even navigation to the same URL) cancels pending work and restores the applied URL; this uses the router location key as well as the path and search. Search-created history entries explicitly mark their origin through React Router state, instead of requiring a mutable URL-matching ref; Back/Forward and ordinary links still restore the applied query. Input-method composition never schedules a partial search, and submitting an unchanged query normalizes the displayed text. The catalog request effect cancels obsolete requests; regression tests check that stale responses cannot replace the latest view. These are behavioral invariants rather than reasons to add a global state library.
 
 ## Catalog reads and consistency
 
@@ -58,6 +66,129 @@ The catalog owns one validated read use case and one SQL repository, wired with 
 Count and page use the same filtered SQL in a read-only repeatable-read transaction. This costs two data reads plus transaction commands, keeps their snapshot consistent and preserves totals on empty pages without elaborate window-count mapping. Availability and lowest prices come from active offers with unallocated keys, before filters/sorting/pagination. This snapshot does not reserve inventory; later quote/checkout still verifies current server prices and stock.
 
 Integer cents must fit JavaScript's safe range at the request and projection boundaries. Search uses literal escaped ILIKE and a fixed word_similarity threshold of 0.4 for three-or-more-character queries. At demo scale, bounded set-based scans are an explicit cost; the fuzzy function is not presented as an indexed search. Query deadlines, stable ties and real database tests give us useful guarantees before adding optimization or another service.
+
+## Catalog facets and cross-layer contract changes
+
+The frontend URL contract owns the supported platform and region values used by search, filters, and response validation. One feature-owned label mapping supplies their human-readable names to filters and product cards; typed exhaustive mappings prevent UI labels drifting from accepted values. The backend independently validates those values, while PostgreSQL constraints prevent invalid stored SKUs. These checks protect different trust boundaries and must not be removed simply to eliminate textual repetition.
+
+When a platform or region changes, update the PostgreSQL constraint through a new migration, Go query validation, and the frontend contract together. Browser integration tests exercise every frontend-supported platform, region and sort against the real Go API; database integration tests check that the supported platform and region values are insertable. This detects drift without introducing runtime schema fetches, generated clients, or a second migration authority. Search length, money, pagination bounds and defaults remain boundary-specific, with targeted tests for the shared invariants.
+
+## Filter drafts and applied URL state
+
+Catalog filters keep one local price draft for unsubmitted user input. Applied prices remain authoritative in the URL: when the applied price range changes, the draft resets to those values without remounting the filter controls. Unrelated platform, region, sorting and search changes preserve unfinished price edits; Clear all explicitly clears them even when no price range was previously applied. Invalid price input stays local until corrected, and unchanged submissions do not create redundant navigation. This avoids additional state managers, DOM synchronization effects and keyed remounts of the entire filter panel.
+
+## Catalog results request ownership
+
+The catalog route parses and owns the applied URL query and renders persistent filters. A results view keyed by the canonical request path owns its own loading, ready, failed and retry state. Changing the request replaces only the results view; the old view aborts its fetch and cannot write stale results. This removes the extra response-key field and the derived fallback loading state. Keep the results lifecycle local; do not add a generic fetching hook or state manager without a demonstrated need. The present error copy and filter draft synchronization remain separate review checkpoints.
+
+## Architecture review after frontend cleanups 1–5
+
+The production-facing catalog code was reviewed for change amplification, unknown dependencies, and unnecessary abstraction. Catalog query values own the frontend platform, region, and sort vocabularies, while one feature-local label mapping provides UI presentation for all three. Filter controls derive their options from those values; the API and database independently enforce the public and storage contracts. A contract update requires reviewing all three boundaries and their integration tests, not introducing a runtime metadata service.
+
+The catalog route composes filters and a request-keyed results view. The URL holds applied state; the search input and price fields hold temporary drafts. Search navigation origin is an explicit effect dependency, avoiding a latent React Hooks lint warning. This keeps request cancellation, browser navigation and form drafts locally understandable. Remaining work is deliberately assigned to Checkpoint D (error classification/recovery) and subsequent visual and deployment acceptance. Green CI verifies automated behavior only; it does not establish live hosting or manual accessibility/device quality.
+
+## Catalog component and visual ownership
+
+The catalog page owns its layout, results, loading, empty/error presentation, and pagination styles. Filter/Sort owns its form-control styles; the product card owns its cover, badge, price, and card presentation. Each component imports its own CSS module; the layout does not reach into filter or card internals. Media queries and reduced-motion behaviors stay with the components they affect. Style extraction preserves the existing declarations and breakpoints rather than redesigning the storefront during an architectural cleanup.
+
+Cover gradient variants derive deterministically from the product's stable ID instead of its position in a search or sorted list. The same product keeps its visual identity across filters, sorting, and pagination without per-product persisted state or a theme manager. Visual-device acceptance and real product artwork remain distinct from automated layout, CSS, and interaction checks.
+
+## D3 adversarial follow-up: canonical request identity and test evidence
+
+The query-keyed results component captures the initial query for its canonical API request.
+Equivalent URL spellings retain the same component and request rather than refetching due to
+a newly parsed query object. A changed canonical request still remounts and cancels the
+obsolete request. The request-owner timeout and retry state machine are unchanged.
+
+Adversarial tests now cover equivalent URLs with both pending and settled requests, a late
+successful response after a timeout while a newer retry is pending, and Strict Mode effect
+replay. Lifecycle fixtures align with the seeded product platform and region identities.
+The browser test coordinates obsolete request delivery explicitly and distinguishes
+intentional browser cancellation from unexpected route errors; fixed delays are not used
+to prove the race. Full deployment and manual device acceptance remain separate evidence.
+
+## Catalog recovery and cancellation verification (Checkpoint D3)
+
+The catalog request lifecycle stays local to the results view and relies on a query-keyed
+component identity, an abort controller, and a six-second deadline. D3 tests the behavior
+under intentionally hostile ordering rather than adding another state manager or transport
+abstraction. Acceptance includes A-to-B-to-A navigation with out-of-order responses, an old
+request rejecting after a newer query succeeds, retries while the timed-out request rejects,
+slow response-body parsing after the deadline, route departure canceling obsolete requests,
+and avoiding a timeout after successful completion. The browser suite also covers late
+server errors after filters change. The newest request alone may own the visible result.
+
+This checkpoint verifies these behaviors in the automated test environment; external
+network proxies, mobile browsers, accessibility review, and deployed integrations still
+require their own acceptance. Retain the current request boundary unless a test exposes
+an actual correctness problem.
+
+## Catalog frontend failure classification (Checkpoint D2)
+
+The transport boundary classifies 400 as an invalid query, 502/503 as service unavailability,
+408/504 as a request/gateway timeout, unexpected HTTP or malformed JSON as unexpected, and
+browser network failures as network errors. Failure while reading a successful response body
+is a network error only for a TypeError; invalid JSON remains unexpected. Aborted reads
+propagate cancellation rather than being misreported as network failures.
+
+The results view owns its six-second client-side deadline. It aborts at that deadline and
+shows a timeout even when the underlying transport ignores AbortSignal. Responses arriving
+after the deadline cannot replace the timeout state; navigating away also aborts obsolete
+requests without showing their errors. Transport classification does not own this deadline.
+
+All failures offer Retry without losing the applied query. Rejected queries with non-default
+catalog options additionally offer Reset filters. A rejected default query instead explains
+that the catalog could not be opened and suggests retrying or choosing another search or
+platform. The UI never shows raw HTTP bodies, backend messages, or JavaScript exceptions.
+The catalog feature owns its messages and actions without a generic notification framework.
+
+Timeout, cancellation, gateway, and response-body failure paths have focused regression
+coverage. D3 remains the broader adversarial recovery and overlapping-request review.
+
+## Catalog frontend response contract
+
+A successful catalog response must match its requested page and page size and contain the exact number of products implied by the total. An out-of-range page can legitimately return an empty array while retaining the total. Product identifiers must be distinct within a page; prices must be positive, JavaScript-safe integer cents or null for sold-out items. The frontend accepts the supported platform and region values and only root-relative asset paths or HTTPS cover URLs. The Go API remains authoritative for catalog business rules; this boundary detects inconsistent transport data without duplicating SQL or pricing logic.
+
+## Slice 2 final architectural review (Checkpoint D5)
+
+Reviewed catalog URL and draft-state ownership, API/request lifecycle, feature and shared-module
+boundaries, Go handler/service/repository separation, PostgreSQL inventory and price projections,
+CSS module ownership, API-to-browser acceptance, and automated accessibility/responsive checks.
+The feature's URL remains the authority for applied controls; query-keyed results own fetch/retry
+and timeout state; temporary search and price drafts stay local. Shared layout does not import
+catalog feature code. Handler validation and database constraints deliberately repeat policy at
+different trust boundaries; they are not accidental duplication.
+
+The review found no demonstrated need for global state, generalized fetching, a new repository
+interface, service decomposition, or a cross-layer DTO generator. It consolidated a duplicate
+`resultsToolbar` CSS block and a duplicate `filterHeading` block without changing their
+effective style. The prior D3 canonical-request, cancellation, retry, and fixture defects already
+have dedicated regression coverage. D4 confirms real PostgreSQL inventory and search values
+through Go, the same-origin development proxy, and Chromium.
+
+Remaining user-experience and delivery limitations are explicit: product-card navigation,
+seller offers, authentication, cart and checkout are later slices, not inert placeholder controls.
+The reusable seed cover treatment is an interim catalog visual; original/licensed artwork and
+hands-on mobile and accessibility review remain separate visual acceptance. A public HTTPS
+frontend/API/database deployment was not made; the user deferred it. This prevents declaring
+Slice 2 fully released even with passing automated checks. Any future contract extension must
+update API, schema, and frontend compatibility checks together.
+
+## Pre-merge catalog correctness review
+
+The final Slice 2 review verified and corrected two boundary inconsistencies. Monetary
+display previously divided safe integer cents by 100, losing cent precision near the
+supported maximum. It now uses BigInt for the whole-euro/fraction split and the same
+locale formatter for separators and currency symbols; accepted cents remain exact.
+The header search formerly used HTML maxlength=100, which counts UTF-16 code units
+instead of the 100 Unicode code points accepted by the frontend URL parser and Go
+API. Search now caps code points without splitting surrogate pairs and waits until
+composition ends before enforcing that limit. Regression tests cover both boundaries.
+
+No other application feature was added during this review. Automated acceptance
+remains distinct from visual/device review and public hosting. Product-card detail
+navigation, purchasing and authentication remain later vertical slices; do not
+introduce inert UI controls to imply otherwise.
 
 ## Evidence before claims
 

@@ -2,7 +2,7 @@
 
 An unofficial game marketplace built as an engineering internship project. React and TypeScript provide the interface, a single Go REST API owns business rules, and PostgreSQL owns durable data and integrity constraints.
 
-**Current milestone: Slice 1, catalog API.** The foundation is verified and the public catalog now supports active/sold-out SKUs, available seller pricing, filters, ordered name/typo search and pagination. The current React shell checks connectivity; catalog/header UI follows in Slice 2. All seeded games are fictional and all keys visibly nonredeemable.
+**Current milestone: Slice 2 catalog frontend validated by automated checks; public deployment and manual visual acceptance remain pending.** The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
 
 ## Run locally on Windows
 
@@ -22,7 +22,7 @@ npm run doctor
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173**. The API listens on port 8080. Vite proxies /api, /healthz, and /readyz to Go.
+Open **http://127.0.0.1:5173/catalog** (the root redirects to the catalog). The API listens on port 8080. Vite proxies /api, /healthz, and /readyz to Go. Search, filters and page selection are reflected in the catalog URL.
 
 The bootstrap downloads Go 1.27.4, Node 22.23.5 and PostgreSQL 18.7 into ignored .tools directories and verifies the archives against release checksums. It does not replace system installations. npm 10.9.9 is bundled with this Node release. Load scripts/environment.ps1 in each new terminal to select these tools and checkout-local caches.
 
@@ -65,9 +65,11 @@ The Go wrapper loads the appropriate ignored environment file and invokes Go dir
 
 Run npm run test:browser for isolated Chrome checks at 1280px, 768px, and 360px, including keyboard access and real API responses. Chrome uses a temporary profile.
 
-For a manual outage check, keep the page open, run npm run db:local:stop, and use Check connection. Liveness should stay available while readiness returns 503 and the page offers retry. Run npm run db:local:start externally, then retry in the same page. Keep other database checks idle during this maintenance check.
+For a manual outage check, keep the catalog open, run npm run db:local:stop, and change a filter or reload. The catalog should show a recoverable error while /readyz returns 503. Run npm run db:local:start externally and select Try again. Keep other database checks idle during this maintenance check.
 
-Local verification evidence and reviewed screenshots are recorded in docs/verification/foundation.md. The subsequent safety fixes, security update and fresh-install checks are recorded in docs/verification/foundation-repairs.md.
+Slice 2's full frontend–Go–PostgreSQL integration acceptance, evidence boundaries, and outstanding public-deployment checks are recorded in [Slice 2 integration verification](docs/verification/slice-2-integration.md).
+
+Earlier foundation verification evidence and reviewed screenshots are recorded in docs/verification/foundation.md. The subsequent safety fixes, security update and fresh-install checks are recorded in docs/verification/foundation-repairs.md.
 
 ## Repository boundaries
 
@@ -78,8 +80,8 @@ Local verification evidence and reviewed screenshots are recorded in docs/verifi
 - api/internal/database/maintenance isolates provisioning, Goose, and fixture operations from the server's runtime dependency graph.
 - api/internal/httpapi owns routing, health responses, and transport logging.
 - api/internal/catalog owns catalog handlers, query policy and SQL reads; dependencies are wired explicitly in the server entry point.
-- web/src/app owns application composition and the current shell.
-- web/src/shared/api contains the same-origin readiness request.
+- web/src/app owns route composition; web/src/shared/layout owns the global header and navigation.
+- web/src/features/catalog owns typed catalog reads, URL query policy, browsing state and presentation. Catalog requests run directly; backend /readyz remains an infrastructure health endpoint, not a frontend prerequisite.
 - web/src/styles contains shared visual foundations; component styles remain colocated.
 - db contains application migrations and immutable fixture versions.
 - docs/reference contains unchanged supplied material; docs/decisions.md records adopted choices.
@@ -127,4 +129,4 @@ A production Dockerfile will pin the Go build environment during the early-deplo
 
 See docs/ai-history/README.md for conversation preservation and docs/decisions.md for the reasons behind these choices.
 
-Next slices: catalog/header UI → independent homepage blocks → product/cart → authentication → quote/checkout → orders/key delivery → release verification.
+Next slices: independent homepage blocks → product detail/cart → authentication → quote/checkout → orders/key delivery → release verification.

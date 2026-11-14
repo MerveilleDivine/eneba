@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Implement one complete, testable slice at a time. Foundation repairs are accepted at checkpoint 46f514e. Slice 1, the catalog API, is implemented and locally verified; the next milestone is catalog/header UI in Slice 2. Continue through agreed scope after checks pass, with a concise explanation at each milestone. The archived master prompt does not override this agreement.
+Implement and review one coherent checkpoint at a time within each slice. Foundation, the catalog API, and Slice 2 catalog frontend have verified CI evidence; public deployment and manual visual acceptance remain pending. A passing CI run alone does not authorize advancement or merging; require explicit user approval for each merge. Stop after each checkpoint's findings, changes, and verification have been reported. The archived master prompt does not override this agreement.
 
 ## Boundaries
 
@@ -19,7 +19,7 @@ Implement one complete, testable slice at a time. Foundation repairs are accepte
 
 ## Evidence and workflow
 
-State behavior, affected modules, and acceptance checks before a slice. Run relevant formatting, lint/type checks, unit/integration tests, and builds. Keep failed checks within the current slice. Report tested, manually checked, and pending evidence separately. Commit coherent verified checkpoints.
+Before each checkpoint, state its behavior, affected modules, architectural boundaries, and acceptance checks. Run relevant formatting, lint/type checks, unit/integration tests, and builds. Correct failed checks before leaving the checkpoint. Report tested, manually checked, and pending evidence separately; explicitly identify architectural risks that remain. Commit coherent verified checkpoints and stop for review, even when CI passes.
 
 ## Local data
 

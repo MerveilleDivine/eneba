@@ -87,6 +87,30 @@ func TestCatalogHTTP(t *testing.T) {
 		}
 	})
 
+	t.Run("database accepts every supported product platform and region", func(t *testing.T) {
+		ctx, tx := catalogTestTx(t, pool)
+		for _, pair := range []struct{ platform, region string }{
+			{"steam", "global"},
+			{"xbox", "global"},
+			{"playstation", "global"},
+			{"nintendo", "global"},
+			{"other", "global"},
+			{"steam", "europe"},
+			{"steam", "united-states"},
+		} {
+			filter := Filter{Platform: pair.platform, Region: pair.region, Page: 1, PageSize: 1}
+			if _, err := normalizeFilter(filter); err != nil {
+				t.Fatalf("API rejected %s/%s: %v", pair.platform, pair.region, err)
+			}
+			_, err := tx.Exec(ctx, `INSERT INTO marketplace.products(slug,name,platform,region,cover_url)
+				VALUES ('facet-contract-'||gen_random_uuid()::text,'Facet contract fixture',$1,$2,'/images/demo-cover.svg')`,
+				pair.platform, pair.region)
+			if err != nil {
+				t.Fatalf("database rejected %s/%s: %v", pair.platform, pair.region, err)
+			}
+		}
+	})
+
 	t.Run("filters and price order happen before pagination", func(t *testing.T) {
 		for _, tt := range []struct {
 			query, first string

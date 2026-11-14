@@ -47,3 +47,14 @@ test("lint discovery covers TypeScript sources and respects build ignores", asyn
     rmSync(ignored, { force: true });
   }
 });
+
+test("shared layout cannot import feature modules", async () => {
+  const web = resolve("web");
+  const eslint = new ESLint({ cwd: web });
+  const probe = join(web, "src", "shared", "layout", "boundary-probe.ts");
+  const results = await eslint.lintText(
+    `import { catalogHref } from "../../features/catalog/catalog-query";\nvoid catalogHref;\n`,
+    { filePath: probe },
+  );
+  assert.ok(results[0]?.messages.some((message) => message.ruleId === "no-restricted-imports"));
+});
