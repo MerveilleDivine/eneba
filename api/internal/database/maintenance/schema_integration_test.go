@@ -76,6 +76,33 @@ func TestFoundationDatabase(t *testing.T) {
 		requirePostgresError(t, err, "23503", "ordered_key_matches_offer")
 	})
 
+	t.Run("new artwork seed preserves purchases and customized covers", func(t *testing.T) {
+		tx := beginTestTx(t, ctx, conn)
+		order, key, offer, _ := purchaseFixture(t, ctx, tx)
+		if _, err := tx.Exec(ctx, itemSQL, order, offer, key); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := tx.Exec(ctx, `DELETE FROM marketplace.seed_versions WHERE version='002_catalog_artwork.sql';
+		  UPDATE marketplace.products SET cover_url='/images/demo-cover.svg' WHERE slug='solar-drift';
+		  UPDATE marketplace.products SET cover_url='/images/custom.webp' WHERE slug='ironbound'`); err != nil {
+			t.Fatal(err)
+		}
+		if count, err := Seed(ctx, tx, seeds); err != nil || count != 1 {
+			t.Fatalf("new artwork seed count=%d err=%v", count, err)
+		}
+		var allocated bool
+		var cover, customized string
+		var keys int
+		err := tx.QueryRow(ctx, `SELECT
+		  EXISTS(SELECT 1 FROM marketplace.order_items WHERE digital_key_id=$1),
+		  (SELECT cover_url FROM marketplace.products WHERE slug='solar-drift'),
+		  (SELECT cover_url FROM marketplace.products WHERE slug='ironbound'),
+		  (SELECT count(*) FROM marketplace.digital_keys)`, key).Scan(&allocated, &cover, &customized, &keys)
+		if err != nil || !allocated || cover != "/images/covers/solar-drift.webp" || customized != "/images/custom.webp" || keys != 58 {
+			t.Fatalf("artwork must preserve allocation, customized covers and stock: allocated=%v cover=%q customized=%q keys=%d err=%v", allocated, cover, customized, keys, err)
+		}
+	})
+
 	t.Run("a key cannot be allocated to two orders", func(t *testing.T) {
 		tx := beginTestTx(t, ctx, conn)
 		order, key, offer, _ := purchaseFixture(t, ctx, tx)

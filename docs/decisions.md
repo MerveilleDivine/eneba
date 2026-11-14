@@ -193,3 +193,40 @@ introduce inert UI controls to imply otherwise.
 ## Evidence before claims
 
 Local checks, browser observations, remote CI, and public deployment are distinct evidence. Document pending checks rather than inferring that generated configuration has worked. Preserve complete user prompts and visible assistant responses, including user-input decisions, without hidden model reasoning or credentials.
+
+## Slice 2 independent audit and visual completion (14 November)
+
+Keep the established URL/draft/request ownership and concrete backend wiring. The
+audit demonstrated two small lifecycle defects: sorting remounted its own focused
+control, and a cover failure disabled all subsequent image URLs. Persistent controls
+now sit outside the canonical-request key; image failure belongs to a URL. Request
+state, retry state and the six-second deadline remain inside the keyed results.
+
+Keyboard recovery focuses the persistent results heading before pagination, retry
+or result-reset actions remove their initiating control. Modified links retain
+ordinary browser behavior. Clearing filters focuses the first filter; price errors
+are associated with the inputs and focus the field needing correction. The skip
+target is programmatically focusable without entering the normal tab order. The
+brand link takes its accessible name from its content instead of repeating it in
+an ARIA override. No global focus manager or navigation state was introduced.
+
+Sixteen original generated covers replace the interim shared cover. Their prompts,
+checksums and export settings are recorded in `docs/assets/`. New immutable seed
+002 changes known fixture covers only, preserving customized artwork and all
+purchases and inventory. It does not change migration 001 or seed 001. The API
+continues supplying URLs; the frontend contains no fixture-to-asset mapping.
+WebP exports and lazy loading bound the artwork cost without adding an image
+service or build dependency. Card information uses flex layout to align prices
+when badges wrap; control borders share one contrast-conscious design token.
+
+`@axe-core/playwright` 4.14.0 is a pinned test-only dependency, compatible with the
+project's Node 22.23.5 and existing Playwright. It provides repeatable scans of
+catalog states and viewports using the
+[documented Playwright integration](https://playwright.dev/docs/accessibility-testing).
+No rules or elements are excluded. Keyboard behavior and screenshot review remain
+separate evidence; automated scans do not certify complete accessibility.
+
+The user explicitly deferred hosting and authorized completing E/F in this review.
+Continue on the existing feature branch, keep a follow-up draft PR, and stop after
+Slice 2. Do not merge, create another development branch, change deployment
+infrastructure or begin Slice 3 without further authorization.

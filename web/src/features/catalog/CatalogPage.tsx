@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { CatalogFilters, CatalogSort } from "./CatalogFilters";
 import { ProductCard } from "./ProductCard";
@@ -47,9 +47,10 @@ const failureMessages: Record<CatalogFailureKind, { title: string; description: 
 
 type ResultsProps = {
   query: CatalogQuery;
+  onAction: (event?: MouseEvent<HTMLAnchorElement>) => void;
 };
 
-function CatalogResults({ query }: ResultsProps) {
+function CatalogResults({ query, onAction }: ResultsProps) {
   // The parent key changes whenever the canonical request changes.
   // Keep this query stable when only the URL spelling changes.
   const [requestQuery] = useState(query);
@@ -127,6 +128,7 @@ function CatalogResults({ query }: ResultsProps) {
               type="button"
               className={styles.primaryButton}
               onClick={() => {
+                onAction();
                 setRequest({ status: "loading" });
                 setAttempt((value) => value + 1);
               }}
@@ -134,7 +136,7 @@ function CatalogResults({ query }: ResultsProps) {
               Try again
             </button>
             {canReset && (
-              <Link className={styles.primaryLink} to="/catalog">
+              <Link className={styles.primaryLink} to="/catalog" onClick={onAction}>
                 Reset filters
               </Link>
             )}
@@ -151,6 +153,7 @@ function CatalogResults({ query }: ResultsProps) {
           </p>
           <Link
             className={styles.primaryLink}
+            onClick={onAction}
             to={query.page > 1 ? catalogHref({ ...query, page: 1 }) : "/catalog"}
           >
             {query.page > 1 ? "First page" : "Clear filters"}
@@ -167,7 +170,9 @@ function CatalogResults({ query }: ResultsProps) {
       {result && pages > 1 && (
         <nav aria-label="Catalog pages" className={styles.pagination}>
           {showPrevious ? (
-            <Link to={catalogHref({ ...query, page: query.page - 1 })}>Previous</Link>
+            <Link to={catalogHref({ ...query, page: query.page - 1 })} onClick={onAction}>
+              Previous
+            </Link>
           ) : (
             <span aria-disabled="true">Previous</span>
           )}
@@ -175,7 +180,9 @@ function CatalogResults({ query }: ResultsProps) {
             Page {query.page} of {pages}
           </span>
           {showNext ? (
-            <Link to={catalogHref({ ...query, page: query.page + 1 })}>Next</Link>
+            <Link to={catalogHref({ ...query, page: query.page + 1 })} onClick={onAction}>
+              Next
+            </Link>
           ) : (
             <span aria-disabled="true">Next</span>
           )}
@@ -188,10 +195,26 @@ function CatalogResults({ query }: ResultsProps) {
 export function CatalogPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const resultsHeading = useRef<HTMLHeadingElement>(null);
   const parsed = useMemo(() => parseCatalogSearch(location.search), [location.search]);
 
   function changeQuery(query: CatalogQuery) {
     navigate(catalogHref(query));
+  }
+
+  function focusResults(event?: MouseEvent<HTMLAnchorElement>) {
+    // A modified link opens another tab/window; leave this page's focus alone.
+    if (
+      event &&
+      (event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey)
+    )
+      return;
+    resultsHeading.current?.focus();
   }
 
   const query = parsed.ok ? parsed.query : defaultCatalogQuery();
@@ -223,10 +246,12 @@ export function CatalogPage() {
           />
           <section className={styles.results} aria-label="Game results">
             <div className={styles.resultsToolbar}>
-              <h2>Browse games</h2>
+              <h2 ref={resultsHeading} tabIndex={-1}>
+                Browse games
+              </h2>
               <CatalogSort query={query} onChange={changeQuery} />
             </div>
-            <CatalogResults key={catalogRequestPath(query)} query={query} />
+            <CatalogResults key={catalogRequestPath(query)} query={query} onAction={focusResults} />
           </section>
         </div>
       )}

@@ -54,7 +54,7 @@
   width: 100%;
   min-width: 0;
   height: 42px;
-  border: 1px solid #aa98c34d;
+  border: 1px solid var(--color-control-border);
   border-radius: 0.5rem;
   padding: 0.55rem 0.65rem;
   background: #1c1034;
@@ -86,7 +86,7 @@
 .applyButton {
   width: 100%;
   margin-top: 0.85rem;
-  border: 1px solid #b89aff6b;
+  border: 1px solid var(--color-control-border);
   border-radius: 0.5rem;
   color: var(--color-text);
   background: #39215e;

@@ -14,7 +14,7 @@
   width: 100%;
   min-width: 0;
   height: 48px;
-  border: 1px solid #a98bd75e;
+  border: 1px solid var(--color-control-border);
   border-radius: 0.65rem;
   background: #311e50;
   overflow: hidden;
@@ -59,6 +59,11 @@
 
 .search button:hover {
   background: #f1ffb5;
+}
+
+.search button:focus-visible {
+  outline: 3px solid var(--color-background);
+  outline-offset: -5px;
 }
 
 .search button span:first-child {

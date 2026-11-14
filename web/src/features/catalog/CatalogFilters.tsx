@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import {
   euroInput,
   parseEuroInput,
@@ -29,6 +29,9 @@ function priceDraftFor(query: CatalogQuery) {
 export function CatalogFilters({ query, onChange, onClear }: Props) {
   const applied = priceDraftFor(query);
   const [draft, setDraft] = useState(() => applied);
+  const platformInput = useRef<HTMLSelectElement>(null);
+  const minimumInput = useRef<HTMLInputElement>(null);
+  const maximumInput = useRef<HTMLInputElement>(null);
 
   // Preserve unsubmitted edits across unrelated filters, but restore the URL's
   // prices when the applied range changes (including Back/Forward).
@@ -49,6 +52,8 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
         ...previous,
         error: "Enter valid euro prices, with the minimum no higher than the maximum.",
       }));
+      const focusTarget = maximum === null && minimum !== null ? maximumInput : minimumInput;
+      focusTarget.current?.focus();
       return;
     }
     setDraft((previous) => ({ ...previous, error: "" }));
@@ -60,6 +65,7 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
   function clearFilters() {
     setDraft({ ...applied, min: "", max: "", error: "" });
     onClear();
+    platformInput.current?.focus();
   }
 
   const hasFilters = Boolean(
@@ -83,6 +89,7 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
         <label className={styles.field}>
           <span>Platform</span>
           <select
+            ref={platformInput}
             value={query.platform}
             onChange={(event) =>
               onChange({
@@ -123,6 +130,9 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
               <label className={styles.field}>
                 <span>Min</span>
                 <input
+                  ref={minimumInput}
+                  aria-invalid={draft.error ? true : undefined}
+                  aria-describedby={draft.error ? "catalog-price-error" : undefined}
                   type="text"
                   inputMode="decimal"
                   value={draft.min}
@@ -135,6 +145,9 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
               <label className={styles.field}>
                 <span>Max</span>
                 <input
+                  ref={maximumInput}
+                  aria-invalid={draft.error ? true : undefined}
+                  aria-describedby={draft.error ? "catalog-price-error" : undefined}
                   type="text"
                   inputMode="decimal"
                   value={draft.max}
@@ -146,7 +159,7 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
               </label>
             </div>
             {draft.error && (
-              <p role="alert" className={styles.fieldError}>
+              <p id="catalog-price-error" role="alert" className={styles.fieldError}>
                 {draft.error}
               </p>
             )}

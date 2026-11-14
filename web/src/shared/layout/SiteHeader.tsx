@@ -6,7 +6,7 @@ export function SiteHeader({ search }: { search: ReactNode }) {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link className={styles.brand} to="/catalog" aria-label="Eneba demo catalog">
+        <Link className={styles.brand} to="/catalog">
           <span className={styles.brandMark} aria-hidden="true">
             e
           </span>

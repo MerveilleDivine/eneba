@@ -1,4 +1,6 @@
 .productCard {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -43,8 +45,6 @@
   position: absolute;
   inset: 0;
   object-fit: cover;
-  opacity: 0.52;
-  mix-blend-mode: screen;
 }
 
 .coverText {
@@ -88,6 +88,9 @@
 }
 
 .productInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   padding: 0.9rem 0.8rem 1.1rem;
 }
 
@@ -120,6 +123,7 @@
 }
 
 .productPrice {
+  margin-top: auto;
   padding-top: 1rem;
   display: grid;
   gap: 0.15rem;
@@ -137,7 +141,8 @@
 }
 
 .soldOutPrice {
-  margin: 1rem 0 0;
+  margin: auto 0 0;
+  padding-top: 1rem;
   min-height: 2.2rem;
   color: var(--color-muted);
   font-size: 0.8rem;

@@ -41,15 +41,37 @@ The full existing frontend suite was exercised alongside these regressions; only
 the two added defect tests failed before the corrections. No API contract, business
 rule, runtime dependency, SQL query or schema change was needed for these repairs.
 
-## Confirmed remaining E/F work
+## Visual and accessibility review (E)
 
-All products still share interim artwork. Original per-game assets, responsive visual
-review, broader keyboard/focus checks and final acceptance evidence remain required.
-This is a known acceptance gap, not evidence that the state architecture needs rewriting.
+The known shared-cover acceptance gap is replaced with sixteen original generated
+illustrations. [Asset provenance](../assets/README.md) includes every prompt and
+checksum. WebP covers are 432×576 and 27,118–57,352 bytes each; there is no image
+service or new runtime dependency. Seed 002 updates the known placeholder URLs
+without editing seed 001, replacing customized covers or touching inventory.
+
+Chromium reproduced three additional keyboard gaps before correction: pagination
+lost focus with its initiating link, Clear all removed its focused button, and
+invalid prices neither focused nor described the field needing correction. The
+small corrections use existing component refs and a callback to a persistent
+heading. Retry and result-reset links use the same focus destination. Modified
+link clicks do not steal focus. The skip link has a focusable main target.
+
+Axe identified a label-in-name mismatch in the shared brand link across all page
+states. Adding punctuation alone did not resolve it because the decorative letter
+mark also participates in the visible-text comparison. Removing the unnecessary
+ARIA name override lets the rendered brand supply its own accessible name.
+
+Screenshot review at 360/768/1280 confirmed the existing purple/lime direction,
+readable card titles and prices, clear sold-out treatment, intact controls and no
+horizontal clipping. The artwork now renders in its original colors. Wrapped
+badges exposed uneven price alignment; a flex column aligns price areas without
+fixed heights. Control borders now share an explicit, stronger color; the search
+button uses an inset focus outline that is not clipped by its container. Layout,
+temporary drafts, navigation structure and product-card scope stay unchanged.
 
 The browser-control bridge was unavailable on this machine. Repository Playwright
-checks and direct inspection of their screenshots will provide local browser/visual
-evidence; physical-device and user acceptance remain distinct.
+checks and direct inspection of their screenshots provide local browser/visual
+evidence; physical-device, screen-reader and user acceptance remain distinct.
 
 ## Deliberately unchanged and bounded risks
 
@@ -83,3 +105,26 @@ E and F results are recorded here as their checks complete. A pending
 run is never reported as passing. Final CI links belong to the follow-up PR so the
 evidence can refer to its exact final source commit without creating a documentation
 commit loop.
+
+E checkpoint: Windows frontend type checking, linting, 96 unit tests and the
+production build passed. All 15 focused Chromium checks passed without retries:
+eight whole-page WCAG A/AA scans (three viewports and five states), five keyboard
+journeys, the sorting regression and the sixteen-cover integration check.
+The PostgreSQL 18.7 maintenance package passed, including nine real-database
+scenarios and the new seed/purchase/custom-cover regression. Seed application
+reported one new version, then zero. No catalog API or schema migration changed.
+
+Reviewed local screenshots: [desktop](screenshots/slice-2-1280.jpg),
+[tablet](screenshots/slice-2-768.jpg), [mobile](screenshots/slice-2-360.jpg).
+All visible covers were decoded before full-page capture. These are agent-reviewed
+Chromium screenshots, not physical-device testing or user sign-off.
+
+E adversarial review kept the new focus behavior local to explicit user actions;
+typing and unrelated filter changes never receive automatic focus. Result links
+retain ordinary modified-click behavior. The request key, deadline and obsolete
+result guards are unchanged. Image space is reserved, broken-image text survives,
+and no card links imply an unimplemented product route. Axe is test-only; the
+production application gained no dependency. The new seed is independently
+versioned and its application to existing allocated inventory is tested inside a
+rollback transaction. Existing source documents and applied seed checksums remain
+unchanged.

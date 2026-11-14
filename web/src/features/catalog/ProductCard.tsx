@@ -23,6 +23,8 @@ export function ProductCard({ product }: Props) {
           <img
             src={product.coverUrl}
             alt=""
+            width="432"
+            height="576"
             loading="lazy"
             onError={() => setFailedCoverUrl(product.coverUrl)}
           />

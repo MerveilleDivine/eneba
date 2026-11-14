@@ -195,7 +195,7 @@ test("equivalent catalog links do not refetch the same results", async ({ page }
   // Strict Mode may start and cancel an extra initial request.
   const initialRequests = requests.length;
   expect(initialRequests).toBeGreaterThan(0);
-  await page.getByRole("link", { name: "Eneba demo catalog" }).click();
+  await page.getByRole("link", { name: "eneba.", exact: true }).click();
   await expect(page).toHaveURL(/\/catalog$/);
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
   expect(requests).toHaveLength(initialRequests);
@@ -241,7 +241,7 @@ test("navigating to the same catalog URL cancels pending search", async ({ page 
   await page.goto("/catalog");
   const search = page.getByRole("searchbox", { name: "Search games" });
   await search.fill("solar");
-  await page.getByRole("link", { name: "Eneba demo catalog" }).click();
+  await page.getByRole("link", { name: "eneba.", exact: true }).click();
   await expect(search).toHaveValue("");
   await page.waitForTimeout(500);
   await expect(page).toHaveURL(/\/catalog$/);

@@ -1,5 +1,29 @@
 import { expect, test } from "@playwright/test";
 
+test("every active game delivers its own original cover through the catalog API", async ({
+  page,
+  request,
+}) => {
+  const response = await request.get("/api/v1/products?pageSize=50");
+  expect(response.status()).toBe(200);
+  const catalog = await response.json();
+  expect(catalog.total).toBe(16);
+  expect(new Set(catalog.items.map((item: { coverUrl: string }) => item.coverUrl)).size).toBe(16);
+  await page.goto("/catalog?pageSize=50");
+  await expect(page.getByText("16 games", { exact: true })).toBeVisible();
+  for (const item of catalog.items) {
+    expect(item.coverUrl).toBe(`/images/covers/${item.slug}.webp`);
+    const card = page
+      .getByRole("article")
+      .filter({ has: page.getByRole("heading", { name: item.name, exact: true }) });
+    const image = card.locator("img");
+    await expect(image).toHaveAttribute("src", item.coverUrl);
+    await image.scrollIntoViewIfNeeded();
+    await expect(image).toHaveJSProperty("naturalWidth", 432);
+    await expect(image).toHaveJSProperty("naturalHeight", 576);
+  }
+});
+
 test("same-origin proxy serves live Go health and catalog contracts", async ({ request }) => {
   for (const [path, status] of [
     ["/healthz", "ok"],
