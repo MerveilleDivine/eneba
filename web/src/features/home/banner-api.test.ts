@@ -21,6 +21,20 @@ describe("banner transport and validation", () => {
     ).toHaveLength(1);
   });
 
+  it("accepts separately sourced ordered banners with maximum-length copy", () => {
+    const banners = [
+      { ...banner, headline: "A".repeat(120) },
+      {
+        ...banner,
+        id: "50000000-0000-4000-8000-000000000002",
+        position: 1,
+        headline: "Another world",
+        linkHref: "/catalog?q=neon",
+      },
+    ];
+    expect(parseBannerResponse({ items: banners })).toEqual(banners);
+  });
+
   it("rejects malformed, duplicate, unordered and unsafe server data", () => {
     const bad = [
       null,
@@ -30,11 +44,17 @@ describe("banner transport and validation", () => {
       { items: [{ ...banner, position: -1 }] },
       { items: [{ ...banner, headline: "" }] },
       { items: [{ ...banner, headline: "x".repeat(121) }] },
+      { items: [{ ...banner, headline: " ".repeat(120) + "Sale" }] },
       { items: [{ ...banner, subheading: "x".repeat(241) }] },
+      { items: [{ ...banner, subheading: " ".repeat(241) }] },
       { items: [{ ...banner, imageUrl: "/images/banners/../private.svg" }] },
+      { items: [{ ...banner, imageUrl: "/images/banners/.svg" }] },
+      { items: [{ ...banner, imageUrl: "/images/banners/nested/cover.svg" }] },
       { items: [{ ...banner, imageUrl: "javascript:alert(1)" }] },
       { items: [{ ...banner, linkHref: "//example.org" }] },
       { items: [{ ...banner, linkHref: "/store" }] },
+      { items: [{ ...banner, linkHref: "/" }] },
+      { items: [{ ...banner, linkHref: "/catalog?q=" + "%20".repeat(1000) }] },
       { items: [{ ...banner, linkHref: "/catalog?sort=wrong" }] },
       { items: [{ ...banner, linkHref: "/catalog?q=a&q=b" }] },
       { items: [{ ...banner, linkHref: "/catalog#private" }] },

@@ -3,17 +3,24 @@ package home
 
 import (
 	"context"
-	"errors"
 	"net/url"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/MerveilleDivine/eneba/api/internal/catalog"
 )
 
-var errInvalidBanner = errors.New("invalid stored homepage banner")
+const (
+	maxBanners           = 3
+	bannerCandidateLimit = 12
+	maxBannerLinkLength  = 2048
+	maxBannerImageLength = 400
+	maxBannerHeadline    = 120
+	maxBannerSubheading  = 240
+)
 
-const maxBanners = 3
+var bannerImagePattern = regexp.MustCompile(`^/images/banners/[a-z0-9][a-z0-9_-]*[.](?:webp|svg)$`)
 
 type Banner struct {
 	ID         string `json:"id"`
@@ -28,6 +35,12 @@ type BannerPage struct {
 	Items []Banner `json:"items"`
 }
 
+// BannerRejection contains only a database UUID and a fixed safe error category.
+type BannerRejection struct {
+	ID     string
+	Reason string
+}
+
 type BannerService struct {
 	repository *BannerRepository
 }
@@ -36,64 +49,81 @@ func NewBannerService(repository *BannerRepository) *BannerService {
 	return &BannerService{repository: repository}
 }
 
-func (s *BannerService) List(ctx context.Context) (BannerPage, error) {
+// Bounded candidate selection allows the next valid banner to replace a
+// malformed earlier banner. At most three validated records reach the client.
+func (s *BannerService) List(ctx context.Context) (BannerPage, []BannerRejection, error) {
 	banners, err := s.repository.List(ctx)
 	if err != nil {
-		return BannerPage{}, err
+		return BannerPage{}, nil, err
 	}
+	page := BannerPage{Items: make([]Banner, 0, maxBanners)}
+	rejected := make([]BannerRejection, 0)
 	for _, banner := range banners {
-		if !validBanner(banner) {
-			return BannerPage{}, errInvalidBanner
+		if reason := invalidBannerReason(banner); reason != "" {
+			rejected = append(rejected, BannerRejection{ID: banner.ID, Reason: reason})
+			continue
+		}
+		page.Items = append(page.Items, banner)
+		if len(page.Items) == maxBanners {
+			break
 		}
 	}
-	return BannerPage{Items: banners}, nil
+	return page, rejected, nil
 }
 
 func validBanner(banner Banner) bool {
-	if banner.ID == "" || banner.Position < 0 {
-		return false
-	}
-	headline := strings.TrimSpace(banner.Headline)
-	subheading := strings.TrimSpace(banner.Subheading)
-	if !utf8.ValidString(headline) || !utf8.ValidString(subheading) {
-		return false
-	}
-	if n := utf8.RuneCountInString(headline); n < 1 || n > 120 {
-		return false
-	}
-	if utf8.RuneCountInString(subheading) > 240 {
-		return false
-	}
-	return validBannerImage(banner.ImageURL) && validBannerLink(banner.LinkHref)
+	return invalidBannerReason(banner) == ""
 }
 
-func validBannerImage(value string) bool {
-	if len(value) > 400 || !strings.HasPrefix(value, "/images/banners/") ||
-		strings.Contains(value, "..") || strings.Contains(value, "//") {
+// Reject raw oversized text rather than trimming away potentially enormous
+// padding. The reason is a stable category without source text.
+func invalidBannerReason(banner Banner) string {
+	if banner.ID == "" || banner.Position < 0 {
+		return "invalid_identity_or_position"
+	}
+	if !validBannerText(banner.Headline, maxBannerHeadline, true) {
+		return "invalid_headline"
+	}
+	if !validBannerText(banner.Subheading, maxBannerSubheading, false) {
+		return "invalid_subheading"
+	}
+	if !validBannerImage(banner.ImageURL) {
+		return "invalid_image"
+	}
+	if !validBannerLink(banner.LinkHref) {
+		return "invalid_destination"
+	}
+	return ""
+}
+
+func validBannerText(value string, limit int, required bool) bool {
+	if !utf8.ValidString(value) || utf8.RuneCountInString(value) > limit ||
+		(required && strings.TrimSpace(value) == "") {
 		return false
 	}
-	name := strings.TrimPrefix(value, "/images/banners/")
-	if name == "" || !(strings.HasSuffix(name, ".webp") || strings.HasSuffix(name, ".svg")) {
-		return false
-	}
-	for _, letter := range name {
-		if (letter < 'a' || letter > 'z') && (letter < '0' || letter > '9') &&
-			letter != '.' && letter != '_' && letter != '-' && letter != '/' {
+	for _, r := range value {
+		if r < 32 || r == 127 {
 			return false
 		}
 	}
 	return true
 }
 
+func validBannerImage(value string) bool {
+	return len(value) <= maxBannerImageLength && bannerImagePattern.MatchString(value)
+}
+
 func validBannerLink(value string) bool {
-	if value == "/" || value == "/catalog" {
+	// Until product detail exists, every promotional CTA must lead somewhere
+	// useful: the existing catalog, optionally with valid filters.
+	if value == "/catalog" {
 		return true
 	}
-	if !strings.HasPrefix(value, "/catalog?") {
+	if len(value) > maxBannerLinkLength || !strings.HasPrefix(value, "/catalog?") {
 		return false
 	}
 	for _, r := range value {
-		if r < 32 || r == 35 || r == 92 {
+		if r < 32 || r == 35 || r == 92 || r == 127 {
 			return false
 		}
 	}

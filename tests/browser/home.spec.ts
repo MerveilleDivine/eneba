@@ -97,6 +97,100 @@ test("malformed or unsafe API data never creates a clickable promotion", async (
   await expect(page.getByRole("link", { name: "Explore games" })).toHaveCount(0);
 });
 
+test("three independently sourced banners remain reachable at enlarged mobile text", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  const banners = [
+    {
+      id: "50000000-0000-4000-8000-000000000001",
+      headline: "A".repeat(120),
+      subheading: "A new adventure awaits you in the catalog.",
+      imageUrl: "/images/banners/discover-world.svg",
+      linkHref: "/catalog?q=solar",
+      position: 0,
+    },
+    {
+      id: "50000000-0000-4000-8000-000000000002",
+      headline: "Beyond the horizon",
+      subheading: "Discover fictional worlds.",
+      imageUrl: "/images/banners/discover-world.svg",
+      linkHref: "/catalog?q=neon",
+      position: 1,
+    },
+    {
+      id: "50000000-0000-4000-8000-000000000003",
+      headline: "Featured adventures",
+      subheading: "Browse our game catalog.",
+      imageUrl: "/images/banners/discover-world.svg",
+      linkHref: "/catalog",
+      position: 2,
+    },
+  ];
+  await page.route("**/api/v1/home/banners", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ items: banners }),
+    });
+  });
+  await page.goto("/");
+  const articles = page.locator("article");
+  await expect(articles).toHaveCount(3);
+  await expect(page.getByRole("heading", { name: "Beyond the horizon" })).toBeVisible();
+  await page.addStyleTag({ content: ":root { font-size: 200%; }" });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  for (const article of await articles.all()) {
+    const link = article.getByRole("link", { name: "Explore games" });
+    await expect(link).toBeVisible();
+    const entirelyInCard = await link.evaluate((element) => {
+      const linkRect = element.getBoundingClientRect();
+      const cardRect = element.closest("article")?.getBoundingClientRect();
+      return Boolean(
+        cardRect &&
+        linkRect.left >= cardRect.left - 1 &&
+        linkRect.right <= cardRect.right + 1 &&
+        linkRect.bottom <= cardRect.bottom + 1,
+      );
+    });
+    expect(entirelyInCard).toBe(true);
+  }
+  await articles.nth(1).getByRole("link", { name: "Explore games" }).click();
+  await expect(page).toHaveURL(/\/catalog\?q=neon$/);
+  await expect(page.getByRole("heading", { name: "Neon Circuit" })).toBeVisible();
+});
+
+test("delayed banner response shows loading state until content arrives", async ({ page }) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/v1/home/banners", async (route) => {
+    await gate;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        items: [
+          {
+            id: "50000000-0000-4000-8000-000000000001",
+            headline: "Service recovered",
+            subheading: "Source-driven banner copy",
+            imageUrl: "/images/banners/discover-world.svg",
+            linkHref: "/catalog",
+            position: 0,
+          },
+        ],
+      }),
+    });
+  });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("status")).toContainText("Loading featured games");
+  release();
+  await expect(page.getByRole("heading", { name: "Service recovered" })).toBeVisible();
+  await expect(page.getByRole("status")).toHaveCount(0);
+});
+
 for (const width of [320, 360, 768, 1280]) {
   test(
     "homepage passes enlarged text and accessibility checks at " + width + "px",

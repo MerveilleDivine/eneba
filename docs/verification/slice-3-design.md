@@ -108,7 +108,7 @@ This document is design evidence, not a claim that new routes, services, images,
 
 14 November 2026. The banner-only vertical slice was implemented on feature/slice-2-catalog, with no main merge, new branch, deployment or 3C/3D work.
 
-**Backend:** The api/internal/home package owns BannerRepository, BannerService and BannerHandler. Its repository issues one bounded PostgreSQL SELECT against homepage_banners, filtering active rows, ordering by position/id and limiting to three. The service validates source text limits, internal destinations, image URLs and positions. The handler uses GET /api/v1/home/banners, a three-second context and the existing structured HTTP error envelope. Catalog query validation is reused for safe catalog links. The second live read consumer justified consolidating error classification into database.ClassifyReadError. No ORM, generic repository interface or second deployment was introduced.
+**Backend:** The api/internal/home package owns BannerRepository, BannerService and BannerHandler. Its repository issues one bounded PostgreSQL SELECT against homepage_banners, filtering active rows, ordering by position/id and initially limiting to three. The focused 3B hardening below now reads up to 12 bounded candidates and returns three validated banners. The service validates source text limits, internal destinations, image URLs and positions. The handler uses GET /api/v1/home/banners, a three-second context and the existing structured HTTP error envelope. Catalog query validation is reused for safe catalog links. The second live read consumer justified consolidating error classification into database.ClassifyReadError. No ORM, generic repository interface or second deployment was introduced.
 
 **Data:** Seed 001 remains immutable. New immutable seed 003_home_banner.sql updates only the known placeholder link and image of the known fixture row and preserves customized values. It never writes keys, stock, offers or orders. The original illustrated asset is web/public/images/banners/discover-world.svg, served as decorative imagery behind backend-sourced text.
 
@@ -119,3 +119,39 @@ This document is design evidence, not a claim that new routes, services, images,
 **Adversarial follow-up:** Focus after Retry, a common database read-error owner, source-only homepage content, extra bounded/ranked real-PostgreSQL fixture checks and non-clipped CTA browser assertions were implemented after that initial green run. They require a new successful exact-head CI verification; do not use the earlier green result to certify subsequent commits.
 
 **Outstanding outside 3B:** manual visual/device and screen-reader sign-off, hosted HTTPS/proxy/Render wake-up, mandatory complete chat-history exports, public deployment and the 3C best-seller/3D deals services. Do not merge or begin 3C without further authorization.
+
+## Focused 3B hardening after independent review
+
+15 November 2026. Following a new independent read-only audit, the user authorized
+**3B hardening only**. No 3C services, deployment, branch creation or merge are
+included in this checkpoint.
+
+- **Raw field bounds:** Previously, checks were applied to trimmed banner text;
+  huge whitespace-padded values could pass. Go and TypeScript now validate raw
+  headline/subheading lengths and reject control characters. PostgreSQL reads
+  only at most limit + 1 characters for each text field, so unlimited stored
+  text is neither fully transferred nor accidentally returned.
+- **Destinations and artwork:** Banner calls to action now permit only working
+  catalog routes and catalog query links, with an exact 2,048-byte raw URL
+  limit. Backend and frontend image-path validation allow the same approved
+  flat, same-origin SVG/WebP names, not traversal, unexpected filenames or
+  external URL schemes.
+- **Availability and observability:** The repository scans 12 active candidates
+  in stable order; the service returns up to three validated banners. Invalid
+  records are skipped without taking down other promotions. The handler logs
+  only the rejected banner UUID, fixed reason category and request ID, without
+  leaking untrusted text or destinations. The capped candidate read means
+  later valid banners beyond the first 12 may remain undiscovered; this is a
+  deliberate bound, not a claim of exhaustive scanning.
+- **Tests:** Added boundary-input cases in Go and TypeScript; database integration
+  now verifies invalid-row isolation, safe log details and large stored text
+  rejection while restoring original fixtures. Chromium checks multi-banner
+  rendering at 320px/200% text, CTA clipping, data-driven navigation and a
+  deliberately delayed banner response.
+
+**Verification gate:** Run repository formatting, Go/frontend unit/type/lint,
+real-PostgreSQL integration, Chromium, race and dependency/security checks
+against the **exact final commit** on PostgreSQL 17.12 and 18.7 before calling
+this checkpoint complete. Record failed attempts separately from the final
+verified head. Manual physical-device and screen-reader checks remain release
+tasks, not CI claims.

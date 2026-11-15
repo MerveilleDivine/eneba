@@ -22,18 +22,27 @@ function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+const MAX_HEADLINE_LENGTH = 120;
+const MAX_SUBHEADING_LENGTH = 240;
+const MAX_DESTINATION_LENGTH = 2048;
+const bannerImagePattern = /^\/images\/banners\/[a-z0-9][a-z0-9_-]*\.(?:webp|svg)$/;
+
 function safeBannerImage(value: unknown): value is string {
-  if (typeof value !== "string" || value.length > 400) return false;
-  if (!value.startsWith("/images/banners/") || value.includes("..") || value.includes("//"))
-    return false;
-  const file = value.slice("/images/banners/".length);
-  return /^[a-z0-9/_-]+(?:\.[a-z0-9_-]+)*\.(?:svg|webp)$/.test(file);
+  return typeof value === "string" && value.length <= 400 && bannerImagePattern.test(value);
 }
 
 function safeBannerDestination(value: unknown): value is string {
-  if (value === "/" || value === "/catalog") return true;
-  if (typeof value !== "string" || !value.startsWith("/catalog?")) return false;
-  const hasControls = Array.from(value).some((character) => character.charCodeAt(0) < 32);
+  if (value === "/catalog") return true;
+  if (
+    typeof value !== "string" ||
+    value.length > MAX_DESTINATION_LENGTH ||
+    !value.startsWith("/catalog?")
+  )
+    return false;
+  if (new TextEncoder().encode(value).length > MAX_DESTINATION_LENGTH) return false;
+  const hasControls = Array.from(value).some(
+    (character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127,
+  );
   if (value.includes("\\") || value.includes("#") || hasControls) return false;
   try {
     const url = new URL(value, "https://example.invalid");
@@ -48,6 +57,14 @@ function safeBannerDestination(value: unknown): value is string {
   }
 }
 
+function validBannerText(value: unknown, maxLength: number, required: boolean): value is string {
+  if (typeof value !== "string" || Array.from(value).length > maxLength) return false;
+  if (required && value.trim() === "") return false;
+  return !Array.from(value).some(
+    (character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127,
+  );
+}
+
 function validBanner(value: unknown): value is HomepageBanner {
   if (!record(value)) return false;
   const headline = value.headline;
@@ -55,11 +72,8 @@ function validBanner(value: unknown): value is HomepageBanner {
   return (
     typeof value.id === "string" &&
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.id) &&
-    typeof headline === "string" &&
-    headline.trim().length > 0 &&
-    Array.from(headline.trim()).length <= 120 &&
-    typeof subheading === "string" &&
-    Array.from(subheading.trim()).length <= 240 &&
+    validBannerText(headline, MAX_HEADLINE_LENGTH, true) &&
+    validBannerText(subheading, MAX_SUBHEADING_LENGTH, false) &&
     Number.isSafeInteger(value.position) &&
     (value.position as number) >= 0 &&
     safeBannerImage(value.imageUrl) &&

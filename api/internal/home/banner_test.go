@@ -30,6 +30,9 @@ func TestBannerValidation(t *testing.T) {
 		change func(*Banner)
 	}{
 		{"empty headline", func(b *Banner) { b.Headline = "  " }},
+		{"padded headline exceeds raw limit", func(b *Banner) { b.Headline = strings.Repeat(" ", 120) + "Sale" }},
+		{"padded subheading exceeds raw limit", func(b *Banner) { b.Subheading = strings.Repeat(" ", 241) }},
+		{"headline control character", func(b *Banner) { b.Headline = "Bad\nheading" }},
 		{"too long headline", func(b *Banner) { b.Headline = strings.Repeat("a", 121) }},
 		{"too long subheading", func(b *Banner) { b.Subheading = strings.Repeat("a", 241) }},
 		{"negative position", func(b *Banner) { b.Position = -1 }},
@@ -41,10 +44,14 @@ func TestBannerValidation(t *testing.T) {
 		{"unsafe query", func(b *Banner) { b.LinkHref = "/catalog?q=safe&pageSize=900" }},
 		{"duplicate query", func(b *Banner) { b.LinkHref = "/catalog?q=a&q=b" }},
 		{"fragment", func(b *Banner) { b.LinkHref = "/catalog?q=solar#private" }},
+		{"unbounded encoded destination", func(b *Banner) { b.LinkHref = "/catalog?q=" + strings.Repeat("%20", 1000) }},
+		{"home link is an inert promotion", func(b *Banner) { b.LinkHref = "/" }},
 		{"unsafe image", func(b *Banner) { b.ImageURL = "javascript:alert(1)" }},
 		{"encoded image", func(b *Banner) { b.ImageURL = "/images/banners/%2e%2e.svg" }},
 		{"path traversal", func(b *Banner) { b.ImageURL = "/images/banners/../private.svg" }},
 		{"remote image", func(b *Banner) { b.ImageURL = "https://example.com/banner.svg" }},
+		{"hidden asset", func(b *Banner) { b.ImageURL = "/images/banners/.svg" }},
+		{"unapproved nested image", func(b *Banner) { b.ImageURL = "/images/banners/nested/cover.svg" }},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			banner := fixtureBanner()
@@ -54,13 +61,24 @@ func TestBannerValidation(t *testing.T) {
 			}
 		})
 	}
-	for _, href := range []string{"/", "/catalog", "/catalog?q=solar", "/catalog?platform=steam&region=global"} {
+	for _, href := range []string{"/catalog", "/catalog?q=solar", "/catalog?platform=steam&region=global"} {
 		banner := fixtureBanner()
 		banner.LinkHref = href
 		if !validBanner(banner) {
 			t.Fatalf("valid internal link rejected: %q", href)
 		}
 	}
+	maxHeadline := fixtureBanner()
+	maxHeadline.Headline = strings.Repeat("A", maxBannerHeadline)
+	if !validBanner(maxHeadline) {
+		t.Fatal("maximum-length headline should remain valid")
+	}
+	maxLink := fixtureBanner()
+	maxLink.LinkHref = "/catalog?q=" + strings.Repeat("a", 100)
+	if !validBanner(maxLink) {
+		t.Fatal("valid catalog search destination rejected")
+	}
+
 }
 
 func TestBannerReadErrors(t *testing.T) {

@@ -32,8 +32,13 @@ func (h *BannerHandler) list(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
-	page, err := h.service.List(ctx)
+	page, rejected, err := h.service.List(ctx)
 	if err == nil {
+		for _, issue := range rejected {
+			h.logger.WarnContext(ctx, "invalid homepage banner skipped",
+				"request_id", w.Header().Get("X-Request-ID"),
+				"banner_id", issue.ID, "reason", issue.Reason)
+		}
 		httpapi.WriteJSON(w, http.StatusOK, page)
 		return
 	}

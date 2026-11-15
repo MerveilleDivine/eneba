@@ -3,6 +3,7 @@
 package home
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -22,6 +24,24 @@ import (
 )
 
 const fixtureBannerID = "50000000-0000-4000-8000-000000000001"
+
+// The HTTP server logs on its own goroutine; assertions must read safely.
+type concurrentLogBuffer struct {
+	mu   sync.Mutex
+	body bytes.Buffer
+}
+
+func (b *concurrentLogBuffer) Write(data []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.body.Write(data)
+}
+
+func (b *concurrentLogBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.body.String()
+}
 
 func TestBannerIntegration(t *testing.T) {
 	app, owner := os.Getenv("TEST_DATABASE_URL"), os.Getenv("TEST_MIGRATION_DATABASE_URL")
@@ -45,7 +65,8 @@ func TestBannerIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(pool.Close)
-	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
+	var recordedLogs concurrentLogBuffer
+	logger := slog.New(slog.NewJSONHandler(&recordedLogs, nil))
 	mux := http.NewServeMux()
 	NewBannerHandler(NewBannerService(NewBannerRepository(pool)), logger).RegisterRoutes(mux)
 	mux.HandleFunc("/", httpapi.NotFound)
@@ -115,6 +136,20 @@ func TestBannerIntegration(t *testing.T) {
 		ranked.Items[1].Position != 1 || ranked.Items[2].Position != 2 {
 		t.Fatalf("banner ordering or bound broken: %+v", ranked)
 	}
+	// A malformed selected banner must not hide the next valid promotion.
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_banners SET link_href='/unsafe' WHERE id=$1", extras[1]); err != nil {
+		t.Fatal(err)
+	}
+	recovered := read()
+	if len(recovered.Items) != 3 || recovered.Items[0].Position != 0 ||
+		recovered.Items[1].Position != 1 || recovered.Items[2].Position != 3 {
+		t.Fatalf("invalid banner must be skipped in favor of valid later candidates: %+v", recovered)
+	}
+	if !strings.Contains(recordedLogs.String(), extras[1]) ||
+		!strings.Contains(recordedLogs.String(), "invalid_destination") ||
+		strings.Contains(recordedLogs.String(), "/unsafe") {
+		t.Fatal("rejected banner must be logged with safe ID and reason, never raw destination")
+	}
 	for _, id := range extras {
 		if _, err := pool.Exec(ctx, "DELETE FROM marketplace.homepage_banners WHERE id=$1", id); err != nil {
 			t.Fatal(err)
@@ -175,12 +210,31 @@ func TestBannerIntegration(t *testing.T) {
 	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_banners SET active=true, link_href='/unsafe' WHERE id=$1", fixtureBannerID); err != nil {
 		t.Fatal(err)
 	}
-	code, body, _ := get(endpoint)
-	if code != 500 || !strings.Contains(string(body), "internal_error") ||
-		strings.Contains(string(body), "/unsafe") {
-		t.Fatal("invalid stored link must fail closed without leaking details")
+	empty := read()
+	if len(empty.Items) != 0 || empty.Items == nil {
+		t.Fatal("a single invalid banner must fail closed to an empty list, not a 500 or unsafe link")
 	}
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_banners SET link_href=$1 WHERE id=$2", oldLink, fixtureBannerID); err != nil {
+	var originalHeadline string
+	if err := pool.QueryRow(ctx, "SELECT headline FROM marketplace.homepage_banners WHERE id=$1", fixtureBannerID).Scan(&originalHeadline); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
+		defer stop()
+		_, _ = pool.Exec(restore, "UPDATE marketplace.homepage_banners SET headline=$1 WHERE id=$2", originalHeadline, fixtureBannerID)
+	})
+	// A large stored string must be bounded in SQL and rejected by the service;
+	// it must never be transferred in full or exposed in a success response.
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_banners SET headline=repeat(' ', 20000)||'Sale', link_href=$1 WHERE id=$2", oldLink, fixtureBannerID); err != nil {
+		t.Fatal(err)
+	}
+	if oversized := read(); len(oversized.Items) != 0 {
+		t.Fatalf("oversized raw banner text was returned: %+v", oversized)
+	}
+	if !strings.Contains(recordedLogs.String(), "invalid_headline") {
+		t.Fatal("oversized stored text must produce a safe structured warning")
+	}
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_banners SET headline=$1, link_href=$2 WHERE id=$3", originalHeadline, oldLink, fixtureBannerID); err != nil {
 		t.Fatal(err)
 	}
 	if len(read().Items) != 1 {

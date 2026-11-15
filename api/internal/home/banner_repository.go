@@ -16,14 +16,22 @@ func NewBannerRepository(pool *pgxpool.Pool) *BannerRepository {
 }
 
 // A single ordered, bounded query owns the banner projection.
+// LEFT prevents oversized stored text from becoming an oversized API read;
+// the +1 sentinel still allows validation to reject out-of-bounds content.
 func (r *BannerRepository) List(ctx context.Context) ([]Banner, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT id::text, headline, subheading, image_url, link_href, position
+		SELECT id::text,
+			LEFT(headline, $2),
+			LEFT(subheading, $3),
+			LEFT(image_url, $4),
+			LEFT(link_href, $5),
+			position
 		FROM marketplace.homepage_banners
 		WHERE active
 		ORDER BY position ASC, id ASC
 		LIMIT $1
-	`, maxBanners)
+	`, bannerCandidateLimit,
+		maxBannerHeadline+1, maxBannerSubheading+1, maxBannerImageLength+1, maxBannerLinkLength+1)
 	if err != nil {
 		return nil, database.ClassifyReadError(err)
 	}

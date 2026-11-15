@@ -17,13 +17,13 @@ Responses are JSON, Cache-Control: no-store, X-Request-ID and X-Content-Type-Opt
 }
 ```
 
-A database/connectivity or deadline failure is 503; unexpected storage failure or invalid server data is 500. The handler does not expose internal error strings. Reject unknown/duplicate query parameters with 400 rather than introducing undocumented filtering or pagination. Each endpoint has a bounded server-side result limit and deterministic ordering; its UI fetches independently.
+A database/connectivity or deadline failure is 503; unexpected storage-level failures are 500. In the implemented banner service, a malformed individual content row is skipped, with a safe structured warning; invalid data does not turn other valid promotions into a 500. The handler does not expose internal error strings. Reject unknown/duplicate query parameters with 400 rather than introducing undocumented filtering or pagination. Each endpoint has a bounded server-side result limit and deterministic ordering; its UI fetches independently.
 
 **Important:** The banner response below describes the actual seeded local contract following seed 003. Best-seller/deal examples remain future proposals. No public deployment has occurred.
 
 ## GET /api/v1/home/banners — BannerService (3B)
 
-Source: marketplace.homepage_banners only. Include active records in ascending position order, with id as a deterministic tie-breaker. Return at most **three** records; empty means a useful no-promotion homepage state, not invented default slides. The seeded banner currently links to the nonexistent /store and still has placeholder artwork. Repair those with a new immutable seed and an actual original banner asset in 3B.
+Source: marketplace.homepage_banners only. Scan at most **12** active candidates, in position and ID order, and return at most **three valid records** in that order. Invalid candidates are skipped with safe banner ID and fixed reason logging. An empty list is a valid no-promotion state. Immutable seed 003 has already corrected the original /store destination to /catalog and supplied the original illustrated hero asset.
 
 ```json
 {
@@ -41,10 +41,10 @@ Source: marketplace.homepage_banners only. Include active records in ascending p
 ```
 
 - The SVG asset in this example is committed under `web/public/images/banners/`. It is an original, static illustration with no external dependencies.
-- Validate/bound headline and subheading strings; render as text, never injected markup.
-- Accept only safe same-origin image paths (or explicitly allowed HTTPS assets if a real need is documented); never javascript:, data:, protocol-relative paths or backslashes.
-- Accept only known working application destinations: /, /catalog and validated /catalog query links during Slice 3. No external hosts, open redirects, /store, or /product/... links before Slice 4.
-- An invalid stored destination must fail closed and be diagnosable via safe server logs, not become a clickable unsafe/broken action.
+- Validate raw Unicode headline (1–120 characters) and subheading (0–240 characters), including whitespace padding; reject control characters and empty/blank-only headlines. SQL LEFT projections cap the data read from unrestricted TEXT columns at limit + 1 character, so oversized values can be rejected without transferring huge source fields. Render all copy as text, never injected markup.
+- Accept only original same-origin images at /images/banners/{lowercase-name}.svg or .webp, with simple letters, digits, underscores and hyphens in a nonempty filename. The SVG/.webp extension separator must be literal, and the entire path must be at most 400 bytes.
+- During Slice 3B, accept only /catalog and validated /catalog query links, up to 2,048 UTF-8 bytes raw. The / path is not a suitable destination for an “Explore games” CTA. Never accept external hosts, open redirects, /store or future /product/... routes.
+- An invalid stored banner is omitted (not made clickable). The handler logs the database-generated UUID and fixed reason category with its request ID, never the untrusted URL/text. A later valid candidate may fill its slot. If all candidates are invalid, return 200 with an empty items array; storage failures still use a generic 5xx response.
 - Mark purely decorative imagery alt-empty if all meaningful information is in the adjacent heading and copy; otherwise provide an accessible alternative.
 - No hardcoded text or image/target mapping in React. The block must visibly update from a changed banner source row.
 
@@ -120,7 +120,7 @@ Maintain standard loading/skeleton, empty, error, success and retry states, plus
 ## Cross-boundary acceptance (real PostgreSQL and Chromium)
 
 1. Every endpoint uses its own source table and service. To test HTTP data propagation, make a controlled **committed** change to one source table only inside the isolated `eneba_test` database, GET the corresponding API through its own pool connection, verify the other endpoints remain unchanged, then restore the fixture deterministically. Repository-level tests may instead mutate and read within the **same** transaction and roll back. An HTTP request on a separate connection cannot observe uncommitted data.
-2. Banners: inactive excluded; position stable; unsafe/broken destinations never clickable; asset exists and is original/licensed; link really navigates.
+2. Banners: inactive excluded; position stable; malformed text/URL/image data omitted with sanitized diagnostics; later valid candidates remain available; returned list limited to three from 12 bounded candidates; asset exists and is original/licensed; link really navigates.
 3. Best sellers: seeded counts produce ordering; ties deterministic; inactive excluded; sold-out and available prices agree with catalog; no keys disclosed; no per-card database requests.
 4. Deals: only eligible offers; seller-specific price/list price; correct discount rounding; no stock/false sales badge; seller, edition, platform and region are not mixed across SKUs.
 5. HTTP: GET/HEAD, 405 Allow, invalid query, 200 empty, 503 connectivity, 500 internal, no-store, request ID and no leaked SQL.
