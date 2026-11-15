@@ -32,7 +32,9 @@ function safeText(value: unknown, maximum: number): value is string {
     typeof value === "string" &&
     value.trim().length > 0 &&
     Array.from(value).length <= maximum &&
-    !Array.from(value).some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127)
+    !Array.from(value).some(
+      (character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127,
+    )
   );
 }
 
@@ -47,7 +49,8 @@ function isDeal(value: unknown): value is Deal {
     !Number.isSafeInteger(listPrice) ||
     price <= 0 ||
     listPrice <= price
-  ) return false;
+  )
+    return false;
   const percent = Number((BigInt(listPrice - price) * 100n) / BigInt(listPrice));
   return (
     typeof value.offerId === "string" &&

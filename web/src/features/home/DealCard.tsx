@@ -10,7 +10,9 @@ type Props = { deal: Deal };
 
 export function DealCard({ deal }: Props) {
   const [failedCoverUrl, setFailedCoverUrl] = useState<string>();
-  const destination = catalogHref(defaultCatalogQuery(Array.from(deal.name).slice(0, 100).join("")));
+  const destination = catalogHref(
+    defaultCatalogQuery(Array.from(deal.name).slice(0, 100).join("")),
+  );
   return (
     <li className={styles.item}>
       <Link className={styles.offerLink} to={destination}>

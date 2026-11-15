@@ -59,7 +59,9 @@ export function Deals() {
       {state.status === "failed" && (
         <div className={styles.feedback} role="alert">
           <h3>
-            {state.kind === "timeout" ? "Deals took too long to load" : "Deals are temporarily unavailable"}
+            {state.kind === "timeout"
+              ? "Deals took too long to load"
+              : "Deals are temporarily unavailable"}
           </h3>
           <p>The rest of the homepage and the catalog are still available.</p>
           <button type="button" className={styles.retry} onClick={retrySection}>
@@ -75,10 +77,13 @@ export function Deals() {
       {state.status === "ready" && state.data.items.length > 0 && (
         <>
           <ul className={styles.grid}>
-            {state.data.items.map((deal) => <DealCard key={deal.offerId} deal={deal} />)}
+            {state.data.items.map((deal) => (
+              <DealCard key={deal.offerId} deal={deal} />
+            ))}
           </ul>
           <p className={styles.disclosure}>
-            These are fictional, nonredeemable offers. Catalog search does not select the seller offer shown here.
+            These are fictional, nonredeemable offers. Catalog search does not select the seller
+            offer shown here.
           </p>
         </>
       )}

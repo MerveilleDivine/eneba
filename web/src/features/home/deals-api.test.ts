@@ -58,9 +58,14 @@ describe("deals source contract", () => {
       { currency: "EUR", items: [{ ...outpost, position: -1 }] },
       { currency: "EUR", items: [{ ...outpost, platform: "unsupported" }] },
       { currency: "EUR", items: [{ ...outpost, offerId: "wrong" }] },
-      { currency: "EUR", items: Array.from({ length: 9 }, (_, index) => ({
-        ...outpost, position: index, offerId: String(index),
-      })) },
+      {
+        currency: "EUR",
+        items: Array.from({ length: 9 }, (_, index) => ({
+          ...outpost,
+          position: index,
+          offerId: String(index),
+        })),
+      },
     ];
     for (const payload of invalid) {
       expect(() => parseDealsResponse(payload)).toThrow(HomeRequestError);
@@ -88,7 +93,9 @@ describe("deals source contract", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/v1/home/deals",
       expect.objectContaining({
-        signal: controller.signal, cache: "no-store", credentials: "same-origin",
+        signal: controller.signal,
+        cache: "no-store",
+        credentials: "same-origin",
       }),
     );
     for (const [status, kind] of [
@@ -100,6 +107,8 @@ describe("deals source contract", () => {
       await expect(fetchDeals(new AbortController().signal)).rejects.toMatchObject({ kind });
     }
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("private hostname")));
-    await expect(fetchDeals(new AbortController().signal)).rejects.toMatchObject({ kind: "network" });
+    await expect(fetchDeals(new AbortController().signal)).rejects.toMatchObject({
+      kind: "network",
+    });
   });
 });
