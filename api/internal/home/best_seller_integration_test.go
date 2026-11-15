@@ -239,24 +239,27 @@ func TestBestSellerIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Avoid changing a seeded product's active status: catalog and home
+	// package integration tests may run in parallel against eneba_test.
+	const archivedID = "10000000-0000-4000-8000-000000000017"
+	if _, err := pool.Exec(ctx, "INSERT INTO marketplace.homepage_best_sellers(product_id,demo_weekly_sales) VALUES ($1,1000)", archivedID); err != nil {
+		t.Fatal(err)
+	}
 	t.Cleanup(func() {
 		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
 		defer stop()
-		_, _ = pool.Exec(restore, "UPDATE marketplace.products SET active=true WHERE id=$1", first.ID)
+		_, _ = pool.Exec(restore, "DELETE FROM marketplace.homepage_best_sellers WHERE product_id=$1", archivedID)
 	})
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.products SET active=false WHERE id=$1", first.ID); err != nil {
-		t.Fatal(err)
-	}
 	inactive := read()
-	if len(inactive.Items) != 3 {
-		t.Fatalf("inactive product exposed in best sellers: %+v", inactive)
+	if len(inactive.Items) != 4 {
+		t.Fatalf("inactive ranking member changed visible results: %+v", inactive)
 	}
 	for _, item := range inactive.Items {
-		if item.ID == first.ID {
+		if item.ID == archivedID {
 			t.Fatal("inactive product was exposed")
 		}
 	}
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.products SET active=true WHERE id=$1", first.ID); err != nil {
+	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.homepage_best_sellers WHERE product_id=$1", archivedID); err != nil {
 		t.Fatal(err)
 	}
 
