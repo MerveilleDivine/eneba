@@ -135,9 +135,10 @@ for (const width of [320, 360, 768, 1280]) {
       width,
     );
     expect(
-      await deals.locator("li > a > div").first().evaluate(
-        (card) => getComputedStyle(card).transitionDuration,
-      ),
+      await deals
+        .locator("li > a > div")
+        .first()
+        .evaluate((card) => getComputedStyle(card).transitionDuration),
     ).toBe("0s");
     await page.screenshot({
       path: testInfo.outputPath(`homepage-${width}.jpg`),
