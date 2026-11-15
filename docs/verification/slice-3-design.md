@@ -1,6 +1,6 @@
 # Slice 3 — readiness, architecture and acceptance plan
 
-14 November 2026. **Scope: Phase 3.0 and 3A only; specification, not implemented homepage code.** This is the active design handoff for the next vertical checkpoints. The archived Blueprint v3.2 remains immutable, and the original employer PDF has precedence over interpretations. Do not present proposed endpoints or data structures below as deployed or tested.
+14 November 2026. **Scope: Phase 3.0/3A design and Phase 3B banner implementation handoff.** The 3.0 baseline below describes the historical pre-implementation state; the 3B record at the end describes what has since changed. The archived Blueprint v3.2 remains immutable, and the original employer PDF has precedence over interpretations. Do not present proposed endpoints or data structures below as deployed or tested.
 
 ## Phase 3.0 — actual starting state
 
@@ -103,3 +103,19 @@ This document is design evidence, not a claim that new routes, services, images,
 - **Operational state:** the user-selected Vercel/Render/Neon hosting is still unprovisioned and deliberately excluded from 3B preflight. Provider-specific SSL, database roles, pool limits, Render cold starts, HTTPS cookies and deployed paths are separate release tests. No `main` merge, new branch or cloud change is part of this audit.
 
 **Entry decision:** 3B architecture is ready for implementation with the above explicitly scoped tasks. Its success is not preapproved: implement the banner-only vertical slice, run tests and an independent weakness review, and stop before 3C.
+
+## Phase 3B — implementation and independent review
+
+14 November 2026. The banner-only vertical slice was implemented on feature/slice-2-catalog, with no main merge, new branch, deployment or 3C/3D work.
+
+**Backend:** The api/internal/home package owns BannerRepository, BannerService and BannerHandler. Its repository issues one bounded PostgreSQL SELECT against homepage_banners, filtering active rows, ordering by position/id and limiting to three. The service validates source text limits, internal destinations, image URLs and positions. The handler uses GET /api/v1/home/banners, a three-second context and the existing structured HTTP error envelope. Catalog query validation is reused for safe catalog links. The second live read consumer justified consolidating error classification into database.ClassifyReadError. No ORM, generic repository interface or second deployment was introduced.
+
+**Data:** Seed 001 remains immutable. New immutable seed 003_home_banner.sql updates only the known placeholder link and image of the known fixture row and preserves customized values. It never writes keys, stock, offers or orders. The original illustrated asset is web/public/images/banners/discover-world.svg, served as decorative imagery behind backend-sourced text.
+
+**Frontend:** Root / is the actual homepage, while /catalog retains deep links and canonical query behavior. The shared header provides Home, Browse games and global search. Banners independently fetch and validate their API data, cancel obsolete requests and expose loading, empty, failed, retry and success states. Retrying preserves focus without stealing it on initial load. Success, error and empty states have an h1. An unsourced marketing teaser was removed after review rather than violating backend-content ownership.
+
+**Verified initial implementation:** [GitHub Actions 43628686080](https://github.com/MerveilleDivine/eneba/actions/runs/43628686080) passed PostgreSQL 17.12 and 18.7 with 101 frontend unit tests, 60 real-browser tests, real-database integration, audits and Go race checks. Earlier failures correctly exposed outdated root-redirect assertions, an incorrect retry-test locator and 320px/200%-text overflow; these were fixed without weakening assertions.
+
+**Adversarial follow-up:** Focus after Retry, a common database read-error owner, source-only homepage content, extra bounded/ranked real-PostgreSQL fixture checks and non-clipped CTA browser assertions were implemented after that initial green run. They require a new successful exact-head CI verification; do not use the earlier green result to certify subsequent commits.
+
+**Outstanding outside 3B:** manual visual/device and screen-reader sign-off, hosted HTTPS/proxy/Render wake-up, mandatory complete chat-history exports, public deployment and the 3C best-seller/3D deals services. Do not merge or begin 3C without further authorization.

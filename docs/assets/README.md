@@ -21,3 +21,17 @@ The React card consumes `coverUrl` from the API without a title-to-asset mapping
 Cards reserve image space, load off-screen covers lazily, and keep meaningful text
 when an image fails. The title overlay is decorative duplication of the card's
 semantic heading. Its dark gradient remains a failure fallback, not finished artwork.
+
+## Homepage hero illustration
+
+Slice 3B adds web/public/images/banners/discover-world.svg, an original
+hand-authored 1600 × 900 vector illustration created for this fictional
+marketplace. It shows a purple fantasy portal, distant mountains and stars
+without third-party images, external fonts, game characters or official logos.
+It is decorative: accessible banner text comes from the Go API and PostgreSQL.
+
+Immutable seed 003_home_banner.sql assigns this image only to the initial
+banner whose artwork is still the original placeholder. Its old /store link
+is updated to the real /catalog route under a separate field-level guard.
+Future banners can use their own approved images and backend-sourced text;
+no asset or promotion list is hardcoded in React.

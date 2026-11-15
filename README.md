@@ -2,7 +2,7 @@
 
 An unofficial game marketplace built as an engineering internship project. React and TypeScript provide the interface, a single Go REST API owns business rules, and PostgreSQL owns durable data and integrity constraints.
 
-**Current milestone: Slice 2 catalog frontend validated; Slice 3.0 readiness and 3A homepage architecture documented only. The homepage services/UI are not yet implemented; public deployment and manual visual acceptance remain pending.** The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
+**Current milestone: Slice 2 catalog verified; Slice 3.0 and 3A documented; Slice 3B promotional banners implemented and under final regression verification. Best sellers and deals remain future checkpoints. Public deployment and manual visual acceptance remain pending.** The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
 
 ## Run locally on Windows
 
@@ -22,7 +22,7 @@ npm run doctor
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173/catalog** (the root redirects to the catalog). The API listens on port 8080. Vite proxies /api, /healthz, and /readyz to Go. Search, filters and page selection are reflected in the catalog URL.
+Open **http://127.0.0.1:5173/** for the database-backed promotional homepage, or **http://127.0.0.1:5173/catalog** to browse games. The API listens on port 8080. Vite proxies /api, /healthz, and /readyz to Go. Search, filters and page selection are reflected in the catalog URL.
 
 The bootstrap downloads Go 1.27.4, Node 22.23.5 and PostgreSQL 18.7 into ignored .tools directories and verifies the archives against release checksums. It does not replace system installations. npm 10.9.9 is bundled with this Node release. Load scripts/environment.ps1 in each new terminal to select these tools and checkout-local caches.
 
@@ -129,4 +129,4 @@ A production Dockerfile will pin the Go build environment during the early-deplo
 
 See docs/ai-history/README.md for conversation preservation and docs/decisions.md for the reasons behind these choices.
 
-Next slices: independent homepage blocks → product detail/cart → authentication → quote/checkout → orders/key delivery → release verification. The completed [Phase 3.0/3A design handoff](docs/verification/slice-3-design.md) and proposed [Home API contract](docs/api/home.md) define the pending 3B–3E checkpoints; no new homepage runtime behavior is claimed.
+Next slices: independent homepage blocks → product detail/cart → authentication → quote/checkout → orders/key delivery → release verification. The [Phase 3 engineering handoff](docs/verification/slice-3-design.md) and [Home API contract](docs/api/home.md) document implemented banner behavior and the pending 3C–3E checkpoints.

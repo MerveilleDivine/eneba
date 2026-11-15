@@ -1,10 +1,10 @@
-# Homepage API — proposed Slice 3A contract
+# Homepage API — implemented banner and future home contracts
 
-14 November 2026. **Design only.** These routes do not exist yet. Implement and verify each endpoint in its respective later checkpoint (3B, 3C or 3D); this document records their intended public boundaries before development.
+14 November 2026. **The banner route is implemented in 3B.** Best-seller and deals routes are proposed contracts for later checkpoints (3C and 3D); do not present them as available or tested yet. The API is a single Go application with independent feature services and one PostgreSQL database.
 
 ## Shared transport rules
 
-All three routes are public, read-only and independently backed by separate existing tables. Register GET/HEAD with the existing HTTP router; unsupported methods return 405 and an Allow header. No authentication or cookies are required to browse home. No endpoint returns demo key codes, order/inventory identifiers, SQL diagnostics or user data.
+All three planned routes are public, read-only and independently backed by separate existing tables. Register GET/HEAD with the existing HTTP router; unsupported methods return 405 and an Allow header. No authentication or cookies are required to browse home. No endpoint returns demo key codes, order/inventory identifiers, SQL diagnostics or user data.
 
 Responses are JSON, Cache-Control: no-store, X-Request-ID and X-Content-Type-Options: nosniff, following the current API. Success returns HTTP 200 with a stable items array, including an empty array if no eligible content exists. Do not use 404 for an empty promotion block. The existing generic error envelope is retained:
 
@@ -19,7 +19,7 @@ Responses are JSON, Cache-Control: no-store, X-Request-ID and X-Content-Type-Opt
 
 A database/connectivity or deadline failure is 503; unexpected storage failure or invalid server data is 500. The handler does not expose internal error strings. Reject unknown/duplicate query parameters with 400 rather than introducing undocumented filtering or pagination. Each endpoint has a bounded server-side result limit and deterministic ordering; its UI fetches independently.
 
-**Important:** Any examples below illustrate _future_ responses, not existing deployed API output.
+**Important:** The banner response below describes the actual seeded local contract following seed 003. Best-seller/deal examples remain future proposals. No public deployment has occurred.
 
 ## GET /api/v1/home/banners — BannerService (3B)
 
@@ -32,7 +32,7 @@ Source: marketplace.homepage_banners only. Include active records in ascending p
       "id": "50000000-0000-4000-8000-000000000001",
       "headline": "Discover your next world",
       "subheading": "An unofficial marketplace with fictional games and demo keys.",
-      "imageUrl": "/images/banners/discover-world.webp",
+      "imageUrl": "/images/banners/discover-world.svg",
       "linkHref": "/catalog",
       "position": 0
     }
@@ -40,7 +40,7 @@ Source: marketplace.homepage_banners only. Include active records in ascending p
 }
 ```
 
-- The image path in this example is **planned**, not a committed asset. The endpoint must not return it until the asset exists.
+- The SVG asset in this example is committed under `web/public/images/banners/`. It is an original, static illustration with no external dependencies.
 - Validate/bound headline and subheading strings; render as text, never injected markup.
 - Accept only safe same-origin image paths (or explicitly allowed HTTPS assets if a real need is documented); never javascript:, data:, protocol-relative paths or backslashes.
 - Accept only known working application destinations: /, /catalog and validated /catalog query links during Slice 3. No external hosts, open redirects, /store, or /product/... links before Slice 4.

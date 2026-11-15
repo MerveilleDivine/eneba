@@ -242,3 +242,13 @@ The best-seller rank comes from explicitly **fictional** seeded demo_weekly_sale
 At 3B, / becomes the real homepage, /catalog remains a deep-link-safe catalog, and global search continues to navigate into its canonical query state. The header brand and explicit Home navigation may then point to /. Until Slice 4 there are no product-detail purchase destinations or fake buy actions; all displayed links must lead to existing useful routes. Banner destinations require a strict safe internal-route policy. Use a new immutable seed for the old /store banner link and original artwork; never revise applied seed 001/002.
 
 The three sections independently load and recover from failures. Their public transport and payload rules, ordering, finite limits, source-update tests and the stop gates for 3B–3E are in [Home API](api/home.md) and [Phase 3 design](verification/slice-3-design.md). The user has authorized **3.0 and 3A only** at this stage. No homepage feature code, data migration, frontend route, deployment infrastructure or main merge was changed by this decision record.
+
+## Slice 3B — implemented banner ownership
+
+The promotional homepage is one vertical slice backed by marketplace.homepage_banners. The Go banner repository owns one bounded SQL query; the service owns source and URL validation; the handler owns GET/HEAD and safe public failures. It stays within the existing Go process and PostgreSQL database. Catalog and banners now share database.ClassifyReadError for identical network/connection semantics without duplicated classifiers.
+
+The root path is the real homepage, the brand/Home link points to it, and /catalog plus global search retain their behavior. Banner text, illustration URL and destination originate from the API. The original hardcoded marketing teaser was deliberately removed: every promotional homepage block must have its own source. Static interaction labels and failure messages are interface copy, not fake promotional data.
+
+Seed 003 conditionally corrects the original /store fixture link and placeholder illustration without rewriting previous seeds or customizing users' banners. The committed hero asset is an original static SVG. Unsafe links fail closed; valid catalog query links are checked by the catalog owner. Retry preserves keyboard focus on its loading state and returns focus to the resulting heading.
+
+Best sellers, deals, cart, product details, authentication, checkout, production hosting and merges remain outside 3B.

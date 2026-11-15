@@ -14,6 +14,7 @@ import (
 	"github.com/MerveilleDivine/eneba/api/internal/catalog"
 	"github.com/MerveilleDivine/eneba/api/internal/config"
 	"github.com/MerveilleDivine/eneba/api/internal/database"
+	"github.com/MerveilleDivine/eneba/api/internal/home"
 	"github.com/MerveilleDivine/eneba/api/internal/httpapi"
 )
 
@@ -46,6 +47,9 @@ func run(logger *slog.Logger) error {
 	catalogRepository := catalog.NewRepository(pool)
 	catalogService := catalog.NewService(catalogRepository)
 	catalog.NewHandler(catalogService, logger).RegisterRoutes(mux)
+	bannerRepository := home.NewBannerRepository(pool)
+	bannerService := home.NewBannerService(bannerRepository)
+	home.NewBannerHandler(bannerService, logger).RegisterRoutes(mux)
 	mux.HandleFunc("/", httpapi.NotFound)
 	server := &http.Server{
 		Addr:              net.JoinHostPort(host, cfg.Port),

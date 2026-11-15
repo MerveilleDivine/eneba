@@ -8,8 +8,7 @@ for (const width of [1280, 768, 360]) {
     await expect
       .poll(async () => (await page.request.get("/readyz")).status(), { timeout: 30000 })
       .toBe(200);
-    await page.goto("/");
-    await expect(page).toHaveURL(/\/catalog$/);
+    await page.goto("/catalog");
     await expect(page.getByRole("heading", { name: "Explore games" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
     await expect(page.getByText("Unofficial demo")).toBeVisible();
