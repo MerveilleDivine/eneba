@@ -2,7 +2,7 @@
 
 An unofficial game marketplace built as an engineering internship project. React and TypeScript provide the interface, a single Go REST API owns business rules, and PostgreSQL owns durable data and integrity constraints.
 
-**Current milestone: Slice 2 catalog verified; Phase 3.0/3A documented; Phase 3B banners verified and hardened; Phase 3C Best Sellers implemented, with verification evidence tracked in the draft PR.** The homepage sections independently load from their own Go APIs and PostgreSQL sources. Deals remain Phase 3D; public deployment and manual visual acceptance are still pending. See the [Phase 3 engineering record](docs/verification/slice-3-design.md) for tested evidence and outstanding gates. The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
+**Current milestone: Slice 2 catalog verified; Phase 3.0/3A documented; Phase 3B banners and Phase 3C Best Sellers verified; Phase 3D seller-specific Deals implemented, with its CI verification tracked in the draft PR.** The homepage sections independently load from their own Go APIs and PostgreSQL sources. Phase 3E cross-layer acceptance, public deployment and manual visual acceptance are still pending. See the [Phase 3 engineering record](docs/verification/slice-3-design.md) for tested evidence and outstanding gates. The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
 
 ## Run locally on Windows
 
@@ -127,6 +127,6 @@ Public deployment is still deferred. The current user-selected target is Vercel 
 
 A production Dockerfile will pin the Go build environment during the early-deployment slice; local development stays native. Public same-origin API routing and real HTTPS cookie behavior must be verified before authentication is accepted.
 
-See docs/ai-history/README.md for conversation preservation and docs/decisions.md for the reasons behind these choices.
+Conversation exports are intentionally deferred until the final submission checkpoint; do not add partial transcripts during implementation. See docs/decisions.md for the reasons behind these choices.
 
-Next slices: independent homepage blocks → product detail/cart → authentication → quote/checkout → orders/key delivery → release verification. The [Phase 3 engineering handoff](docs/verification/slice-3-design.md) and [Home API contract](docs/api/home.md) document implemented banner behavior and the pending 3C–3E checkpoints.
+Next slices: independent homepage blocks → product detail/cart → authentication → quote/checkout → orders/key delivery → release verification. The [Phase 3 engineering handoff](docs/verification/slice-3-design.md) and [Home API contract](docs/api/home.md) document implemented banner, Best Sellers and Deals behavior and the pending 3E checkpoint.

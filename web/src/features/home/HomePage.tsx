@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import { fetchBanners, type BannerFailure } from "./banner-api";
 import { BestSellers } from "./BestSellers";
+import { Deals } from "./Deals";
 import { useHomeRequest } from "./use-home-request";
 import styles from "./HomePage.module.css";
 
@@ -146,6 +147,7 @@ export function HomePage() {
     <div className={styles.home}>
       <FeaturedBanners />
       <BestSellers />
+      <Deals />
     </div>
   );
 }

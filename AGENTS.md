@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Implement and review coherent checkpoints within each slice. The user authorized **Phase 3C (Best Sellers)** after the completed and verified Phase 3B independent hardening and the four-commit history cleanup on the existing `feature/slice-2-catalog` branch. This checkpoint permits the separately sourced Best Sellers Go/PostgreSQL endpoint, independently loading React section, focused shared catalog availability read logic, relevant tests, reviews and documentation. **Stop after 3C:** do not implement deals (3D), product detail, cart, auth, checkout, create another branch, merge to main, provision cloud resources or change deployment infrastructure without subsequent explicit approval. Public deployment and physical-device acceptance remain deferred. The archived master prompt does not override this agreement.
+Implement and review coherent checkpoints within each slice. The user authorized **Phase 3D (Deals)** after 3B and 3C passed the exact-head full CI matrix on the existing `feature/slice-2-catalog` branch. This checkpoint permits a separately sourced seller-offer Deals Go/PostgreSQL endpoint, independent React section, minimal stock-predicate sharing, tests, review and documentation. **Stop after 3D:** do not implement 3E, product detail, cart, auth, checkout, create another branch, merge to main, provision cloud resources or change deployment infrastructure without subsequent explicit approval. Public deployment and physical-device acceptance remain deferred. The archived master prompt does not override this agreement.
 
 ## Boundaries
 

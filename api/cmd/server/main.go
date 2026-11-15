@@ -53,6 +53,9 @@ func run(logger *slog.Logger) error {
 	bestSellerRepository := home.NewBestSellerRepository(pool)
 	bestSellerService := home.NewBestSellerService(bestSellerRepository)
 	home.NewBestSellerHandler(bestSellerService, logger).RegisterRoutes(mux)
+	dealRepository := home.NewDealRepository(pool)
+	dealService := home.NewDealService(dealRepository)
+	home.NewDealHandler(dealService, logger).RegisterRoutes(mux)
 	mux.HandleFunc("/", httpapi.NotFound)
 	server := &http.Server{
 		Addr:              net.JoinHostPort(host, cfg.Port),

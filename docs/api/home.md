@@ -1,6 +1,6 @@
-# Homepage API — implemented banners and best sellers, proposed deals
+# Homepage API — implemented banners, best sellers and deals
 
-14 November 2026. **Banner (3B) and Best Sellers (3C) routes have implementations.** Deals remain a proposed 3D contract, not a live endpoint. Review exact-head CI before claiming verified acceptance. The API is a single Go application with independent feature services and one PostgreSQL database.
+14 November 2026. **Banner (3B), Best Sellers (3C) and Deals (3D) routes have implementations.** Review exact-head CI before claiming verified Phase 3D acceptance. The API is a single Go application with independent feature services and one PostgreSQL database.
 
 ## Shared transport rules
 
@@ -19,7 +19,7 @@ Responses are JSON, Cache-Control: no-store, X-Request-ID and X-Content-Type-Opt
 
 A database/connectivity or deadline failure is 503; unexpected storage-level failures are 500. In the implemented banner service, a malformed individual content row is skipped, with a safe structured warning; invalid data does not turn other valid promotions into a 500. The handler does not expose internal error strings. Reject unknown/duplicate query parameters with 400 rather than introducing undocumented filtering or pagination. Each endpoint has a bounded server-side result limit and deterministic ordering; its UI fetches independently.
 
-**Important:** The banner and best-seller examples describe seeded local contracts. Deal data remains a future proposal; no public deployment has occurred.
+**Important:** All examples describe seeded local demo contracts; no public deployment has occurred.
 
 ## GET /api/v1/home/banners — BannerService (3B)
 
@@ -78,7 +78,7 @@ Source: marketplace.homepage_best_sellers. Rank its explicit **fictional** demo_
 - Changing only homepage_best_sellers must change this ranking/selection without altering banner/deal data. Product/offers/inventory changes are domain-shared and may legitimately affect more than one block.
 - The UI must not render invented review counts or fake purchase timestamps. Demo weekly counts may be included in data for transparent ranking/testability but should not be presented as real sales.
 
-## GET /api/v1/home/deals — DealService (3D)
+## GET /api/v1/home/deals — DealService (3D, implemented)
 
 Source: marketplace.homepage_deals, joined to the **specific seller offer** and its product and seller. Stable ascending position order (offer ID as tie-breaker); at most **eight** eligible offers. A deal is eligible only when the product and offer are active, offer.price_cents > 0, offer.list_price_cents > offer.price_cents, and at least one digital key belonging to that offer is unallocated. Keep the seller and offer identity intact.
 
@@ -108,6 +108,7 @@ Source: marketplace.homepage_deals, joined to the **specific seller offer** and 
 - These price figures come from the selected seeded seller offer. Never substitute the catalog's lowest other-seller price; that would advertise the wrong offer.
 - Calculate exact EUR cents using safe integer bounds. For a percentage badge use floor(100 × (listPriceCents - priceCents) / listPriceCents) with overflow-safe arithmetic, never round up and overstate savings; omit a 0% badge if the discount is positive but below 1%.
 - Inactive products/offers, no inventory, absent/equal/lower list prices and invalid records must not display as an active discount. Empty eligibility yields items:[], not fabricated fallback deals.
+- Read up to 32 eligible database candidates ordered by position and offer ID; validate bounded raw SKU/seller copy and same-origin covers in the service, omit malformed rows with safe reason codes, and return at most eight valid deals. A deal with a valid list price but less than 1% savings retains both exact prices without a misleading 0% badge.
 - No purchase control or stock-reserving action belongs in this endpoint. The game/deal may link to a meaningful existing catalog search in Slice 3; the eventual seller-specific product/offer destination belongs to Slice 4.
 - Pricing remains a nonlocking read snapshot, not a reserved quote. Checkout in Slice 6 must independently revalidate price and inventory.
 
@@ -128,4 +129,4 @@ Maintain standard loading/skeleton, empty, error, success and retry states, plus
 7. Responsive/accessibility: test 320, 360, 768 and 1280px, 200% text, keyboard navigation, axe A/AA, reduced motion and source-driven artwork. Don't accept a screenshot alone as evidence of behavior.
 8. Full CI at the exact final commit with PostgreSQL 17.12/18.7, real database integration, frontend checks, browser suite and Go race/audit checks. Explicitly record any manual/hosted checks that remain pending.
 
-**Historical boundary:** this began as the 3A proposal. Banner was implemented in 3B and Best Sellers in 3C. Deals (3D) are still proposed. No new migration or seed was required for Best Sellers because the ranking table and four demo entries already existed.
+**Historical boundary:** this began as the 3A proposal. Banner was implemented in 3B, Best Sellers in 3C, and seller-offer Deals in 3D. No new migration or seed was required for Deals because the offer-based table and three demo entries already existed. The domain's shared offer-stock existence predicate is reused by catalog/Best Sellers and Deals. Neither a homepage listing nor a catalog search selects or reserves the seller-specific offer for purchase.
