@@ -20,7 +20,7 @@ for (const width of [1280, 768, 360]) {
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(page.getByRole("link", { name: "Eneba demo catalog" })).toBeFocused();
+    await expect(page.getByRole("link", { name: "eneba.", exact: true })).toBeFocused();
     expect(pageErrors).toEqual([]);
     await page.screenshot({ path: testInfo.outputPath("catalog-shell.png"), fullPage: true });
   });

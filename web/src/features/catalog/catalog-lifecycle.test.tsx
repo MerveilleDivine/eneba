@@ -45,6 +45,21 @@ afterEach(() => {
 });
 
 describe("catalog request lifecycle under competing results", () => {
+  it("keeps keyboard focus on sorting while its request changes", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(() => Promise.resolve(responseFor(steam))),
+    );
+    renderCatalog();
+    await screen.findByRole("heading", { name: "Solar Drift" });
+    const sort = screen.getByLabelText("Sort by");
+    sort.focus();
+    await userEvent.selectOptions(sort, "price_desc");
+    expect(screen.getByLabelText("Sort by")).toHaveFocus();
+    await screen.findByRole("heading", { name: "Solar Drift" });
+    expect(screen.getByLabelText("Sort by")).toHaveFocus();
+  });
+
   it("keeps an in-flight request when navigating between equivalent catalog URLs", async () => {
     let finish!: (response: Response) => void;
     const pending = new Promise<Response>((resolve) => {

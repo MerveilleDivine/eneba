@@ -62,4 +62,12 @@ describe("product card presentation", () => {
     expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
     expect(screen.getByText("€11.36")).toBeInTheDocument();
   });
+
+  it("tries a replacement cover after the previous URL failed", () => {
+    const { container, rerender } = render(<ProductCard product={solar} />);
+    fireEvent.error(container.querySelector("img")!);
+    expect(container.querySelector("img")).toBeNull();
+    rerender(<ProductCard product={{ ...solar, coverUrl: "/images/solar-drift.webp" }} />);
+    expect(container.querySelector("img")).toHaveAttribute("src", "/images/solar-drift.webp");
+  });
 });

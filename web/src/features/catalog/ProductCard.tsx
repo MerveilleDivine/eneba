@@ -15,16 +15,18 @@ function coverVariation(id: string): number {
 }
 
 export function ProductCard({ product }: Props) {
-  const [coverUnavailable, setCoverUnavailable] = useState(false);
+  const [failedCoverUrl, setFailedCoverUrl] = useState<string>();
   return (
     <article className={styles.productCard}>
       <div className={styles.cover} data-variation={coverVariation(product.id)}>
-        {!coverUnavailable && (
+        {failedCoverUrl !== product.coverUrl && (
           <img
             src={product.coverUrl}
             alt=""
+            width="432"
+            height="576"
             loading="lazy"
-            onError={() => setCoverUnavailable(true)}
+            onError={() => setFailedCoverUrl(product.coverUrl)}
           />
         )}
         <div className={styles.coverText} aria-hidden="true">

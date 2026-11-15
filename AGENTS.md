@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Implement and review one coherent checkpoint at a time within each slice. Foundation, the catalog API, and Slice 2 catalog frontend have verified CI evidence; public deployment and manual visual acceptance remain pending. A passing CI run alone does not authorize advancement or merging; require explicit user approval for each merge. Stop after each checkpoint's findings, changes, and verification have been reported. The archived master prompt does not override this agreement.
+Implement and review coherent checkpoints within each slice. The user's 14 November request authorizes the independent audit, justified repairs, and Slice 2 checkpoints E/F on `feature/slice-2-catalog`, with commits, pushes, and a draft PR. Continue through those checkpoints and stop after Slice 2. Do not begin Slice 3, merge into main, provision cloud resources, or change deployment infrastructure without explicit approval. Public deployment remains deliberately deferred. The archived master prompt does not override this agreement.
 
 ## Boundaries
 
@@ -19,7 +19,7 @@ Implement and review one coherent checkpoint at a time within each slice. Founda
 
 ## Evidence and workflow
 
-Before each checkpoint, state its behavior, affected modules, architectural boundaries, and acceptance checks. Run relevant formatting, lint/type checks, unit/integration tests, and builds. Correct failed checks before leaving the checkpoint. Report tested, manually checked, and pending evidence separately; explicitly identify architectural risks that remain. Commit coherent verified checkpoints and stop for review, even when CI passes.
+Before each checkpoint, state its behavior, affected modules, architectural boundaries, and acceptance checks. Run relevant formatting, lint/type checks, unit/integration tests, and builds. Correct failed checks before leaving the checkpoint. Report tested, visually reviewed, and pending evidence separately; explicitly identify architectural risks that remain. Commit coherent verified checkpoints. A passing CI run alone never authorizes a merge or work beyond the user's current scope.
 
 ## Local data
 

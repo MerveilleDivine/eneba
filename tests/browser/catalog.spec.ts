@@ -1,6 +1,20 @@
 import { expect, test } from "@playwright/test";
 import { platforms, regions, sorts } from "../../web/src/features/catalog/catalog-query";
 
+test("sorting preserves keyboard focus across request replacement", async ({ page }) => {
+  await page.goto("/catalog");
+  await expect(page.getByText("16 games", { exact: true })).toBeVisible();
+  const sort = page.getByLabel("Sort by");
+  await sort.focus();
+  await sort.selectOption("price_desc");
+  await expect(sort).toBeFocused();
+  await expect(page.getByRole("heading", { name: "Deep Signal" })).toBeVisible();
+  await expect(sort).toBeFocused();
+  await sort.press("Home");
+  await expect(sort).toHaveValue("relevance");
+  await expect(sort).toBeFocused();
+});
+
 test("global search uses the real API and finds typo matches", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -181,7 +195,7 @@ test("equivalent catalog links do not refetch the same results", async ({ page }
   // Strict Mode may start and cancel an extra initial request.
   const initialRequests = requests.length;
   expect(initialRequests).toBeGreaterThan(0);
-  await page.getByRole("link", { name: "Eneba demo catalog" }).click();
+  await page.getByRole("link", { name: "eneba.", exact: true }).click();
   await expect(page).toHaveURL(/\/catalog$/);
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
   expect(requests).toHaveLength(initialRequests);
@@ -227,7 +241,7 @@ test("navigating to the same catalog URL cancels pending search", async ({ page 
   await page.goto("/catalog");
   const search = page.getByRole("searchbox", { name: "Search games" });
   await search.fill("solar");
-  await page.getByRole("link", { name: "Eneba demo catalog" }).click();
+  await page.getByRole("link", { name: "eneba.", exact: true }).click();
   await expect(search).toHaveValue("");
   await page.waitForTimeout(500);
   await expect(page).toHaveURL(/\/catalog$/);

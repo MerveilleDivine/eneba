@@ -24,7 +24,7 @@ export function App() {
         Skip to content
       </a>
       <SiteHeader search={<CatalogSearch />} />
-      <main id="main" className={styles.main}>
+      <main id="main" tabIndex={-1} className={styles.main}>
         <Routes>
           <Route path="/" element={<Navigate to="/catalog" replace />} />
           <Route path="/catalog" element={<CatalogPage />} />
