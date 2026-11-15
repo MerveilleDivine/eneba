@@ -83,12 +83,23 @@ test("simultaneous homepage failures recover independently", async ({ page }) =>
 });
 
 test("stalled Deals time out and recover independently", async ({ page }) => {
-  // Leave the first request pending; the homepage hook must cancel it after
-  // six seconds. Subsequent requests use the unmodified real API.
+  // An unresolved interception callback holds the first request until the
+  // six-second client timeout aborts it. Returning without handling a route
+  // does not reliably simulate a hung network request.
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
   let first = true;
   await page.route("**/api/v1/home/deals", async (route) => {
     if (first) {
       first = false;
+      await gate;
+      try {
+        await route.continue();
+      } catch {
+        // The frontend intentionally aborted the first request.
+      }
       return;
     }
     await route.continue();
@@ -98,9 +109,13 @@ test("stalled Deals time out and recover independently", async ({ page }) => {
   await expect(deals.getByRole("status")).toContainText("Loading deals");
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
-  await expect(deals.getByRole("alert")).toContainText("took too long to load", {
-    timeout: 10000,
-  });
+  try {
+    await expect(deals.getByRole("alert")).toContainText("took too long to load", {
+      timeout: 10000,
+    });
+  } finally {
+    release();
+  }
   await deals.getByRole("button", { name: "Try deals again" }).click();
   await expect(deals.getByRole("listitem")).toHaveCount(3);
   await expect(deals.getByRole("heading", { name: dealRegion })).toBeFocused();
