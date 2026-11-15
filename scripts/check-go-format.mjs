@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-const result = spawnSync("gofmt", ["-l", "api"], { encoding: "utf8" });
+const result = spawnSync("gofmt", ["-d", "api"], { encoding: "utf8" });
 if (result.error || result.status !== 0) {
   console.error("Could not run gofmt. Check the Go toolchain.");
   process.exit(1);
