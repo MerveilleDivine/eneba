@@ -8,6 +8,10 @@ export type HomeRequestState<T> =
 
 // Each section independently owns its abort, timeout, retry and stale-response
 // guard. Request functions are module-level references to avoid refetch loops.
+function failureKind(error: unknown): HomeFailure {
+  return error instanceof HomeRequestError ? error.kind : "unexpected";
+}
+
 export function useHomeRequest<T>(request: (signal: AbortSignal) => Promise<T>) {
   const [state, setState] = useState<HomeRequestState<T>>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
@@ -29,8 +33,7 @@ export function useHomeRequest<T>(request: (signal: AbortSignal) => Promise<T>) 
       })
       .catch((error: unknown) => {
         if (!active || timedOut) return;
-        const kind: HomeFailure = error instanceof HomeRequestError ? error.kind : "unexpected";
-        setState({ status: "failed", kind });
+        setState({ status: "failed", kind: failureKind(error) });
       })
       .finally(() => window.clearTimeout(timeout));
 

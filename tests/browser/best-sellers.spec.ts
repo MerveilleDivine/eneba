@@ -1,9 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test("real best-seller ranking is sourced from the Go service and links to catalog", async ({
-  page,
-}) => {
+test("loads ranked Go products and links to the catalog", async ({ page }) => {
   const response = await page.request.get("/api/v1/home/best-sellers");
   expect(response.status()).toBe(200);
   const data = await response.json();
@@ -24,9 +22,7 @@ test("real best-seller ranking is sourced from the Go service and links to catal
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
 });
 
-test("best-seller failure does not disturb banners, and retry focuses its own heading", async ({
-  page,
-}) => {
+test("isolates best-seller failure and restores retry focus", async ({ page }) => {
   await page.route("**/api/v1/home/best-sellers", async (route) => {
     await route.fulfill({ status: 503, body: "private database hostname" });
   });
@@ -41,7 +37,7 @@ test("best-seller failure does not disturb banners, and retry focuses its own he
   await expect(shelf.getByRole("heading", { name: "Best sellers in this demo" })).toBeFocused();
 });
 
-test("empty and unsafe best-seller payloads do not fabricate product cards", async ({ page }) => {
+test("empty and unsafe best sellers never invent cards", async ({ page }) => {
   await page.route("**/api/v1/home/best-sellers", async (route) => {
     await route.fulfill({
       status: 200,
@@ -84,7 +80,7 @@ test("empty and unsafe best-seller payloads do not fabricate product cards", asy
   await expect(shelf.getByRole("listitem")).toHaveCount(0);
 });
 
-test("slow best-seller requests do not block the independent hero", async ({ page }) => {
+test("slow best sellers do not block the hero", async ({ page }) => {
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
     release = resolve;
@@ -112,9 +108,8 @@ for (const width of [320, 360, 768, 1280]) {
       .analyze();
     expect(report.violations).toEqual([]);
     await page.addStyleTag({ content: ":root { font-size: 200%; }" });
-    expect(
-      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
-    ).toBe(true);
+    const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(documentWidth).toBeLessThanOrEqual(width);
     const link = shelf.getByRole("link", { name: "Find Solar Drift in the catalog" });
     await link.focus();
     await expect(link).toBeFocused();
