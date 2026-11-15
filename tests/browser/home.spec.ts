@@ -25,7 +25,8 @@ test("global search from Home preserves catalog query and keyboard usability", a
   await search.fill("circut");
   await search.press("Enter");
   await expect(page).toHaveURL(/\/catalog\?q=circut/);
-  await expect(page.getByRole("heading", { name: "Neon Circuit" })).toBeVisible();
+  const results = page.getByRole("region", { name: "Game results" });
+  await expect(results.getByRole("heading", { name: "Neon Circuit" })).toBeVisible();
   await page
     .getByRole("navigation", { name: "Main navigation" })
     .getByRole("link", { name: "Home" })
@@ -157,7 +158,8 @@ test("three independently sourced banners remain reachable at enlarged mobile te
   }
   await articles.nth(1).getByRole("link", { name: "Explore games" }).click();
   await expect(page).toHaveURL(/\/catalog\?q=neon$/);
-  await expect(page.getByRole("heading", { name: "Neon Circuit" })).toBeVisible();
+  const results = page.getByRole("region", { name: "Game results" });
+  await expect(results.getByRole("heading", { name: "Neon Circuit" })).toBeVisible();
 });
 
 test("delayed banner response shows loading state until content arrives", async ({ page }) => {
