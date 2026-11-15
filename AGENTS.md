@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Implement and review coherent checkpoints within each slice. The user's 14 November request authorizes the independent audit, justified repairs, and Slice 2 checkpoints E/F on `feature/slice-2-catalog`, with commits, pushes, and a draft PR. Continue through those checkpoints and stop after Slice 2. Do not begin Slice 3, merge into main, provision cloud resources, or change deployment infrastructure without explicit approval. Public deployment remains deliberately deferred. The archived master prompt does not override this agreement.
+Implement and review coherent checkpoints within each slice. The user's 14 November authorization now covers **Phase 3.0 (baseline/readiness) and Phase 3A (requirements, contracts, architectural plan)** on the existing `feature/slice-2-catalog` branch. The earlier independent Slice 2 E/F and adversarial reviews are complete; their verified evidence remains in `docs/verification/slice-2-review.md`. This authorization permits necessary planning/documentation commits only. **Stop after 3A:** do not implement the homepage UI/services, edit live schema or fixtures, generate artwork, start 3B, create another branch, merge into main, provision cloud resources, or change deployment infrastructure without subsequent explicit approval. Public deployment and physical-device acceptance remain deliberately deferred. The archived master prompt does not override this agreement.
 
 ## Boundaries
 

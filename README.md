@@ -2,7 +2,7 @@
 
 An unofficial game marketplace built as an engineering internship project. React and TypeScript provide the interface, a single Go REST API owns business rules, and PostgreSQL owns durable data and integrity constraints.
 
-**Current milestone: Slice 2 catalog frontend validated by automated checks; public deployment and manual visual acceptance remain pending.** The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
+**Current milestone: Slice 2 catalog frontend validated; Slice 3.0 readiness and 3A homepage architecture documented only. The homepage services/UI are not yet implemented; public deployment and manual visual acceptance remain pending.** The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
 
 ## Run locally on Windows
 
@@ -123,10 +123,10 @@ GitHub Actions repeats verification against PostgreSQL 17.12 and 18.7 and runs G
 
 npm run test:tooling verifies lint file discovery, ignore rules and actual TypeScript rule execution. The integration command discovers all Go packages serially; the browser command discovers all tests and waits for proxied readiness before starting them. Unsupported methods on known endpoints return 405 with Allow: GET, HEAD. Unexpected HTTP failures use a generic JSON error envelope; a panic after headers aborts the incomplete response.
 
-The release layout remains Vercel frontend, Render Go API, and a dedicated Supabase PostgreSQL project. Prepare the first public deployment by Slice 2. The project requires a free Supabase slot before provisioning. On that dedicated project, keep marketplace unexposed and disable the unused Supabase Data API. Migration credentials stay outside the deployed application.
+Public deployment is still deferred. The current user-selected target is Vercel for the frontend, Render for the Go API and Neon for PostgreSQL; no cloud deployment or provider connection has been verified. Keep the marketplace schema accessible only through Go, and keep migration credentials outside the deployed application. Check provider-specific database SSL/pooling, the same-origin API proxy, public HTTPS sessions and Render cold starts in the release checkpoint. Older Supabase notes in archived blueprints describe superseded planning rather than provisioned infrastructure.
 
 A production Dockerfile will pin the Go build environment during the early-deployment slice; local development stays native. Public same-origin API routing and real HTTPS cookie behavior must be verified before authentication is accepted.
 
 See docs/ai-history/README.md for conversation preservation and docs/decisions.md for the reasons behind these choices.
 
-Next slices: independent homepage blocks → product detail/cart → authentication → quote/checkout → orders/key delivery → release verification.
+Next slices: independent homepage blocks → product detail/cart → authentication → quote/checkout → orders/key delivery → release verification. The completed [Phase 3.0/3A design handoff](docs/verification/slice-3-design.md) and proposed [Home API contract](docs/api/home.md) define the pending 3B–3E checkpoints; no new homepage runtime behavior is claimed.

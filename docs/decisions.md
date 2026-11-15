@@ -2,6 +2,8 @@
 
 These decisions describe the implementation. The supplied blueprint remains unchanged under reference.
 
+**Hosting decision update (14 November 2026):** the user selected Neon PostgreSQL as the proposed database host with Render Go and Vercel web. Earlier Supabase-specific paragraphs below document historical design assumptions and existing maintenance safeguards; they are not a claim that Supabase was provisioned or remains the deployment target. PostgreSQL provider compatibility, credentials/roles, SSL, endpoint identity, and cold-start behavior still require hosted verification. This checkpoint makes no deployment changes.
+
 ## One modular Go API
 
 Checkout, key allocation, and idempotency need one PostgreSQL transaction. One deployable keeps that boundary explicit. Feature ownership gives us understandable modules without adding distributed infrastructure. Constructor wiring lives in cmd/server; shared HTTP helpers do not import feature packages.
@@ -230,3 +232,13 @@ The user explicitly deferred hosting and authorized completing E/F in this revie
 Continue on the existing feature branch, keep a follow-up draft PR, and stop after
 Slice 2. Do not merge, create another development branch, change deployment
 infrastructure or begin Slice 3 without further authorization.
+
+## Slice 3A — adopted homepage boundaries (design, not implementation)
+
+The independently sourced homepage follows archived Blueprint v3.2, not a hardcoded promotional catalog response. Three existing tables (homepage_banners, homepage_best_sellers and homepage_deals) each own their content and one public GET endpoint. Three small services belong to the future home feature within the **same Go application and pgx pool**, not three deployables. Service, repository and handler boundaries follow the existing catalog pattern. Do not create unused interfaces, abstractions, or folders during 3A.
+
+The best-seller rank comes from explicitly **fictional** seeded demo_weekly_sales. Its product card availability and lowest in-stock seller price must match the catalog. A deal refers to one selected seller offer; its savings must be calculated against **that same offer's** higher list price, never against a different seller's lowest catalog price. Stock allocation stays defined solely by order_items references to digital_keys. A single small shared read boundary may be introduced only when an actual implementation demonstrates a need; correctness tests are mandatory either way.
+
+At 3B, / becomes the real homepage, /catalog remains a deep-link-safe catalog, and global search continues to navigate into its canonical query state. The header brand and explicit Home navigation may then point to /. Until Slice 4 there are no product-detail purchase destinations or fake buy actions; all displayed links must lead to existing useful routes. Banner destinations require a strict safe internal-route policy. Use a new immutable seed for the old /store banner link and original artwork; never revise applied seed 001/002.
+
+The three sections independently load and recover from failures. Their public transport and payload rules, ordering, finite limits, source-update tests and the stop gates for 3B–3E are in [Home API](api/home.md) and [Phase 3 design](verification/slice-3-design.md). The user has authorized **3.0 and 3A only** at this stage. No homepage feature code, data migration, frontend route, deployment infrastructure or main merge was changed by this decision record.
