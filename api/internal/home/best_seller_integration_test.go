@@ -375,7 +375,7 @@ func TestBestSellerFailureResponses(t *testing.T) {
 				t.Fatal(err)
 			}
 			if response.StatusCode != expectedStatus ||
-				!strings.Contains(string(body), "\"" + expectedCode + "\"") {
+				!strings.Contains(string(body), "\""+expectedCode+"\"") {
 				t.Fatalf("wrong failure response: %d %s", response.StatusCode, body)
 			}
 			if strings.Contains(string(body)+logs.String(), "private") ||
