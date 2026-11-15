@@ -9,13 +9,14 @@ function record(value: unknown): value is Record<string, unknown> {
 }
 
 function isBestSeller(value: unknown): value is BestSeller {
+  if (!record(value)) return false;
+  const sales = value.demoWeeklySales;
   return (
     isCatalogProduct(value) &&
-    record(value) &&
-    typeof value.demoWeeklySales === "number" &&
-    Number.isSafeInteger(value.demoWeeklySales) &&
-    value.demoWeeklySales >= 0 &&
-    value.demoWeeklySales <= 2147483647
+    typeof sales === "number" &&
+    Number.isSafeInteger(sales) &&
+    sales >= 0 &&
+    sales <= 2147483647
   );
 }
 
