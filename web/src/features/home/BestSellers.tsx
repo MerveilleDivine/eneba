@@ -1,0 +1,97 @@
+import { useEffect, useRef } from "react";
+import { Link } from "react-router";
+import { ProductCard } from "../catalog/ProductCard";
+import { catalogHref, defaultCatalogQuery } from "../catalog/catalog-query";
+import { fetchBestSellers } from "./best-sellers-api";
+import { useHomeRequest } from "./use-home-request";
+import styles from "./BestSellers.module.css";
+
+export function BestSellers() {
+  const { state, retry } = useHomeRequest(fetchBestSellers);
+  const sectionRef = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const focusAfterRetry = useRef(false);
+
+  useEffect(() => {
+    if (!focusAfterRetry.current) return;
+    if (state.status === "loading") {
+      sectionRef.current?.focus();
+    } else {
+      headingRef.current?.focus();
+      focusAfterRetry.current = false;
+    }
+  }, [state.status]);
+
+  function retrySection() {
+    focusAfterRetry.current = true;
+    retry();
+  }
+
+  return (
+    <section
+      ref={sectionRef}
+      tabIndex={-1}
+      aria-labelledby="best-sellers-title"
+      aria-busy={state.status === "loading"}
+      className={styles.section}
+    >
+      <div className={styles.heading}>
+        <div>
+          <p className={styles.eyebrow}>Fictional weekly ranking</p>
+          <h2 id="best-sellers-title" ref={headingRef} tabIndex={-1}>
+            Best sellers in this demo
+          </h2>
+          <p>Discover which fictional games lead our demonstration ranking.</p>
+        </div>
+        <Link className={styles.catalogLink} to="/catalog">
+          Browse all games
+        </Link>
+      </div>
+      {state.status === "loading" && (
+        <div role="status" className={styles.skeletons}>
+          <p>Loading best sellers…</p>
+          <div className={styles.grid} aria-hidden="true">
+            {Array.from({ length: 4 }, (_, index) => (
+              <div key={index} className={styles.skeleton} />
+            ))}
+          </div>
+        </div>
+      )}
+      {state.status === "failed" && (
+        <div role="alert" className={styles.feedback}>
+          <h3>
+            {state.kind === "timeout"
+              ? "Best sellers took too long to load"
+              : "Best sellers are temporarily unavailable"}
+          </h3>
+          <p>The catalog is still available while this section recovers.</p>
+          <button type="button" onClick={retrySection} className={styles.retry}>
+            Try best sellers again
+          </button>
+        </div>
+      )}
+      {state.status === "ready" && state.data.items.length === 0 && (
+        <div role="status" className={styles.feedback}>
+          <p>No best sellers are featured right now. Browse the full catalog instead.</p>
+        </div>
+      )}
+      {state.status === "ready" && state.data.items.length > 0 && (
+        <ul className={styles.grid}>
+          {state.data.items.map((product) => (
+            <li key={product.id} className={styles.item}>
+              <Link
+                className={styles.productLink}
+                to={catalogHref(
+                  defaultCatalogQuery(Array.from(product.name).slice(0, 100).join("")),
+                )}
+                aria-label={"Find " + product.name + " in the catalog"}
+              >
+                <ProductCard product={product} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}

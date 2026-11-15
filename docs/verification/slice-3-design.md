@@ -155,3 +155,17 @@ against the **exact final commit** on PostgreSQL 17.12 and 18.7 before calling
 this checkpoint complete. Record failed attempts separately from the final
 verified head. Manual physical-device and screen-reader checks remain release
 tasks, not CI claims.
+
+## Phase 3C — Best Sellers implemented, verification pending
+
+15 November 2026. **Scoped to independently sourced Best Sellers only**, on the existing `feature/slice-2-catalog` branch; no merge, deployment, deal endpoint, or new schema/seed. The user requested coherent checkpoint commits after reviewing the cleaned four-commit history.
+
+**Source and contract:** `marketplace.homepage_best_sellers` ranks its existing fictional `demo_weekly_sales` values descending, with deterministic normalized name and UUID ties. Active products alone are eligible; sold-out products remain visible as unavailable, with null lowest price. The new `GET /api/v1/home/best-sellers` returns up to eight items with the same catalog SKU fields plus demoWeeklySales, always reporting EUR. No sales are asserted to be real.
+
+**Engineering ownership:** `api/internal/home` owns the new repository, service and handler. The catalog and Best Sellers feature repositories share the real lowest-available-price SQL projection in the narrow `api/internal/marketplace` package; the catalog price bounds/availability normalizer is also reused. No N+1 queries or duplicated stock predicates, new database migration, generic repository framework or second API process is introduced.
+
+**Client:** `web/src/features/home/BestSellers.tsx` reads and validates its endpoint independently, reuses the real `ProductCard`, and links to working catalog searches instead of nonexistent product-detail routes. Its heading openly describes a fictional demo ranking without fabricated review counts, customer purchases or sales figures. A shared homepage HTTP transport and request lifecycle replaces the duplicated banner fetching/timeout boilerplate only after two real consumers exist. The existing banner remains independent and retainable under any Best Sellers failure or delay.
+
+**Tests and follow-up review:** Real PostgreSQL/HTTP tests cover ranking changes, stable limits and one-query budget, inactive and sold-out products, parity with the catalog, and unchanged banner responses. New frontend tests check payload shape/price/count boundaries and protected transport, while browser tests cover ranked UI, useful navigation, isolated failure/retry, malformed/empty data, delayed responses, keyboard focus, axe and 320–1280px 200%-text layouts. Exact CI results must be recorded after the final branch-head run; do not infer them from an earlier Phase 3B run.
+
+**Outstanding outside 3C:** Phase 3D seller-offer deals, product details, cart, auth/checkout, hosted wake-up behavior and full submission deliverables. AI conversation exports remain deliberately deferred until final submission as agreed.

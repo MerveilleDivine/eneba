@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/MerveilleDivine/eneba/api/internal/database"
+	"github.com/MerveilleDivine/eneba/api/internal/marketplace"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -31,17 +32,7 @@ func (r *Repository) List(ctx context.Context, filter Filter) (Page, error) {
 
 // Both reads share one snapshot. The same predicate defines the total and the
 // page, including available inventory, search and price bounds.
-const catalogSQL = `WITH available_prices AS (
-  SELECT o.product_id, min(o.price_cents) AS lowest_price_cents
-  FROM marketplace.offers o
-  WHERE o.active AND EXISTS (
-    SELECT 1 FROM marketplace.digital_keys k
-    WHERE k.offer_id = o.id AND NOT EXISTS (
-      SELECT 1 FROM marketplace.order_items item WHERE item.digital_key_id = k.id
-    )
-  )
-  GROUP BY o.product_id
-), catalog AS (
+const catalogSQL = "WITH " + marketplace.AvailablePricesCTE + `, catalog AS (
   SELECT p.id, p.slug, p.name, p.edition, p.platform, p.region, p.cover_url,
     prices.lowest_price_cents,
     CASE

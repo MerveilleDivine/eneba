@@ -135,7 +135,7 @@ test("three independently sourced banners remain reachable at enlarged mobile te
     });
   });
   await page.goto("/");
-  const articles = page.locator("article");
+  const articles = page.getByRole("region", { name: "Featured games" }).locator("article");
   await expect(articles).toHaveCount(3);
   await expect(page.getByRole("heading", { name: "Beyond the horizon" })).toBeVisible();
   await page.addStyleTag({ content: ":root { font-size: 200%; }" });
@@ -185,10 +185,11 @@ test("delayed banner response shows loading state until content arrives", async 
     });
   });
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("status")).toContainText("Loading featured games");
+  const banner = page.getByRole("region", { name: "Featured games" });
+  await expect(banner.getByRole("status")).toContainText("Loading featured games");
   release();
   await expect(page.getByRole("heading", { name: "Service recovered" })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveCount(0);
+  await expect(banner.getByRole("status")).toHaveCount(0);
 });
 
 for (const width of [320, 360, 768, 1280]) {

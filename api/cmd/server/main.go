@@ -50,6 +50,9 @@ func run(logger *slog.Logger) error {
 	bannerRepository := home.NewBannerRepository(pool)
 	bannerService := home.NewBannerService(bannerRepository)
 	home.NewBannerHandler(bannerService, logger).RegisterRoutes(mux)
+	bestSellerRepository := home.NewBestSellerRepository(pool)
+	bestSellerService := home.NewBestSellerService(bestSellerRepository)
+	home.NewBestSellerHandler(bestSellerService, logger).RegisterRoutes(mux)
 	mux.HandleFunc("/", httpapi.NotFound)
 	server := &http.Server{
 		Addr:              net.JoinHostPort(host, cfg.Port),

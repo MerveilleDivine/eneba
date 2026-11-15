@@ -1,17 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router";
-import {
-  BannerRequestError,
-  fetchBanners,
-  type BannerFailure,
-  type HomepageBanner,
-} from "./banner-api";
+import { fetchBanners, type BannerFailure } from "./banner-api";
+import { BestSellers } from "./BestSellers";
+import { useHomeRequest } from "./use-home-request";
 import styles from "./HomePage.module.css";
-
-type BannerState =
-  | { status: "loading" }
-  | { status: "ready"; banners: HomepageBanner[] }
-  | { status: "failed"; kind: BannerFailure };
 
 const messages: Record<BannerFailure, { title: string; description: string }> = {
   unavailable: {
@@ -33,8 +25,7 @@ const messages: Record<BannerFailure, { title: string; description: string }> = 
 };
 
 function FeaturedBanners() {
-  const [state, setState] = useState<BannerState>({ status: "loading" });
-  const [attempt, setAttempt] = useState(0);
+  const { state, retry } = useHomeRequest(fetchBanners);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const loadingRef = useRef<HTMLElement>(null);
   const focusAfterRetry = useRef(false);
@@ -49,41 +40,9 @@ function FeaturedBanners() {
     }
   }, [state.status]);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let active = true;
-    let timedOut = false;
-    const timeout = window.setTimeout(() => {
-      if (!active) return;
-      timedOut = true;
-      controller.abort();
-      setState({ status: "failed", kind: "timeout" });
-    }, 6000);
-
-    void fetchBanners(controller.signal)
-      .then((banners) => {
-        if (active && !timedOut) setState({ status: "ready", banners });
-      })
-      .catch((error: unknown) => {
-        if (!active || timedOut) return;
-        setState({
-          status: "failed",
-          kind: error instanceof BannerRequestError ? error.kind : "unexpected",
-        });
-      })
-      .finally(() => window.clearTimeout(timeout));
-
-    return () => {
-      active = false;
-      controller.abort();
-      window.clearTimeout(timeout);
-    };
-  }, [attempt]);
-
-  function retry() {
+  function retryBanners() {
     focusAfterRetry.current = true;
-    setState({ status: "loading" });
-    setAttempt((value) => value + 1);
+    retry();
   }
 
   if (state.status === "loading") {
@@ -117,7 +76,7 @@ function FeaturedBanners() {
           <p>{message.description}</p>
         </div>
         <div className={styles.actions}>
-          <button type="button" className={styles.retry} onClick={retry}>
+          <button type="button" className={styles.retry} onClick={retryBanners}>
             Try again
           </button>
           <Link className={styles.secondaryLink} to="/catalog">
@@ -128,7 +87,7 @@ function FeaturedBanners() {
     );
   }
 
-  if (state.banners.length === 0) {
+  if (state.data.length === 0) {
     return (
       <section className={styles.fallback} aria-label="Featured games">
         <p className={styles.eyebrow}>Featured games</p>
@@ -145,7 +104,7 @@ function FeaturedBanners() {
 
   return (
     <section aria-label="Featured games" className={styles.banners}>
-      {state.banners.map((banner, index) => (
+      {state.data.map((banner, index) => (
         <article
           key={banner.id}
           className={
@@ -186,6 +145,7 @@ export function HomePage() {
   return (
     <div className={styles.home}>
       <FeaturedBanners />
+      <BestSellers />
     </div>
   );
 }

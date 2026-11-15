@@ -1,4 +1,5 @@
 import { parseCatalogSearch } from "../catalog/catalog-query";
+import { HomeRequestError, requestHomeData } from "./home-request";
 
 export type HomepageBanner = {
   id: string;
@@ -9,14 +10,8 @@ export type HomepageBanner = {
   position: number;
 };
 
-export type BannerFailure = "unavailable" | "network" | "timeout" | "unexpected";
-
-export class BannerRequestError extends Error {
-  constructor(public readonly kind: BannerFailure) {
-    super(kind);
-    this.name = "BannerRequestError";
-  }
-}
+export { HomeRequestError as BannerRequestError } from "./home-request";
+export type { HomeFailure as BannerFailure } from "./home-request";
 
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -83,10 +78,10 @@ function validBanner(value: unknown): value is HomepageBanner {
 
 export function parseBannerResponse(input: unknown): HomepageBanner[] {
   if (!record(input) || !Array.isArray(input.items) || input.items.length > 3) {
-    throw new BannerRequestError("unexpected");
+    throw new HomeRequestError("unexpected");
   }
   if (!input.items.every(validBanner)) {
-    throw new BannerRequestError("unexpected");
+    throw new HomeRequestError("unexpected");
   }
   const banners: HomepageBanner[] = input.items;
   if (
@@ -97,39 +92,11 @@ export function parseBannerResponse(input: unknown): HomepageBanner[] {
     ) ||
     new Set(banners.map((banner) => banner.id)).size !== banners.length
   ) {
-    throw new BannerRequestError("unexpected");
+    throw new HomeRequestError("unexpected");
   }
   return banners;
 }
 
-export async function fetchBanners(signal: AbortSignal): Promise<HomepageBanner[]> {
-  let response: Response;
-  try {
-    response = await fetch("/api/v1/home/banners", {
-      signal,
-      cache: "no-store",
-      credentials: "same-origin",
-      headers: { Accept: "application/json" },
-    });
-  } catch (error) {
-    if (signal.aborted) throw error;
-    throw new BannerRequestError(error instanceof TypeError ? "network" : "unexpected");
-  }
-  if (!response.ok) {
-    throw new BannerRequestError(
-      response.status === 408 || response.status === 504
-        ? "timeout"
-        : [502, 503].includes(response.status)
-          ? "unavailable"
-          : "unexpected",
-    );
-  }
-  let data: unknown;
-  try {
-    data = await response.json();
-  } catch (error) {
-    if (signal.aborted) throw error;
-    throw new BannerRequestError(error instanceof TypeError ? "network" : "unexpected");
-  }
-  return parseBannerResponse(data);
+export function fetchBanners(signal: AbortSignal): Promise<HomepageBanner[]> {
+  return requestHomeData("/api/v1/home/banners", signal, parseBannerResponse);
 }

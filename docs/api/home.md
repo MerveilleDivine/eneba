@@ -1,6 +1,6 @@
-# Homepage API — implemented banner and future home contracts
+# Homepage API — implemented banners and best sellers, proposed deals
 
-14 November 2026. **The banner route is implemented in 3B.** Best-seller and deals routes are proposed contracts for later checkpoints (3C and 3D); do not present them as available or tested yet. The API is a single Go application with independent feature services and one PostgreSQL database.
+14 November 2026. **Banner (3B) and Best Sellers (3C) routes have implementations.** Deals remain a proposed 3D contract, not a live endpoint. Review exact-head CI before claiming verified acceptance. The API is a single Go application with independent feature services and one PostgreSQL database.
 
 ## Shared transport rules
 
@@ -19,7 +19,7 @@ Responses are JSON, Cache-Control: no-store, X-Request-ID and X-Content-Type-Opt
 
 A database/connectivity or deadline failure is 503; unexpected storage-level failures are 500. In the implemented banner service, a malformed individual content row is skipped, with a safe structured warning; invalid data does not turn other valid promotions into a 500. The handler does not expose internal error strings. Reject unknown/duplicate query parameters with 400 rather than introducing undocumented filtering or pagination. Each endpoint has a bounded server-side result limit and deterministic ordering; its UI fetches independently.
 
-**Important:** The banner response below describes the actual seeded local contract following seed 003. Best-seller/deal examples remain future proposals. No public deployment has occurred.
+**Important:** The banner and best-seller examples describe seeded local contracts. Deal data remains a future proposal; no public deployment has occurred.
 
 ## GET /api/v1/home/banners — BannerService (3B)
 
@@ -48,7 +48,7 @@ Source: marketplace.homepage_banners only. Scan at most **12** active candidates
 - Mark purely decorative imagery alt-empty if all meaningful information is in the adjacent heading and copy; otherwise provide an accessible alternative.
 - No hardcoded text or image/target mapping in React. The block must visibly update from a changed banner source row.
 
-## GET /api/v1/home/best-sellers — BestSellerService (3C)
+## GET /api/v1/home/best-sellers — BestSellerService (3C, implemented)
 
 Source: marketplace.homepage_best_sellers. Rank its explicit **fictional** demo_weekly_sales descending, with stable normalized product name then product ID ties. Join only active marketplace.products. Return at most **eight** records. Do not rank via catalog order or invented analytics. The UI may say "Best sellers in this demo"; it must never imply real production sales.
 
@@ -74,7 +74,7 @@ Source: marketplace.homepage_best_sellers. Rank its explicit **fictional** demo_
 
 - The product summary matches the catalog's contract except for explicit seeded ranking metadata. The backend is authoritative.
 - The lowest price considers **only active offers with currently unallocated keys** and is determined independently of the demo sales count. Sold-out active games may appear with available=false and lowestPriceCents=null; they must never appear purchasable.
-- The endpoint must agree with /api/v1/products for the same SKU at a stable database snapshot (including sold-out and price semantics). Use one bounded query or carefully shared read boundary; no N+1.
+- The endpoint must agree with /api/v1/products for the same SKU at a stable database snapshot (including sold-out and price semantics). **Implementation:** the catalog and Best Sellers repositories use one shared available-price SQL CTE, and Best Sellers makes one bounded query (no N+1).
 - Changing only homepage_best_sellers must change this ranking/selection without altering banner/deal data. Product/offers/inventory changes are domain-shared and may legitimately affect more than one block.
 - The UI must not render invented review counts or fake purchase timestamps. Demo weekly counts may be included in data for transparent ranking/testability but should not be presented as real sales.
 
@@ -128,4 +128,4 @@ Maintain standard loading/skeleton, empty, error, success and retry states, plus
 7. Responsive/accessibility: test 320, 360, 768 and 1280px, 200% text, keyboard navigation, axe A/AA, reduced motion and source-driven artwork. Don't accept a screenshot alone as evidence of behavior.
 8. Full CI at the exact final commit with PostgreSQL 17.12/18.7, real database integration, frontend checks, browser suite and Go race/audit checks. Explicitly record any manual/hosted checks that remain pending.
 
-This document records the **3A proposal**. No endpoint, source file, migration, seed or new homepage artwork was created in 3A.
+**Historical boundary:** this began as the 3A proposal. Banner was implemented in 3B and Best Sellers in 3C. Deals (3D) are still proposed. No new migration or seed was required for Best Sellers because the ranking table and four demo entries already existed.

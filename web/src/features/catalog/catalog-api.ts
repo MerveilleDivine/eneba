@@ -74,7 +74,7 @@ function validCoverUrl(value: unknown): value is string {
   }
 }
 
-function isProduct(value: unknown): value is CatalogProduct {
+export function isCatalogProduct(value: unknown): value is CatalogProduct {
   if (!record(value)) return false;
   return (
     ["id", "slug", "name", "edition"].every((field) => nonEmptyText(value[field])) &&
@@ -95,7 +95,7 @@ export function parseCatalogResponse(
   if (
     !record(value) ||
     !Array.isArray(value.items) ||
-    !value.items.every(isProduct) ||
+    !value.items.every(isCatalogProduct) ||
     !safeNumber(value.total) ||
     !safeNumber(value.page) ||
     value.page < 1 ||

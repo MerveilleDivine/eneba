@@ -77,11 +77,20 @@ func normalizeFilter(filter Filter) (Filter, error) {
 
 func prepareProducts(products []Product) error {
 	for i := range products {
-		price := products[i].LowestPriceCents
-		if price != nil && (*price <= 0 || *price > maxSafeInteger) {
-			return errInvalidPrice
+		if err := PrepareProduct(&products[i]); err != nil {
+			return err
 		}
-		products[i].Available = price != nil
 	}
+	return nil
+}
+
+// PrepareProduct keeps homepage projections consistent with catalog's
+// existing safe-price and inventory-availability semantics.
+func PrepareProduct(product *Product) error {
+	price := product.LowestPriceCents
+	if price != nil && (*price <= 0 || *price > maxSafeInteger) {
+		return errInvalidPrice
+	}
+	product.Available = price != nil
 	return nil
 }

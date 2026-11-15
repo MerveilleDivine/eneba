@@ -252,3 +252,11 @@ The root path is the real homepage, the brand/Home link points to it, and /catal
 Seed 003 conditionally corrects the original /store fixture link and placeholder illustration without rewriting previous seeds or customizing users' banners. The committed hero asset is an original static SVG. Unsafe links fail closed; valid catalog query links are checked by the catalog owner. Retry preserves keyboard focus on its loading state and returns focus to the resulting heading.
 
 Best sellers, deals, cart, product details, authentication, checkout, production hosting and merges remain outside 3B.
+
+## Slice 3C — independent best-seller ranking, shared availability semantics
+
+The source for Best Sellers is **only** `marketplace.homepage_best_sellers`, joined to active products and the shared available-price projection. A separate BestSellerService/Repository/Handler inside the existing Go API preserves independent ownership and bounded reads. Ranking uses seeded fictional weekly counts with stable normalized name and product-ID ties, never the catalog's sort order or invented production analytics.
+
+The canonical lowest active, unallocated-key offer price predicate previously embedded in catalog SQL is now a single reused CTE in `api/internal/marketplace`. The catalog service's validated EUR-cent/availability projection is reused by Best Sellers instead of reimplementing its stock and money rules. This sharing arises from two concrete consumers, not a speculative framework.
+
+React independently fetches and retries Best Sellers, while the banner stays available if ranking fails. Existing ProductCard presentation is reused without creating unsupported product pages or purchase actions. The UI explicitly labels the fictional demo ranking and navigates to valid catalog searches. No schema, fixtures, supplier offer data, buyer state or deployment change was required.
