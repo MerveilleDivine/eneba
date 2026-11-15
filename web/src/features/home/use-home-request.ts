@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { HomeRequestError, type HomeFailure } from "./home-request";
 
 export type HomeRequestState<T> =
-  | { status: "loading" }
-  | { status: "ready"; data: T }
-  | { status: "failed"; kind: HomeFailure };
+  { status: "loading" } | { status: "ready"; data: T } | { status: "failed"; kind: HomeFailure };
 
 function failureKind(error: unknown): HomeFailure {
   return error instanceof HomeRequestError ? error.kind : "unexpected";

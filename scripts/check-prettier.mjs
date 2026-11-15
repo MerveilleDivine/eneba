@@ -29,11 +29,11 @@ const directory = mkdtempSync(join(tmpdir(), "eneba-format-"));
 try {
   for (const [index, path] of files.entries()) {
     const source = readFileSync(path, "utf8");
-    const formatted = spawnSync(
-      process.execPath,
-      [prettier, "--stdin-filepath", path],
-      { input: source, encoding: "utf8", maxBuffer },
-    );
+    const formatted = spawnSync(process.execPath, [prettier, "--stdin-filepath", path], {
+      input: source,
+      encoding: "utf8",
+      maxBuffer,
+    });
     if (formatted.error || formatted.status !== 0) {
       console.error(formatted.stderr || formatted.error || "Could not format " + path);
       process.exitCode = 1;
