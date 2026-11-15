@@ -354,10 +354,11 @@ func TestDealsIntegration(t *testing.T) {
 		"30000000-0000-4000-8000-000000000027",
 		"30000000-0000-4000-8000-000000000030",
 	}
+	insertedExtraOffers := make([]string, 0, len(extraOffers))
 	t.Cleanup(func() {
 		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
 		defer stop()
-		for _, offerID := range extraOffers {
+		for _, offerID := range insertedExtraOffers {
 			if _, err := pool.Exec(restore,
 				"DELETE FROM marketplace.homepage_deals WHERE offer_id=$1", offerID,
 			); err != nil {
@@ -372,6 +373,7 @@ func TestDealsIntegration(t *testing.T) {
 		); err != nil {
 			t.Fatal(err)
 		}
+		insertedExtraOffers = append(insertedExtraOffers, offerID)
 	}
 	full := read()
 	if len(full.Items) != maxDeals ||

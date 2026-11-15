@@ -33,9 +33,7 @@ test("reads seller-specific deals and navigates through the catalog", async ({ p
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Best sellers in this demo" })).toBeVisible();
   await shelf.getByRole("link", { name: /The Last Outpost/ }).click();
-  await expect(page).toHaveURL(
-    /\/catalog\?q=The\+Last\+Outpost&platform=xbox&region=europe$/,
-  );
+  await expect(page).toHaveURL(/\/catalog\?q=The\+Last\+Outpost&platform=xbox&region=europe$/);
   const results = page.getByRole("region", { name: "Game results" });
   await expect(results.getByRole("heading", { name: "The Last Outpost" })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Platform" })).toHaveValue("xbox");
