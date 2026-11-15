@@ -19,22 +19,8 @@ const (
 )
 
 var (
-	dealSlugPattern  = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*package home
-
-import (
-	"context"
-	"regexp"
-	"strings"
-	"unicode/utf8"
-)
-	dealCoverPattern = regexp.MustCompile(`^/images/covers/[a-z0-9][a-z0-9_-]*[.](?:webp|svg)package home
-
-import (
-	"context"
-	"regexp"
-	"strings"
-	"unicode/utf8"
-)
+	dealSlugPattern  = regexp.MustCompile("^[a-z0-9]+(?:-[a-z0-9]+)*$")
+	dealCoverPattern = regexp.MustCompile("^/images/covers/[a-z0-9][a-z0-9_-]*[.](?:webp|svg)$")
 )
 
 type Deal struct {
