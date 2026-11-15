@@ -89,7 +89,7 @@ func TestDealsIntegration(t *testing.T) {
 		operations := []struct {
 			label string
 			query string
-			args []any
+			args  []any
 		}{
 			{"alternate feature", "DELETE FROM marketplace.homepage_deals WHERE offer_id=$1", []any{alternateDealOffer}},
 			{"alternate price", "UPDATE marketplace.offers SET list_price_cents=$1 WHERE id=$2", []any{originalAlternativeList, alternateDealOffer}},
