@@ -71,7 +71,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Rem-sized minimum grows with user text scaling, avoiding cramped 200% cards. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
   gap: clamp(0.75rem, 1.5vw, 1.5rem);
   list-style: none;
   margin: 0;
@@ -172,12 +173,13 @@
 
 .prices strong {
   font-size: clamp(1.05rem, 1.8vw, 1.35rem);
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .prices del {
   color: var(--color-muted);
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .destination {
@@ -215,15 +217,20 @@
   margin: 1rem 0 0;
 }
 
-@media (max-width: 1100px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 480px) {
+  .card {
+    flex-direction: column;
   }
-}
 
-@media (max-width: 650px) {
-  .grid {
-    grid-template-columns: minmax(0, 1fr);
+  .cover {
+    width: 100%;
+    flex: 0 0 auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+
+  .details {
+    padding: 1rem;
   }
 }
 

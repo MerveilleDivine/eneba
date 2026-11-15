@@ -83,17 +83,16 @@ test("simultaneous homepage failures recover independently", async ({ page }) =>
 });
 
 test("stalled Deals time out and recover independently", async ({ page }) => {
-  // An unresolved interception callback holds the first request until the
-  // six-second client timeout aborts it. Returning without handling a route
-  // does not reliably simulate a hung network request.
+  // React StrictMode can initiate more than one request on mount. Hold *all*
+  // initial requests to test the real six-second timeout; only a user retry
+  // may reach the backend after the timeout.
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
-  let first = true;
+  let blockRequests = true;
   await page.route("**/api/v1/home/deals", async (route) => {
-    if (first) {
-      first = false;
+    if (blockRequests) {
       await gate;
       try {
         await route.continue();
@@ -114,6 +113,7 @@ test("stalled Deals time out and recover independently", async ({ page }) => {
       timeout: 10000,
     });
   } finally {
+    blockRequests = false;
     release();
   }
   await deals.getByRole("button", { name: "Try deals again" }).click();
@@ -170,6 +170,18 @@ for (const width of [320, 360, 768, 1280]) {
       for (const section of [bestSellers, deals]) {
         await expect(section.getByRole("link").first()).toBeVisible();
       }
+      // No advertised EUR amount may break mid-price at 200% text, even
+      // when the overall page has no horizontal scrollbar.
+      const splitPrices = await deals.locator("li strong").evaluateAll((prices) =>
+        prices
+          .filter((price) => {
+            const range = document.createRange();
+            range.selectNodeContents(price);
+            return range.getClientRects().length > 1;
+          })
+          .map((price) => price.textContent?.trim()),
+      );
+      expect(splitPrices).toEqual([]);
       const scan = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
         .analyze();

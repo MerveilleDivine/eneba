@@ -23,3 +23,11 @@ Scope: verify the existing homepage as a whole, without building new purchasing 
 - Real hosted cold starts and the six-second frontend timeout remain **unmeasured**, so production resilience cannot be claimed.
 - Deals link to filtered catalog search, **not** a seller-offer reservation or checkout; the direct buyer journey remains separately scoped.
 - The private `main` branch and historical commits still contain an archived AI conversation export. Review/redact any sensitive content before approving a public repository or rewriting history. No public release, merge, new branch or history rewrite is part of 3E.
+
+## Independent visual and timeout-test review
+
+The initial six screenshot artifacts from [run #43709316509](https://github.com/MerveilleDivine/eneba/actions/runs/43709316509) were downloaded and **visually inspected**, not only checked for image decoding. The 1280px default layout was legible and visually coherent; however, at 320px with 200% text the Deals cards split product names and euro amounts across individual characters, while the hero CTA and search placeholder became cramped. The 768px 200% screenshot exhibited the same narrow Deal-card text column. Passing an automated horizontal-overflow assertion did not establish readable typography.
+
+The 3E correction uses a rem-sensitive auto-fit Deals grid, stacks images and text on narrow phone widths, keeps euro amounts unbroken, reduces overly large mobile CTA padding and leaves enough room for a shorter visual search placeholder while retaining the accessible "Search games" name. An explicit 200% text assertion checks that every Deals price occupies one text line. New screenshots must be generated and inspected again before visual acceptance.
+
+The first timed-interception browser test also failed in both CI databases because the fixture did not hold all mount-time requests. The test now accounts for React development StrictMode's duplicate mount-time fetches and blocks all initial requests before simulating recovery. **This is a test-fixture correction, not a change to the six-second client timeout.** Real Render cold-start timing is still unmeasured.
