@@ -28,7 +28,7 @@
     "db:migrate": "node scripts/run-go.mjs run ./cmd/db migrate",
     "db:status": "node scripts/run-go.mjs run ./cmd/db status",
     "db:seed": "node scripts/run-go.mjs run ./cmd/db seed",
-    "check:format": "prettier --check . && node scripts/check-go-format.mjs",
+    "check:format": "node scripts/check-prettier.mjs && node scripts/check-go-format.mjs",
     "format": "prettier --write .",
     "verify:api": "node scripts/run-go.mjs vet ./... && node scripts/run-go.mjs test ./... && node scripts/run-go.mjs build ./...",
     "verify:web": "npm run typecheck --workspace web && npm run lint --workspace web && npm run test --workspace web && npm run build --workspace web",
