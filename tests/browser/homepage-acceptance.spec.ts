@@ -167,6 +167,11 @@ for (const width of [320, 360, 768, 1280]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         width,
       );
+      const search = page.getByRole("searchbox", { name: "Search games" });
+      await expect(search).toBeVisible();
+      expect(
+        await search.evaluate((element) => element.getBoundingClientRect().width),
+      ).toBeGreaterThan(95);
       for (const section of [bestSellers, deals]) {
         await expect(section.getByRole("link").first()).toBeVisible();
       }

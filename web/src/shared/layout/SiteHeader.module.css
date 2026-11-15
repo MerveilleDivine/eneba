@@ -89,7 +89,8 @@
   color: var(--color-purple);
 }
 
-@media (max-width: 760px) {
+/* Keep global search from collapsing at large user font sizes. */
+@media (max-width: 1000px) {
   .inner {
     min-height: unset;
     padding: 1rem 0 0.85rem;
