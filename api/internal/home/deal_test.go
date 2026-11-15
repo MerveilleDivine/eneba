@@ -7,11 +7,11 @@ import (
 
 func validDealFixture() Deal {
 	return Deal{
-		OfferID: "30000000-0000-4000-8000-000000000003",
+		OfferID:   "30000000-0000-4000-8000-000000000003",
 		ProductID: "10000000-0000-4000-8000-000000000002",
-		Slug: "the-last-outpost", Name: "The Last Outpost", Edition: "Standard",
+		Slug:      "the-last-outpost", Name: "The Last Outpost", Edition: "Standard",
 		Platform: "xbox", Region: "europe",
-		CoverURL: "/images/covers/the-last-outpost.webp",
+		CoverURL:   "/images/covers/the-last-outpost.webp",
 		SellerName: "Purple Lantern", PriceCents: 1273, ListPriceCents: 1873,
 		Position: 0,
 	}
@@ -19,7 +19,7 @@ func validDealFixture() Deal {
 
 func TestDealValidation(t *testing.T) {
 	cases := []struct {
-		name string
+		name   string
 		mutate func(*Deal)
 		reason string
 	}{
@@ -27,7 +27,7 @@ func TestDealValidation(t *testing.T) {
 		{"zero price", func(d *Deal) { d.PriceCents = 0 }, "invalid_price"},
 		{"equal price", func(d *Deal) { d.ListPriceCents = d.PriceCents }, "invalid_price"},
 		{"over safe integer", func(d *Deal) { d.ListPriceCents = maxDealSafeCents + 1 }, "invalid_price"},
-		{"invalid seller", func(d *Deal) { d.SellerName = strings.Repeat("s", maxDealSeller + 1) }, "invalid_text"},
+		{"invalid seller", func(d *Deal) { d.SellerName = strings.Repeat("s", maxDealSeller+1) }, "invalid_text"},
 		{"unsafe cover", func(d *Deal) { d.CoverURL = "//example.test/cover.webp" }, "invalid_cover"},
 		{"bad slug", func(d *Deal) { d.Slug = "../other" }, "invalid_text"},
 		{"inactive platform", func(d *Deal) { d.Platform = "unknown" }, "invalid_platform"},

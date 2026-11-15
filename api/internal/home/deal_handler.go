@@ -13,7 +13,7 @@ import (
 
 type DealHandler struct {
 	service *DealService
-	logger *slog.Logger
+	logger  *slog.Logger
 }
 
 func NewDealHandler(service *DealService, logger *slog.Logger) *DealHandler {

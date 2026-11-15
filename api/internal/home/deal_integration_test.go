@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	fixtureDealOffer = "30000000-0000-4000-8000-000000000003"
+	fixtureDealOffer   = "30000000-0000-4000-8000-000000000003"
 	alternateDealOffer = "30000000-0000-4000-8000-000000000004"
 )
 
@@ -99,7 +99,7 @@ func TestDealsIntegration(t *testing.T) {
 		t.Fatalf("expected three real seller deals: %+v", original)
 	}
 	for i, wanted := range []struct {
-		offer string
+		offer                string
 		price, list, percent int64
 	}{
 		{fixtureDealOffer, 1273, 1873, 32},
@@ -132,18 +132,26 @@ func TestDealsIntegration(t *testing.T) {
 		}
 	}
 	request, err := http.NewRequest(http.MethodHead, endpoint, nil)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	response, err := client.Do(request)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	headBytes, err := io.ReadAll(response.Body)
 	response.Body.Close()
 	if err != nil || response.StatusCode != 200 || len(headBytes) != 0 {
 		t.Fatal("HEAD behavior incorrect")
 	}
 	request, err = http.NewRequest(http.MethodPost, endpoint, nil)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	response, err = client.Do(request)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	response.Body.Close()
 	if response.StatusCode != 405 || response.Header.Get("Allow") != "GET, HEAD" {
 		t.Fatal("unsupported method must return 405")
@@ -159,7 +167,9 @@ func TestDealsIntegration(t *testing.T) {
 		defer stop()
 		_, _ = pool.Exec(restore, "UPDATE marketplace.homepage_deals SET position=0 WHERE offer_id=$1", fixtureDealOffer)
 	})
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_deals SET position=4 WHERE offer_id=$1", fixtureDealOffer); err != nil { t.Fatal(err) }
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_deals SET position=4 WHERE offer_id=$1", fixtureDealOffer); err != nil {
+		t.Fatal(err)
+	}
 	moved := read()
 	if moved.Items[0].OfferID == fixtureDealOffer || moved.Items[2].OfferID != fixtureDealOffer {
 		t.Fatalf("deal source ranking update had no effect: %+v", moved)
@@ -169,25 +179,33 @@ func TestDealsIntegration(t *testing.T) {
 	if string(previousBanners) != string(nextBanners) || string(previousRanking) != string(nextRanking) {
 		t.Fatal("editing homepage_deals must not change banners or best sellers")
 	}
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_deals SET position=0 WHERE offer_id=$1", fixtureDealOffer); err != nil { t.Fatal(err) }
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_deals SET position=0 WHERE offer_id=$1", fixtureDealOffer); err != nil {
+		t.Fatal(err)
+	}
 
 	t.Cleanup(func() {
 		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
 		defer stop()
 		_, _ = pool.Exec(restore, "UPDATE marketplace.offers SET price_cents=1273, active=true WHERE id=$1", fixtureDealOffer)
 	})
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET price_cents=1300 WHERE id=$1", fixtureDealOffer); err != nil { t.Fatal(err) }
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET price_cents=1300 WHERE id=$1", fixtureDealOffer); err != nil {
+		t.Fatal(err)
+	}
 	changed := read()
 	if changed.Items[0].PriceCents != 1300 || changed.Items[0].ListPriceCents != 1873 ||
 		changed.Items[0].DiscountPercent != 30 {
 		t.Fatalf("current and list prices must belong to the selected offer: %+v", changed.Items[0])
 	}
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET active=false WHERE id=$1", fixtureDealOffer); err != nil { t.Fatal(err) }
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET active=false WHERE id=$1", fixtureDealOffer); err != nil {
+		t.Fatal(err)
+	}
 	inactive := read()
 	if len(inactive.Items) != 2 {
 		t.Fatalf("inactive offers cannot advertise deals: %+v", inactive)
 	}
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET price_cents=1273, active=true WHERE id=$1", fixtureDealOffer); err != nil { t.Fatal(err) }
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET price_cents=1273, active=true WHERE id=$1", fixtureDealOffer); err != nil {
+		t.Fatal(err)
+	}
 
 	// A different seller's offer for the same SKU is *not* a valid deal
 	// until that exact offer has a higher list price and is on the deal board.
@@ -197,11 +215,15 @@ func TestDealsIntegration(t *testing.T) {
 		_, _ = pool.Exec(restore, "DELETE FROM marketplace.homepage_deals WHERE offer_id=$1", alternateDealOffer)
 		_, _ = pool.Exec(restore, "UPDATE marketplace.offers SET list_price_cents=NULL WHERE id=$1", alternateDealOffer)
 	})
-	if _, err := pool.Exec(ctx, "INSERT INTO marketplace.homepage_deals(offer_id,position) VALUES ($1,3)", alternateDealOffer); err != nil { t.Fatal(err) }
+	if _, err := pool.Exec(ctx, "INSERT INTO marketplace.homepage_deals(offer_id,position) VALUES ($1,3)", alternateDealOffer); err != nil {
+		t.Fatal(err)
+	}
 	if len(read().Items) != 3 {
 		t.Fatal("an offer with no original price is not a valid deal")
 	}
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET list_price_cents=2000 WHERE id=$1", alternateDealOffer); err != nil { t.Fatal(err) }
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET list_price_cents=2000 WHERE id=$1", alternateDealOffer); err != nil {
+		t.Fatal(err)
+	}
 	both := read()
 	if len(both.Items) != 4 || both.Items[0].ProductID != both.Items[3].ProductID ||
 		both.Items[0].OfferID == both.Items[3].OfferID ||
@@ -209,15 +231,21 @@ func TestDealsIntegration(t *testing.T) {
 		both.Items[3].PriceCents != 1523 || both.Items[3].DiscountPercent != 23 {
 		t.Fatalf("different seller offers on the same SKU were mixed: %+v", both)
 	}
-	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.homepage_deals WHERE offer_id=$1", alternateDealOffer); err != nil { t.Fatal(err) }
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET list_price_cents=NULL WHERE id=$1", alternateDealOffer); err != nil { t.Fatal(err) }
+	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.homepage_deals WHERE offer_id=$1", alternateDealOffer); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET list_price_cents=NULL WHERE id=$1", alternateDealOffer); err != nil {
+		t.Fatal(err)
+	}
 
 	// Exhaust both keys of one selected offer through real foreign-key-protected
 	// order allocations in eneba_test, without editing or refilling key fixtures.
 	var testUser string
 	if err := pool.QueryRow(ctx, `INSERT INTO marketplace.users(email, display_name, password_hash)
 		VALUES ('test-deals-'||gen_random_uuid()::text||'@invalid.test', 'Deals integration', 'not-a-login')
-		RETURNING id::text`).Scan(&testUser); err != nil { t.Fatal(err) }
+		RETURNING id::text`).Scan(&testUser); err != nil {
+		t.Fatal(err)
+	}
 	t.Cleanup(func() {
 		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
 		defer stop()
@@ -233,25 +261,41 @@ func TestDealsIntegration(t *testing.T) {
 		if err := pool.QueryRow(ctx, `
 			INSERT INTO marketplace.orders(user_id,idempotency_key,request_fingerprint,total_cents)
 			VALUES ($1, gen_random_uuid(), decode(repeat('00',32),'hex'), 1273)
-			RETURNING id::text`, testUser).Scan(&orderID); err != nil { t.Fatal(err) }
+			RETURNING id::text`, testUser).Scan(&orderID); err != nil {
+			t.Fatal(err)
+		}
 		if _, err := pool.Exec(ctx, `
 			INSERT INTO marketplace.order_items(order_id,offer_id,digital_key_id,unit_price_cents,product_name_snapshot,seller_name_snapshot)
-			VALUES ($1,$2,$3,1273,'The Last Outpost','Purple Lantern')`, orderID, fixtureDealOffer, keyID); err != nil { t.Fatal(err) }
+			VALUES ($1,$2,$3,1273,'The Last Outpost','Purple Lantern')`, orderID, fixtureDealOffer, keyID); err != nil {
+			t.Fatal(err)
+		}
 	}
 	soldOut := read()
 	if len(soldOut.Items) != 2 {
 		t.Fatalf("an offer with no unallocated keys must disappear: %+v", soldOut)
 	}
 	for _, deal := range soldOut.Items {
-		if deal.OfferID == fixtureDealOffer { t.Fatal("sold out seller offer still advertised") }
+		if deal.OfferID == fixtureDealOffer {
+			t.Fatal("sold out seller offer still advertised")
+		}
 	}
 	for _, row := range soldOut.Items {
-		if strings.Contains(row.SellerName, "DEMO-NONREDEEMABLE") { t.Fatal("key leaked") }
+		if strings.Contains(row.SellerName, "DEMO-NONREDEEMABLE") {
+			t.Fatal("key leaked")
+		}
 	}
-	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.order_items WHERE order_id IN (SELECT id FROM marketplace.orders WHERE user_id=$1)", testUser); err != nil { t.Fatal(err) }
-	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.orders WHERE user_id=$1", testUser); err != nil { t.Fatal(err) }
-	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.users WHERE id=$1", testUser); err != nil { t.Fatal(err) }
-	if len(read().Items) != 3 { t.Fatal("deals did not recover after isolated allocations were reversed") }
+	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.order_items WHERE order_id IN (SELECT id FROM marketplace.orders WHERE user_id=$1)", testUser); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.orders WHERE user_id=$1", testUser); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.users WHERE id=$1", testUser); err != nil {
+		t.Fatal(err)
+	}
+	if len(read().Items) != 3 {
+		t.Fatal("deals did not recover after isolated allocations were reversed")
+	}
 }
 
 func TestDealFailureResponses(t *testing.T) {
@@ -263,7 +307,9 @@ func TestDealFailureResponses(t *testing.T) {
 	for _, situation := range []string{"unavailable", "unexpected"} {
 		t.Run(situation, func(t *testing.T) {
 			cfg, err := pgxpool.ParseConfig(app)
-			if err != nil { t.Fatal(err) }
+			if err != nil {
+				t.Fatal(err)
+			}
 			cfg.ConnConfig.ConnectTimeout = time.Second
 			status, code := 503, "service_unavailable"
 			if situation == "unavailable" {
@@ -277,7 +323,9 @@ func TestDealFailureResponses(t *testing.T) {
 				}
 			}
 			pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
-			if err != nil { t.Fatal(err) }
+			if err != nil {
+				t.Fatal(err)
+			}
 			t.Cleanup(pool.Close)
 			var logs concurrentLogBuffer
 			logger := slog.New(slog.NewJSONHandler(&logs, nil))
@@ -286,11 +334,15 @@ func TestDealFailureResponses(t *testing.T) {
 			server := httptest.NewServer(httpapi.Wrap(mux, logger))
 			t.Cleanup(server.Close)
 			response, err := server.Client().Get(server.URL + "/api/v1/home/deals")
-			if err != nil { t.Fatal(err) }
+			if err != nil {
+				t.Fatal(err)
+			}
 			body, err := io.ReadAll(response.Body)
 			response.Body.Close()
-			if err != nil { t.Fatal(err) }
-			if response.StatusCode != status || !strings.Contains(string(body), "\"" + code + "\"") {
+			if err != nil {
+				t.Fatal(err)
+			}
+			if response.StatusCode != status || !strings.Contains(string(body), "\""+code+"\"") {
 				t.Fatalf("unexpected service response: %d %s", response.StatusCode, body)
 			}
 			if strings.Contains(string(body)+logs.String(), "private") || strings.Contains(string(body), "postgres://") {
