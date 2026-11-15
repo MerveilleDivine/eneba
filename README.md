@@ -6,7 +6,7 @@ An unofficial game marketplace built as an engineering internship project. React
 
 ## Verify before committing
 
-Run `npm run hooks:install` once in a local Git checkout to enable the versioned pre-commit hook. Every subsequent local commit runs `npm run verify` first: Prettier, gofmt, tooling checks, Go vet/tests/build and frontend type/lint/tests/build. Fix failures before committing rather than generating CI-only correction commits. The hook does not replace the PostgreSQL integration, Chromium, vulnerability and race checks in CI. Commits created remotely through an API do not execute local Git hooks, so final exact-head CI evidence is still mandatory.
+Run `npm run hooks:install` once in a local Git checkout to enable the versioned pre-commit hook. Every subsequent local commit runs `npm run verify` first: Prettier, gofmt, tooling checks, Go vet/tests/build and frontend type/lint/tests/build. The hook refuses unstaged tracked edits, preventing checks on a different file version from what Git will commit. Fix failures before committing rather than generating CI-only correction commits. The hook does not replace the PostgreSQL integration, Chromium, vulnerability and race checks in CI. Commits created remotely through an API do not execute local Git hooks, so final exact-head CI evidence is still mandatory.
 
 ## Run locally on Windows
 

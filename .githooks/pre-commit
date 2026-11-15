@@ -1,4 +1,9 @@
 #!/bin/sh
 set -eu
 cd "$(git rev-parse --show-toplevel)"
+# Verify the content that Git will actually commit, not a newer worktree edit.
+if ! git diff --quiet --exit-code; then
+  printf '%s\n' 'Stage or stash unstaged tracked edits before committing.' >&2
+  exit 1
+fi
 npm run verify
