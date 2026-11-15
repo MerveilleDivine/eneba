@@ -84,7 +84,6 @@ export function BestSellers() {
                 to={catalogHref(
                   defaultCatalogQuery(Array.from(product.name).slice(0, 100).join("")),
                 )}
-                aria-label={"Find " + product.name + " in the catalog"}
               >
                 <ProductCard product={product} />
               </Link>

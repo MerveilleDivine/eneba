@@ -17,7 +17,7 @@ test("loads ranked Go products and links to the catalog", async ({ page }) => {
   await expect(shelf.getByRole("listitem")).toHaveCount(4);
   await expect(shelf.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
-  await shelf.getByRole("link", { name: "Find Solar Drift in the catalog" }).click();
+  await shelf.getByRole("link", { name: /Solar Drift/ }).click();
   await expect(page).toHaveURL(/\/catalog\?q=Solar\+Drift$/);
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
 });
@@ -110,7 +110,7 @@ for (const width of [320, 360, 768, 1280]) {
     await page.addStyleTag({ content: ":root { font-size: 200%; }" });
     const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(documentWidth).toBeLessThanOrEqual(width);
-    const link = shelf.getByRole("link", { name: "Find Solar Drift in the catalog" });
+    const link = shelf.getByRole("link", { name: /Solar Drift/ });
     await link.focus();
     await expect(link).toBeFocused();
   });
