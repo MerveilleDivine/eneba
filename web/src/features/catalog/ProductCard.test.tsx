@@ -30,6 +30,17 @@ function variationFor(name: string): string | null | undefined {
 }
 
 describe("product card presentation", () => {
+  it("provides a visible-text accessible name when used inside a link", () => {
+    const { container } = render(
+      <a href="/catalog">
+        <ProductCard product={solar} as="div" />
+      </a>,
+    );
+    const link = screen.getByRole("link", { name: /Solar Drift/ });
+    expect(link).toHaveAccessibleName(/Solar Drift/);
+    expect(link.querySelector("article")).toBeNull();
+    expect(container.querySelector("a > div")).toBeInTheDocument();
+  });
   it("keeps each product cover variation when product order changes", () => {
     const { rerender } = render(
       <>

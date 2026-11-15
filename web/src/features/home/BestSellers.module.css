@@ -89,12 +89,12 @@
   border-radius: 0.8rem;
 }
 
-.productLink > article {
+.productLink > div {
   height: 100%;
 }
 
-.productLink:hover > article,
-.productLink:focus-visible > article {
+.productLink:hover > div,
+.productLink:focus-visible > div {
   border-color: var(--color-accent);
 }
 
@@ -136,7 +136,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .productLink > article {
+  .productLink > div {
     transition: none;
   }
 }

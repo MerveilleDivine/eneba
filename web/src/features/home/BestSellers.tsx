@@ -85,7 +85,7 @@ export function BestSellers() {
                   defaultCatalogQuery(Array.from(product.name).slice(0, 100).join("")),
                 )}
               >
-                <ProductCard product={product} />
+                <ProductCard product={product} as="div" />
               </Link>
             </li>
           ))}
