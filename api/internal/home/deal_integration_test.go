@@ -4,6 +4,7 @@ package home
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"io"
@@ -51,6 +52,56 @@ func TestDealsIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(pool.Close)
+	// Snapshot the fixture before any committed cross-connection mutations.
+	// The test must not overwrite changes with guessed seed values on cleanup.
+	var originalPosition int32
+	var originalPrice int64
+	var originalActive bool
+	if err := pool.QueryRow(ctx, `
+		SELECT d.position, o.price_cents, o.active
+		FROM marketplace.homepage_deals d
+		JOIN marketplace.offers o ON o.id = d.offer_id
+		WHERE d.offer_id = $1`, fixtureDealOffer).Scan(
+		&originalPosition, &originalPrice, &originalActive,
+	); err != nil {
+		t.Fatal(err)
+	}
+	var originalAlternativeList sql.NullInt64
+	if err := pool.QueryRow(ctx,
+		"SELECT list_price_cents FROM marketplace.offers WHERE id=$1",
+		alternateDealOffer,
+	).Scan(&originalAlternativeList); err != nil {
+		t.Fatal(err)
+	}
+	var alternativeFeatured bool
+	if err := pool.QueryRow(ctx,
+		"SELECT EXISTS(SELECT 1 FROM marketplace.homepage_deals WHERE offer_id=$1)",
+		alternateDealOffer,
+	).Scan(&alternativeFeatured); err != nil {
+		t.Fatal(err)
+	}
+	if alternativeFeatured {
+		t.Fatal("expected isolated demo fixture without a featured alternate offer")
+	}
+	t.Cleanup(func() {
+		restore, stop := context.WithTimeout(context.Background(), 15*time.Second)
+		defer stop()
+		operations := []struct {
+			label string
+			query string
+			args []any
+		}{
+			{"alternate feature", "DELETE FROM marketplace.homepage_deals WHERE offer_id=$1", []any{alternateDealOffer}},
+			{"alternate price", "UPDATE marketplace.offers SET list_price_cents=$1 WHERE id=$2", []any{originalAlternativeList, alternateDealOffer}},
+			{"primary offer", "UPDATE marketplace.offers SET price_cents=$1, active=$2 WHERE id=$3", []any{originalPrice, originalActive, fixtureDealOffer}},
+			{"primary ranking", "UPDATE marketplace.homepage_deals SET position=$1 WHERE offer_id=$2", []any{originalPosition, fixtureDealOffer}},
+		}
+		for _, operation := range operations {
+			if _, err := pool.Exec(restore, operation.query, operation.args...); err != nil {
+				t.Errorf("restore %s: %v", operation.label, err)
+			}
+		}
+	})
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
 	mux := http.NewServeMux()
 	NewDealHandler(NewDealService(NewDealRepository(pool)), logger).RegisterRoutes(mux)
@@ -162,11 +213,6 @@ func TestDealsIntegration(t *testing.T) {
 
 	// Committed test-database updates are visible across pooled HTTP reads.
 	// Every mutation has cleanup registered before the dependent assertions.
-	t.Cleanup(func() {
-		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
-		defer stop()
-		_, _ = pool.Exec(restore, "UPDATE marketplace.homepage_deals SET position=0 WHERE offer_id=$1", fixtureDealOffer)
-	})
 	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_deals SET position=4 WHERE offer_id=$1", fixtureDealOffer); err != nil {
 		t.Fatal(err)
 	}
@@ -179,15 +225,10 @@ func TestDealsIntegration(t *testing.T) {
 	if string(previousBanners) != string(nextBanners) || string(previousRanking) != string(nextRanking) {
 		t.Fatal("editing homepage_deals must not change banners or best sellers")
 	}
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_deals SET position=0 WHERE offer_id=$1", fixtureDealOffer); err != nil {
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.homepage_deals SET position=$1 WHERE offer_id=$2", originalPosition, fixtureDealOffer); err != nil {
 		t.Fatal(err)
 	}
 
-	t.Cleanup(func() {
-		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
-		defer stop()
-		_, _ = pool.Exec(restore, "UPDATE marketplace.offers SET price_cents=1273, active=true WHERE id=$1", fixtureDealOffer)
-	})
 	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET price_cents=1300 WHERE id=$1", fixtureDealOffer); err != nil {
 		t.Fatal(err)
 	}
@@ -203,18 +244,12 @@ func TestDealsIntegration(t *testing.T) {
 	if len(inactive.Items) != 2 {
 		t.Fatalf("inactive offers cannot advertise deals: %+v", inactive)
 	}
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET price_cents=1273, active=true WHERE id=$1", fixtureDealOffer); err != nil {
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET price_cents=$1, active=$2 WHERE id=$3", originalPrice, originalActive, fixtureDealOffer); err != nil {
 		t.Fatal(err)
 	}
 
 	// A different seller's offer for the same SKU is *not* a valid deal
 	// until that exact offer has a higher list price and is on the deal board.
-	t.Cleanup(func() {
-		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
-		defer stop()
-		_, _ = pool.Exec(restore, "DELETE FROM marketplace.homepage_deals WHERE offer_id=$1", alternateDealOffer)
-		_, _ = pool.Exec(restore, "UPDATE marketplace.offers SET list_price_cents=NULL WHERE id=$1", alternateDealOffer)
-	})
 	if _, err := pool.Exec(ctx, "INSERT INTO marketplace.homepage_deals(offer_id,position) VALUES ($1,3)", alternateDealOffer); err != nil {
 		t.Fatal(err)
 	}
@@ -234,7 +269,7 @@ func TestDealsIntegration(t *testing.T) {
 	if _, err := pool.Exec(ctx, "DELETE FROM marketplace.homepage_deals WHERE offer_id=$1", alternateDealOffer); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET list_price_cents=NULL WHERE id=$1", alternateDealOffer); err != nil {
+	if _, err := pool.Exec(ctx, "UPDATE marketplace.offers SET list_price_cents=$1 WHERE id=$2", originalAlternativeList, alternateDealOffer); err != nil {
 		t.Fatal(err)
 	}
 
@@ -249,9 +284,19 @@ func TestDealsIntegration(t *testing.T) {
 	t.Cleanup(func() {
 		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
 		defer stop()
-		_, _ = pool.Exec(restore, "DELETE FROM marketplace.order_items WHERE order_id IN (SELECT id FROM marketplace.orders WHERE user_id=$1)", testUser)
-		_, _ = pool.Exec(restore, "DELETE FROM marketplace.orders WHERE user_id=$1", testUser)
-		_, _ = pool.Exec(restore, "DELETE FROM marketplace.users WHERE id=$1", testUser)
+		operations := []struct {
+			label string
+			query string
+		}{
+			{"allocated keys", "DELETE FROM marketplace.order_items WHERE order_id IN (SELECT id FROM marketplace.orders WHERE user_id=$1)"},
+			{"orders", "DELETE FROM marketplace.orders WHERE user_id=$1"},
+			{"test buyer", "DELETE FROM marketplace.users WHERE id=$1"},
+		}
+		for _, operation := range operations {
+			if _, err := pool.Exec(restore, operation.query, testUser); err != nil {
+				t.Errorf("restore %s: %v", operation.label, err)
+			}
+		}
 	})
 	for _, keyID := range []string{
 		"40000000-0000-4000-8000-000000000031",
@@ -295,6 +340,81 @@ func TestDealsIntegration(t *testing.T) {
 	}
 	if len(read().Items) != 3 {
 		t.Fatal("deals did not recover after isolated allocations were reversed")
+	}
+
+	// Ten eligible offers prove that the API returns only eight, in ranking
+	// order. Invalid early content must be skipped so later valid offers fill
+	// the response rather than leaving a misleading partial shelf.
+	extraOffers := []string{
+		"30000000-0000-4000-8000-000000000012",
+		"30000000-0000-4000-8000-000000000015",
+		"30000000-0000-4000-8000-000000000018",
+		"30000000-0000-4000-8000-000000000021",
+		"30000000-0000-4000-8000-000000000024",
+		"30000000-0000-4000-8000-000000000027",
+		"30000000-0000-4000-8000-000000000030",
+	}
+	t.Cleanup(func() {
+		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
+		defer stop()
+		for _, offerID := range extraOffers {
+			if _, err := pool.Exec(restore,
+				"DELETE FROM marketplace.homepage_deals WHERE offer_id=$1", offerID,
+			); err != nil {
+				t.Errorf("restore extra deal %s: %v", offerID, err)
+			}
+		}
+	})
+	for index, offerID := range extraOffers {
+		if _, err := pool.Exec(ctx,
+			"INSERT INTO marketplace.homepage_deals(offer_id, position) VALUES ($1,$2)",
+			offerID, index+3,
+		); err != nil {
+			t.Fatal(err)
+		}
+	}
+	full := read()
+	if len(full.Items) != maxDeals ||
+		full.Items[0].OfferID != fixtureDealOffer ||
+		full.Items[maxDeals-1].Position != 7 {
+		t.Fatalf("expected first eight sorted eligible offers: %+v", full.Items)
+	}
+
+	var originalName string
+	if err := pool.QueryRow(ctx,
+		"SELECT name FROM marketplace.products WHERE id=$1",
+		"10000000-0000-4000-8000-000000000002",
+	).Scan(&originalName); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		restore, stop := context.WithTimeout(context.Background(), 10*time.Second)
+		defer stop()
+		if _, err := pool.Exec(restore,
+			"UPDATE marketplace.products SET name=$1 WHERE id=$2",
+			originalName, "10000000-0000-4000-8000-000000000002",
+		); err != nil {
+			t.Errorf("restore overlong product name: %v", err)
+		}
+	})
+	if _, err := pool.Exec(ctx,
+		"UPDATE marketplace.products SET name=$1 WHERE id=$2",
+		strings.Repeat("X", maxDealName+1),
+		"10000000-0000-4000-8000-000000000002",
+	); err != nil {
+		t.Fatal(err)
+	}
+	filled := read()
+	if len(filled.Items) != maxDeals ||
+		filled.Items[0].OfferID == fixtureDealOffer ||
+		filled.Items[maxDeals-1].OfferID != extraOffers[5] {
+		t.Fatalf("malformed early promotion must be omitted and backfilled: %+v", filled.Items)
+	}
+	if _, err := pool.Exec(ctx,
+		"UPDATE marketplace.products SET name=$1 WHERE id=$2",
+		originalName, "10000000-0000-4000-8000-000000000002",
+	); err != nil {
+		t.Fatal(err)
 	}
 }
 

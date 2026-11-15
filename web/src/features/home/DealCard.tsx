@@ -10,9 +10,11 @@ type Props = { deal: Deal };
 
 export function DealCard({ deal }: Props) {
   const [failedCoverUrl, setFailedCoverUrl] = useState<string>();
-  const destination = catalogHref(
-    defaultCatalogQuery(Array.from(deal.name).slice(0, 100).join("")),
-  );
+  const destination = catalogHref({
+    ...defaultCatalogQuery(Array.from(deal.name).slice(0, 100).join("")),
+    platform: deal.platform,
+    region: deal.region,
+  });
   return (
     <li className={styles.item}>
       <Link className={styles.offerLink} to={destination}>
@@ -42,7 +44,7 @@ export function DealCard({ deal }: Props) {
               <strong>{displayEuro(deal.priceCents)}</strong>
               <del>{displayEuro(deal.listPriceCents)}</del>
             </div>
-            <span className={styles.destination}>Browse in catalog</span>
+            <span className={styles.destination}>Browse matching game · offer not selected</span>
           </div>
         </div>
       </Link>

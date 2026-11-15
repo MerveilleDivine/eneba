@@ -30,6 +30,7 @@ Before each checkpoint, state its behavior, affected modules, architectural boun
 - A commit message describes a delivered behavior or verified architectural decision; record test evidence in the PR/verification notes, not dozens of near-duplicate commits.
 - Do not force-push, squash published shared history, or change the PR's base without explicit authorization. Any approved rewrite must verify the exact content tree and preserve an identified rollback SHA.
 - Conversation-transcript exports are **deferred until the final employer submission checkpoint**. Do not commit partial chat exports or manifests during feature development. At submission, audit completeness and redact private information before tracking any transcript.
+- **Privacy release gate:** the old `docs/ai-history` archive remains in the private `main` tree and historical commits. Do not make the repository public, merge, or rewrite history without explicit approval and a careful transcript/privacy audit.
 
 ## Local data
 

@@ -20,11 +20,26 @@ test("reads seller-specific deals and navigates through the catalog", async ({ p
   await expect(shelf).toContainText("Offer by Purple Lantern");
   await expect(shelf).toContainText("€12.73");
   await expect(shelf).toContainText("€18.73");
+  await expect(shelf).toContainText("offer not selected");
+  const covers = shelf.locator("img");
+  await expect(covers).toHaveCount(3);
+  for (const cover of await covers.all()) {
+    await cover.scrollIntoViewIfNeeded();
+    await expect(cover).toHaveJSProperty("complete", true);
+    expect(await cover.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(
+      0,
+    );
+  }
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Best sellers in this demo" })).toBeVisible();
   await shelf.getByRole("link", { name: /The Last Outpost/ }).click();
-  await expect(page).toHaveURL(/\/catalog\?q=The\+Last\+Outpost$/);
-  await expect(page.getByRole("heading", { name: "The Last Outpost" })).toBeVisible();
+  await expect(page).toHaveURL(
+    /\/catalog\?q=The\+Last\+Outpost&platform=xbox&region=europe$/,
+  );
+  const results = page.getByRole("region", { name: "Game results" });
+  await expect(results.getByRole("heading", { name: "The Last Outpost" })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Platform" })).toHaveValue("xbox");
+  await expect(page.getByRole("combobox", { name: "Region" })).toHaveValue("europe");
 });
 
 test("a Deals failure does not hide the other homepage blocks", async ({ page }) => {
@@ -118,6 +133,11 @@ for (const width of [320, 360, 768, 1280]) {
     await page.addStyleTag({ content: ":root { font-size: 200%; }" });
     const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(documentWidth).toBeLessThanOrEqual(width);
+    const card = shelf.locator("li").first();
+    const bounds = await card.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.width).toBeGreaterThan(120);
+    expect(bounds!.height).toBeGreaterThan(120);
     const link = shelf.getByRole("link", { name: /The Last Outpost/ });
     await link.focus();
     await expect(link).toBeFocused();

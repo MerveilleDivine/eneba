@@ -109,7 +109,7 @@ Source: marketplace.homepage_deals, joined to the **specific seller offer** and 
 - Calculate exact EUR cents using safe integer bounds. For a percentage badge use floor(100 × (listPriceCents - priceCents) / listPriceCents) with overflow-safe arithmetic, never round up and overstate savings; omit a 0% badge if the discount is positive but below 1%.
 - Inactive products/offers, no inventory, absent/equal/lower list prices and invalid records must not display as an active discount. Empty eligibility yields items:[], not fabricated fallback deals.
 - Read up to 32 eligible database candidates ordered by position and offer ID; validate bounded raw SKU/seller copy and same-origin covers in the service, omit malformed rows with safe reason codes, and return at most eight valid deals. A deal with a valid list price but less than 1% savings retains both exact prices without a misleading 0% badge.
-- No purchase control or stock-reserving action belongs in this endpoint. The game/deal may link to a meaningful existing catalog search in Slice 3; the eventual seller-specific product/offer destination belongs to Slice 4.
+- No purchase control or stock-reserving action belongs in this endpoint. The game/deal may link to a meaningful existing catalog search in Slice 3, preserving its game name, platform and region. The visible link and disclosure must explain that the current offer is **not selected** by the catalog. The eventual seller-specific product/offer destination belongs to Slice 4.
 - Pricing remains a nonlocking read snapshot, not a reserved quote. Checkout in Slice 6 must independently revalidate price and inventory.
 
 ## Client-side contract checks

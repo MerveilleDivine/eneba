@@ -1,31 +1,14 @@
-import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import { ProductCard } from "../catalog/ProductCard";
 import { catalogHref, defaultCatalogQuery } from "../catalog/catalog-query";
 import { fetchBestSellers } from "./best-sellers-api";
 import { useHomeRequest } from "./use-home-request";
+import { useHomeRetryFocus } from "./use-home-retry-focus";
 import styles from "./BestSellers.module.css";
 
 export function BestSellers() {
   const { state, retry } = useHomeRequest(fetchBestSellers);
-  const sectionRef = useRef<HTMLElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const focusAfterRetry = useRef(false);
-
-  useEffect(() => {
-    if (!focusAfterRetry.current) return;
-    if (state.status === "loading") {
-      sectionRef.current?.focus();
-    } else {
-      headingRef.current?.focus();
-      focusAfterRetry.current = false;
-    }
-  }, [state.status]);
-
-  function retrySection() {
-    focusAfterRetry.current = true;
-    retry();
-  }
+  const { sectionRef, headingRef, retrySection } = useHomeRetryFocus(state.status, retry);
 
   return (
     <section

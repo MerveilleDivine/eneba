@@ -156,7 +156,7 @@ this checkpoint complete. Record failed attempts separately from the final
 verified head. Manual physical-device and screen-reader checks remain release
 tasks, not CI claims.
 
-## Phase 3C — Best Sellers implemented, verification pending
+## Phase 3C — Best Sellers implementation record (verified in PR)
 
 15 November 2026. **Scoped to independently sourced Best Sellers only**, on the existing `feature/slice-2-catalog` branch; no merge, deployment, deal endpoint, or new schema/seed. The user requested coherent checkpoint commits after reviewing the cleaned four-commit history.
 
@@ -179,3 +179,9 @@ The DealRepository reads **only** homepage_deals for ordering/selection and join
 Deals and DealCard own the React visual presentation; a seller offer is not a generic ProductCard. They reuse only the proven home request hook, money formatter, catalog route builder and design tokens. The section has independent loading/empty/error/retry with accessible focus, original product artwork, exact offer/list price and a clear demo disclosure. The whole card links to a useful catalog search but does **not** imply it selected the seller offer or enabled checkout. There is no fake purchase CTA.
 
 Acceptance targets: test the seeded three offers, exact price and discount, position changes, inactive/undiscounted/sold-out offers, two seller offers on one SKU, isolated source-table mutations, safe transport, failure handling, malformed payload, no fabricated cards, real navigation, 320/360/768/1280px accessibility at 200% text, and both PostgreSQL CI matrices including race checks. External hosting and physical-device/screen-reader review remain deferred. **Implementation evidence is not a CI pass until the exact new head is verified.** Stop after the independent 3D review before 3E.
+
+## Phase 3D independent hardening (15 November 2026)
+
+A passing CI matrix is a code-test acceptance checkpoint, not independent production approval. The follow-up audit found test-fixture restoration using assumed seed values, missing over-limit/malformed-row integration coverage, generic catalog-search navigation from seller-specific Deals, duplicated retry-focus handling, and missing actual artwork-load assertions. This hardening checkpoint addresses these issues on the **same existing feature branch** and keeps the PR draft. It adds snapshot-and-restore cleanup reporting, tests more than eight eligible offers and an invalid early product name with later backfill, preserves platform and region in Deals links, identifies those links as browsing rather than offer selection, shares only the repeated retry-focus behavior, and checks that loaded image bytes actually decode in Chromium. All schema and seed files remain unchanged.
+
+**Unverified release gates:** public hosted cold-start response and timeout policy (the current six-second threshold has no measured deployment evidence), true product/seller offer selection (requires the separately approved product journey), physical-device and screen-reader review, and human visual assessment of density, image crop and keyboard usability. The old conversation archive remains in the private repository's `main` tree and Git history; no merge or publication is permitted without a privacy review and explicit history strategy. Do not claim these gates passed merely because GitHub Actions is green. Run the full CI matrix on the exact hardening commit, and record failures separately from a subsequent passing head.
