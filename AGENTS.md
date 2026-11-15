@@ -24,7 +24,7 @@ Before each checkpoint, state its behavior, affected modules, architectural boun
 ## Git history and checkpoint discipline
 
 - Keep the currently authorized feature branch; do not make extra branches or merge into main without approval.
-- Make changes in a local worktree or a single staged patch when possible. **Run formatting and focused tests before committing**; run the full required CI on the exact final checkpoint commit.
+- Make changes in a local worktree or a single staged patch when possible. **Run formatting and focused tests before committing**; run the full required CI on the exact final checkpoint commit. Enable the versioned `.githooks/pre-commit` with `npm run hooks:install` in local checkouts so `npm run verify` blocks unverified commits. Remote Git API commits bypass local hooks and require explicit final CI verification.
 - Commit a **coherent, reviewable milestone**, not individual file saves. Prefer one commit for a completed checkpoint, with a small follow-up only if its independently verified fix warrants separate review.
 - Do not commit temporary CI/formatter diagnostic scripts, speculative experiments, or intermediate debugging churn. Keep these in the worktree and consolidate any necessary fixes before the checkpoint is marked complete.
 - A commit message describes a delivered behavior or verified architectural decision; record test evidence in the PR/verification notes, not dozens of near-duplicate commits.

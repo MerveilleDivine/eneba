@@ -26,12 +26,15 @@ function record(value: unknown): value is Record<string, unknown> {
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const coverPattern = /^\/images\/covers\/[a-z0-9][a-z0-9_-]*\.(?:webp|svg)$/;
+// Directional formatting controls can visually disguise seller names or offers.
+const bidiControlPattern = /[\u200e\u200f\u202a-\u202e\u2066-\u2069]/u;
 
 function safeText(value: unknown, maximum: number): value is string {
   return (
     typeof value === "string" &&
     value.trim().length > 0 &&
     Array.from(value).length <= maximum &&
+    !bidiControlPattern.test(value) &&
     !Array.from(value).some(
       (character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127,
     )

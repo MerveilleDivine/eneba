@@ -118,7 +118,10 @@ func validDealText(value string, maximum int) bool {
 		return false
 	}
 	for _, character := range value {
-		if character < 32 || character == 127 {
+		if character < 32 || character == 127 ||
+			(character >= '\u200e' && character <= '\u200f') ||
+			(character >= '\u202a' && character <= '\u202e') ||
+			(character >= '\u2066' && character <= '\u2069') {
 			return false
 		}
 	}

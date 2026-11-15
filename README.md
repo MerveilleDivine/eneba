@@ -4,6 +4,10 @@ An unofficial game marketplace built as an engineering internship project. React
 
 **Current milestone: Slice 2 catalog verified; Phase 3.0/3A documented; Phase 3B banners and Phase 3C Best Sellers verified; Phase 3D seller-specific Deals implemented, with its CI verification tracked in the draft PR.** The homepage sections independently load from their own Go APIs and PostgreSQL sources. Phase 3E cross-layer acceptance, public deployment and manual visual acceptance are still pending. See the [Phase 3 engineering record](docs/verification/slice-3-design.md) for tested evidence and outstanding gates. The database and Go catalog API are in place. The React storefront now exposes responsive product cards, global search, filters, sorting, pagination, sold-out states and recoverable errors. Catalog preferences are shareable in the URL, and all product results come from PostgreSQL. Purchasing and product detail routes belong to later slices. All seeded games and keys are fictional and nonredeemable.
 
+## Verify before committing
+
+Run `npm run hooks:install` once in a local Git checkout to enable the versioned pre-commit hook. Every subsequent local commit runs `npm run verify` first: Prettier, gofmt, tooling checks, Go vet/tests/build and frontend type/lint/tests/build. Fix failures before committing rather than generating CI-only correction commits. The hook does not replace the PostgreSQL integration, Chromium, vulnerability and race checks in CI. Commits created remotely through an API do not execute local Git hooks, so final exact-head CI evidence is still mandatory.
+
 ## Run locally on Windows
 
 Prerequisites: Git and PowerShell 5.1+. The bootstrap installs project-local PostgreSQL binaries as well as Go and Node. The setup uses an isolated checkout-owned PostgreSQL cluster on loopback port 5433. An existing PostgreSQL service on port 5432 can keep running independently.

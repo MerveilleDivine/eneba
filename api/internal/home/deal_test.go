@@ -34,6 +34,8 @@ func TestDealValidation(t *testing.T) {
 		{"bad region", func(d *Deal) { d.Region = "mars" }, "invalid_region"},
 		{"negative position", func(d *Deal) { d.Position = -1 }, "invalid_identity"},
 		{"control chars", func(d *Deal) { d.Name = "Sale\nNow" }, "invalid_text"},
+		{"bidi override seller", func(d *Deal) { d.SellerName = "Seller\u202eValue" }, "invalid_text"},
+		{"bidi isolate product", func(d *Deal) { d.Name = "Gift\u2066Offer" }, "invalid_text"},
 	}
 	for _, testcase := range cases {
 		t.Run(testcase.name, func(t *testing.T) {

@@ -55,6 +55,8 @@ describe("deals source contract", () => {
       { currency: "EUR", items: [{ ...outpost, discountPercent: 33 }] },
       { currency: "EUR", items: [{ ...outpost, coverUrl: "javascript:alert(1)" }] },
       { currency: "EUR", items: [{ ...outpost, sellerName: "<bad>\n" }] },
+      { currency: "EUR", items: [{ ...outpost, sellerName: "Seller\u202eValue" }] },
+      { currency: "EUR", items: [{ ...outpost, name: "Gift\u2066Offer" }] },
       { currency: "EUR", items: [{ ...outpost, position: -1 }] },
       { currency: "EUR", items: [{ ...outpost, platform: "unsupported" }] },
       { currency: "EUR", items: [{ ...outpost, offerId: "wrong" }] },
