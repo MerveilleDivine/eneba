@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  fetchBestSellers,
-  parseBestSellersResponse,
-  type BestSeller,
-} from "./best-sellers-api";
+import { fetchBestSellers, parseBestSellersResponse, type BestSeller } from "./best-sellers-api";
 import { HomeRequestError } from "./home-request";
 
 const first: BestSeller = {

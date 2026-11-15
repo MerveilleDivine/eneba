@@ -32,7 +32,9 @@ export function parseBestSellersResponse(value: unknown): BestSellersData {
   const items: BestSeller[] = value.items;
   if (
     new Set(items.map((item) => item.id)).size !== items.length ||
-    items.some((item, index) => index > 0 && item.demoWeeklySales > items[index - 1].demoWeeklySales)
+    items.some(
+      (item, index) => index > 0 && item.demoWeeklySales > items[index - 1].demoWeeklySales,
+    )
   ) {
     throw new HomeRequestError("unexpected");
   }

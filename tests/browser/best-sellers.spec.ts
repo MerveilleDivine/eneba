@@ -32,9 +32,7 @@ test("best-seller failure does not disturb banners, and retry focuses its own he
   });
   await page.goto("/");
   const shelf = page.getByRole("region", { name: "Best sellers in this demo" });
-  await expect(shelf.getByRole("alert")).toContainText(
-    "Best sellers are temporarily unavailable",
-  );
+  await expect(shelf.getByRole("alert")).toContainText("Best sellers are temporarily unavailable");
   await expect(shelf).not.toContainText("private database hostname");
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   await page.unroute("**/api/v1/home/best-sellers");
@@ -114,9 +112,9 @@ for (const width of [320, 360, 768, 1280]) {
       .analyze();
     expect(report.violations).toEqual([]);
     await page.addStyleTag({ content: ":root { font-size: 200%; }" });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-      true,
-    );
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+    ).toBe(true);
     const link = shelf.getByRole("link", { name: "Find Solar Drift in the catalog" });
     await link.focus();
     await expect(link).toBeFocused();

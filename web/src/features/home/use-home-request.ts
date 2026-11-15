@@ -29,10 +29,8 @@ export function useHomeRequest<T>(request: (signal: AbortSignal) => Promise<T>) 
       })
       .catch((error: unknown) => {
         if (!active || timedOut) return;
-        setState({
-          status: "failed",
-          kind: error instanceof HomeRequestError ? error.kind : "unexpected",
-        });
+        const kind: HomeFailure = error instanceof HomeRequestError ? error.kind : "unexpected";
+        setState({ status: "failed", kind });
       })
       .finally(() => window.clearTimeout(timeout));
 
