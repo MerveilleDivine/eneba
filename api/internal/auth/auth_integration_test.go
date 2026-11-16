@@ -11,29 +11,17 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/MerveilleDivine/eneba/api/internal/database"
 	"github.com/MerveilleDivine/eneba/api/internal/httpapi"
 )
 
 func TestAuthHTTPAndDatabase(t *testing.T) {
-	dsn := os.Getenv("TEST_DATABASE_URL")
-	parsed, err := url.Parse(dsn)
-	if err != nil || parsed.Path != "/eneba_test" || parsed.Hostname() == "" {
-		t.Fatal("auth integration tests require isolated eneba_test")
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	pool, err := database.OpenPool(ctx, dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer pool.Close()
+	pool := authTestPool(t)
 	repository := NewRepository(pool)
 	service := NewService(repository)
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -114,7 +102,7 @@ func TestAuthHTTPAndDatabase(t *testing.T) {
 
 	var hash string
 	var tokenHash []byte
-	err = pool.QueryRow(ctx, "SELECT u.password_hash,s.token_hash FROM marketplace.users u JOIN marketplace.sessions s ON s.user_id=u.id WHERE u.email=$1", email).Scan(&hash, &tokenHash)
+	err := pool.QueryRow(ctx, "SELECT u.password_hash,s.token_hash FROM marketplace.users u JOIN marketplace.sessions s ON s.user_id=u.id WHERE u.email=$1", email).Scan(&hash, &tokenHash)
 	if err != nil || hash == "correct password 123" || len(tokenHash) != 32 || strings.Contains(hash, "correct password") {
 		t.Fatal("secret material stored in plaintext", err)
 	}

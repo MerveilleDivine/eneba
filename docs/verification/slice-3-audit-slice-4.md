@@ -165,7 +165,7 @@ This corrective follow-up implements both before declaring Slice 4 accepted.
   available. No automatic cheapest-offer replacement or fake checkout CTA.
 - Added storage parser/mutation unit tests and product→cart→refresh→remove
   Chromium acceptance checks, including a sold-out refusal and corrupt storage
-  fallback. These are test *cases*, not a claim that they passed.
+  fallback. These are test _cases_, not a claim that they passed.
 - The prior Slice 5 authentication checkpoint is preserved on the feature branch
   but remains **verification-pending**; this cart checkpoint is a scope-order
   correction, not authorization for simulated purchasing.

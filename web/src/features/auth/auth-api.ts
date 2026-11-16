@@ -1,5 +1,6 @@
 export type Account = { id: string; email: string; displayName: string };
-export type AuthFailure = "invalid" | "taken" | "limited" | "unavailable" | "network" | "unexpected";
+export type AuthFailure =
+  "invalid" | "taken" | "limited" | "unavailable" | "network" | "unexpected";
 
 export class AuthRequestError extends Error {
   constructor(public readonly kind: AuthFailure) {
@@ -13,10 +14,18 @@ function record(v: unknown): v is Record<string, unknown> {
 export function parseAccount(value: unknown): Account {
   if (!record(value) || !record(value.user)) throw new AuthRequestError("unexpected");
   const { id, email, displayName } = value.user;
-  if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ||
-    typeof email !== "string" || email.length < 5 || email.length > 254 || !email.includes("@") ||
-    typeof displayName !== "string" || displayName.trim().length === 0 || Array.from(displayName).length > 80 ||
-    /\p{Cf}/u.test(displayName)) {
+  if (
+    typeof id !== "string" ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ||
+    typeof email !== "string" ||
+    email.length < 5 ||
+    email.length > 254 ||
+    !email.includes("@") ||
+    typeof displayName !== "string" ||
+    displayName.trim().length === 0 ||
+    Array.from(displayName).length > 80 ||
+    /\p{Cf}/u.test(displayName)
+  ) {
     throw new AuthRequestError("unexpected");
   }
   return { id, email, displayName };
@@ -30,14 +39,21 @@ function failure(status: number): AuthFailure {
 }
 async function readAccount(response: Response): Promise<Account> {
   let body: unknown;
-  try { body = await response.json(); } catch { throw new AuthRequestError("unexpected"); }
+  try {
+    body = await response.json();
+  } catch {
+    throw new AuthRequestError("unexpected");
+  }
   return parseAccount(body);
 }
 export async function currentAccount(signal: AbortSignal): Promise<Account | null> {
   let response: Response;
   try {
     response = await fetch("/api/v1/auth/me", {
-      method: "GET", credentials: "same-origin", cache: "no-store", signal,
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      signal,
       headers: { Accept: "application/json" },
     });
   } catch (error) {

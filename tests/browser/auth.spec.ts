@@ -29,23 +29,27 @@ test("guest account prompts sign-in and does not invent a user", async ({ page }
 });
 
 test("account service outage offers a retry without showing private content", async ({ page }) => {
-  let calls = 0;
+  // Development StrictMode can issue more than one initial account read.
+  // Keep the outage active until the user explicitly retries.
+  let unavailable = true;
   await page.route("**/api/v1/auth/me", async (route) => {
-    calls++;
     await route.fulfill({
-      status: calls === 1 ? 503 : 401,
+      status: unavailable ? 503 : 401,
       contentType: "application/json",
-      body: calls === 1 ? "private database diagnostic" : "{}",
+      body: unavailable ? "private database diagnostic" : "{}",
     });
   });
   await page.goto("/account");
   await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
   await expect(page.getByText("private database diagnostic")).toHaveCount(0);
+  unavailable = false;
   await page.getByRole("button", { name: "Try again" }).click();
   await expect(page.getByText("Sign in to view your buyer account.")).toBeVisible();
 });
 
-test("buyer can register, retain a session after reload, sign out and sign back in", async ({ page }) => {
+test("buyer can register, retain a session after reload, sign out and sign back in", async ({
+  page,
+}) => {
   const email = `buyer-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}@example.test`;
   const password = "A unique demo password 123!";
   await page.goto("/register");
@@ -78,7 +82,9 @@ test("buyer can register, retain a session after reload, sign out and sign back 
 test("registration stays accessible at 320px with 200% text", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/register");
-  await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "200%";
+  });
   await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
   await expect(page.getByLabel("Password")).toBeVisible();
   await expect(page.getByRole("button", { name: "Create demo account" })).toBeVisible();

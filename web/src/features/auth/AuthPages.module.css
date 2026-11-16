@@ -21,7 +21,9 @@
   line-height: 1.15;
   margin: 0.55rem 0 1rem;
 }
-.description, .hint, .alternate {
+.description,
+.hint,
+.alternate {
   color: var(--color-muted);
   line-height: 1.55;
 }
@@ -76,7 +78,8 @@
   padding: 0.8rem;
   border-radius: 0.5rem;
 }
-.alternate a, .back {
+.alternate a,
+.back {
   color: var(--color-accent);
   text-underline-offset: 0.25rem;
 }

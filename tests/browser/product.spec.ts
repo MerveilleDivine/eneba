@@ -13,7 +13,7 @@ test("catalog opens the exact SKU, compares real sellers and preserves URL selec
   await expect(group.getByRole("radio")).toHaveCount(2);
   await expect(group.getByRole("radio").first()).not.toBeChecked();
   const choice = group.getByRole("radio", { name: /Orbit Games/ });
-  await choice.check();
+  await choice.click();
   await expect(page).toHaveURL(new RegExp(`offerId=${solarOffer}$`));
   await expect(choice).toBeFocused();
   const summary = page.getByRole("status");
@@ -34,7 +34,7 @@ test("Deep Signal shows its unavailable cheaper seller without selecting it", as
   await expect(sold).toBeChecked();
   await expect(page.getByText("€33.04", { exact: true })).toHaveCount(2);
   await expect(page.getByRole("status")).toContainText("No available offer selected");
-  await page.getByRole("radio", { name: /€33.04/ }).check();
+  await page.getByRole("radio", { name: /€33.04/ }).click();
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByRole("status")).toContainText("€33.04");
 });

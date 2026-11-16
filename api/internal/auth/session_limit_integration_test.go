@@ -6,28 +6,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
-	"os"
 	"testing"
 	"time"
-
-	"github.com/MerveilleDivine/eneba/api/internal/database"
 )
 
 func TestSessionCapInvalidatesOldestTokens(t *testing.T) {
-	dsn := os.Getenv("TEST_DATABASE_URL")
-	endpoint, err := url.Parse(dsn)
-	if err != nil || endpoint.Hostname() == "" || endpoint.Path != "/eneba_test" {
-		t.Fatal("session cap integration test requires isolated eneba_test")
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	pool, err := database.OpenPool(ctx, dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer pool.Close()
-
+	pool := authTestPool(t)
 	repository := NewRepository(pool)
 	service := NewService(repository)
 	email := fmt.Sprintf("session-cap-%d@example.test", time.Now().UnixNano())

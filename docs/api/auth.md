@@ -2,12 +2,12 @@
 
 Authentication is owned by the Go API and PostgreSQL, not by the browser or any hosted DB authentication API. The production public origin is the exact HTTPS APP_ORIGIN; local development defaults to http://127.0.0.1:5173. Every mutating auth operation requires an exactly matching Origin. Public requests use relative /api/v1/auth URLs through the existing same-origin frontend proxy.
 
-| Endpoint | Request | Result |
-| --- | --- | --- |
-| POST /api/v1/auth/register | JSON displayName, email, password | 201 user projection, Set-Cookie |
-| POST /api/v1/auth/login | JSON email, password | 200 user projection, Set-Cookie |
-| POST /api/v1/auth/logout | No body; session cookie | 204, clears cookie and revokes stored token |
-| GET /api/v1/auth/me | Session cookie | 200 user projection or 401 |
+| Endpoint                   | Request                           | Result                                      |
+| -------------------------- | --------------------------------- | ------------------------------------------- |
+| POST /api/v1/auth/register | JSON displayName, email, password | 201 user projection, Set-Cookie             |
+| POST /api/v1/auth/login    | JSON email, password              | 200 user projection, Set-Cookie             |
+| POST /api/v1/auth/logout   | No body; session cookie           | 204, clears cookie and revokes stored token |
+| GET /api/v1/auth/me        | Session cookie                    | 200 user projection or 401                  |
 
 A successful account response contains only user.id, user.email, and user.displayName. It never returns a password hash, session token, key, or session identifier in JSON.
 

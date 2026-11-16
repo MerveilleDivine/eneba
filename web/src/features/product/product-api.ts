@@ -92,7 +92,11 @@ export function parseProductResponse(value: unknown, slug: string): ProductDetai
   const available = offers.filter((o) => o.available);
   const lowest = available.length ? Math.min(...available.map((o) => o.priceCents)) : null;
   if (lowest !== value.product.lowestPriceCents) throw invalid();
-  return { product: { ...value.product, description, activationInstructions }, offers, currency: "EUR" };
+  return {
+    product: { ...value.product, description, activationInstructions },
+    offers,
+    currency: "EUR",
+  };
 }
 export function productFailure(error: unknown): ProductFailure {
   return error instanceof ProductRequestError ? error.kind : "unexpected";

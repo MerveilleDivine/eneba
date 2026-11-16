@@ -1,12 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import {
-  MAX_CART_LINES,
-  addCartLine,
-  parseCart,
-  removeCartLine,
-  useCart,
-} from "./cart-store";
+import { MAX_CART_LINES, addCartLine, parseCart, removeCartLine, useCart } from "./cart-store";
 
 const offer = "30000000-0000-4000-8000-000000000001";
 const offerAt = (n: number) => "30000000-0000-4000-8000-" + n.toString().padStart(12, "0");
@@ -26,11 +20,15 @@ describe("browser-owned client cart", () => {
 
   it("rejects corrupt, duplicate and tampered storage without trusting prices", () => {
     expect(parseCart([{ offerId: offer, slug: "solar-drift", quantity: 2 }])).toEqual([]);
-    expect(parseCart([{ offerId: offer, slug: "solar-drift", quantity: 1, priceCents: 1 }])).toEqual([]);
-    expect(parseCart([
-      { offerId: offer, slug: "solar-drift", quantity: 1 },
-      { offerId: offer.toUpperCase(), slug: "solar-drift", quantity: 1 },
-    ])).toEqual([]);
+    expect(
+      parseCart([{ offerId: offer, slug: "solar-drift", quantity: 1, priceCents: 1 }]),
+    ).toEqual([]);
+    expect(
+      parseCart([
+        { offerId: offer, slug: "solar-drift", quantity: 1 },
+        { offerId: offer.toUpperCase(), slug: "solar-drift", quantity: 1 },
+      ]),
+    ).toEqual([]);
     expect(parseCart({ offerId: offer })).toEqual([]);
     expect(addCartLine("../invalid", offer)).toBe("invalid");
     expect(addCartLine("solar-drift", "not-an-offer")).toBe("invalid");
@@ -46,7 +44,9 @@ describe("browser-owned client cart", () => {
 
   it("does not invent saved state if browser persistence throws", () => {
     const original = Storage.prototype.setItem;
-    Storage.prototype.setItem = () => { throw new Error("storage disabled"); };
+    Storage.prototype.setItem = () => {
+      throw new Error("storage disabled");
+    };
     try {
       expect(addCartLine("solar-drift", offer)).toBe("storage-error");
       expect(localStorage.getItem("eneba:cart:v1")).toBeNull();
@@ -66,7 +66,9 @@ describe("mounted cart synchronization", () => {
       JSON.stringify([{ offerId: offer, slug: "solar-drift", quantity: 1 }]),
     );
     const resumed = renderHook(() => useCart());
-    await waitFor(() => expect(resumed.result.current.map((line) => line.offerId)).toEqual([offer]));
+    await waitFor(() =>
+      expect(resumed.result.current.map((line) => line.offerId)).toEqual([offer]),
+    );
     resumed.unmount();
   });
 

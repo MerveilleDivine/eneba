@@ -53,9 +53,9 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
     const offer = product?.offers.find((item) => item.offerId === line.offerId) ?? null;
     return { line, product, offer, missing: Boolean(match?.missing) };
   });
-  const allAvailable = state.status === "ready" && rows.every(
-    (row) => row.product !== null && row.offer?.available === true,
-  );
+  const allAvailable =
+    state.status === "ready" &&
+    rows.every((row) => row.product !== null && row.offer?.available === true);
   const subtotal = allAvailable
     ? rows.reduce((total, row) => total + (row.offer?.priceCents ?? 0), 0)
     : null;
@@ -70,7 +70,9 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
         <p>
           {lines.length} {lines.length === 1 ? "offer" : "offers"} · One key per offer
         </p>
-        <button type="button" onClick={retry}>Refresh current offers</button>
+        <button type="button" onClick={retry}>
+          Refresh current offers
+        </button>
       </div>
       {storageError && (
         <p role="alert" className={styles.warning}>
@@ -101,7 +103,10 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
               )}
               {offer ? (
                 <>
-                  <p>Seller: <strong>{offer.sellerName}</strong> · {offer.sellerRatingPercent}% positive</p>
+                  <p>
+                    Seller: <strong>{offer.sellerName}</strong> · {offer.sellerRatingPercent}%
+                    positive
+                  </p>
                   <p className={offer.available ? styles.available : styles.warning}>
                     {offer.available ? "Currently available" : "Sold out — cannot be purchased"}
                   </p>
@@ -140,11 +145,13 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
           </p>
         )}
         <p>
-          This is a nonbinding display of current prices, not a server quote or stock
-          reservation. The final price and inventory must be checked during checkout.
+          This is a nonbinding display of current prices, not a server quote or stock reservation.
+          The final price and inventory must be checked during checkout.
         </p>
         <p>Simulated checkout is part of the upcoming purchasing slice.</p>
-        <Link className={styles.browse} to="/catalog">Continue browsing</Link>
+        <Link className={styles.browse} to="/catalog">
+          Continue browsing
+        </Link>
       </section>
     </>
   );
@@ -164,7 +171,9 @@ export function CartPage() {
         <section className={styles.empty}>
           <h2>Your cart is empty</h2>
           <p>Browse games, choose a seller, and add its offer to your cart.</p>
-          <Link className={styles.browse} to="/catalog">Browse games</Link>
+          <Link className={styles.browse} to="/catalog">
+            Browse games
+          </Link>
         </section>
       ) : (
         <CartItems key={identity} lines={lines} />

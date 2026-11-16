@@ -138,10 +138,12 @@ it("a client-owned deadline wins over a late product success", async () => {
 it("renders real activation guidance and adds only the selected seller offer to the cart", async () => {
   window.localStorage.clear();
   window.dispatchEvent(new StorageEvent("storage", { key: null }));
-  const read = vi.fn().mockResolvedValue(response(solar));
+  const read = vi.fn().mockImplementation(() => Promise.resolve(response(solar)));
   vi.stubGlobal("fetch", read);
   open("/products/solar-drift?offerId=" + solar.offers[1].offerId);
-  expect(await screen.findByRole("heading", { name: "Activation instructions" })).toBeInTheDocument();
+  expect(
+    await screen.findByRole("heading", { name: "Activation instructions" }),
+  ).toBeInTheDocument();
   expect(screen.getByText("Redeem on the listed platform.")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Add this seller offer to cart" }));
   expect(screen.getByText("This seller offer has been added to your cart.")).toBeInTheDocument();

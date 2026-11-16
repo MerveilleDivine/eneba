@@ -4,10 +4,12 @@ test("selected seller identity survives cart navigation and a hard reload", asyn
   await page.goto("/products/solar-drift");
   await expect(page.getByRole("heading", { name: "Activation instructions" })).toBeVisible();
   await expect(
-    page.getByText("Nonredeemable demo key. This code cannot be activated on any real gaming platform."),
+    page.getByText(
+      "Nonredeemable demo key. This code cannot be activated on any real gaming platform.",
+    ),
   ).toBeVisible();
   const group = page.getByRole("group", { name: "Choose a seller offer" });
-  await group.getByRole("radio").first().check();
+  await group.getByRole("radio").first().click();
   const offerId = new URL(page.url()).searchParams.get("offerId");
   expect(offerId).toMatch(/^[0-9a-f-]{36}$/);
 
@@ -31,7 +33,9 @@ test("selected seller identity survives cart navigation and a hard reload", asyn
   await expect(page.getByRole("heading", { name: "Your cart is empty" })).toBeVisible();
 });
 
-test("sold-out offer cannot be added and existing unavailable cart data does not fabricate stock", async ({ page }) => {
+test("sold-out offer cannot be added and existing unavailable cart data does not fabricate stock", async ({
+  page,
+}) => {
   await page.goto("/products/lunar-legacy");
   const group = page.getByRole("group", { name: "Choose a seller offer" });
   await expect(group.getByRole("radio").first()).toBeDisabled();
@@ -54,7 +58,9 @@ test("cart ignores corrupted storage and remains usable at mobile width", async 
 test("cart and account navigation remain usable at enlarged text size", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/cart");
-  await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "200%";
+  });
   await expect(page.getByRole("link", { name: "Cart (0)" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Account" })).toBeVisible();
   const overflow = await page.evaluate(
@@ -63,12 +69,15 @@ test("cart and account navigation remain usable at enlarged text size", async ({
   expect(overflow).toBe(false);
 });
 
-test("saved offer remains visible but is not priced as purchasable after stock runs out", async ({ page }) => {
+test("saved offer remains visible but is not priced as purchasable after stock runs out", async ({
+  page,
+}) => {
   const savedOffer = "30000000-0000-4000-8000-000000000001";
   await page.addInitScript((id) => {
-    window.localStorage.setItem("eneba:cart:v1", JSON.stringify([
-      { offerId: id, slug: "solar-drift", quantity: 1 },
-    ]));
+    window.localStorage.setItem(
+      "eneba:cart:v1",
+      JSON.stringify([{ offerId: id, slug: "solar-drift", quantity: 1 }]),
+    );
   }, savedOffer);
   await page.route("**/api/v1/products/solar-drift", async (route) => {
     await route.fulfill({
@@ -89,15 +98,17 @@ test("saved offer remains visible but is not priced as purchasable after stock r
           available: false,
           lowestPriceCents: null,
         },
-        offers: [{
-          offerId: savedOffer,
-          sellerId: "20000000-0000-4000-8000-000000000002",
-          sellerName: "Orbit Games",
-          sellerRatingPercent: 96,
-          priceCents: 1136,
-          listPriceCents: null,
-          available: false,
-        }],
+        offers: [
+          {
+            offerId: savedOffer,
+            sellerId: "20000000-0000-4000-8000-000000000002",
+            sellerName: "Orbit Games",
+            sellerRatingPercent: 96,
+            priceCents: 1136,
+            listPriceCents: null,
+            available: false,
+          },
+        ],
       }),
     });
   });
@@ -111,9 +122,12 @@ test("saved offer remains visible but is not priced as purchasable after stock r
 
 test("an unavailable product API never produces a made-up subtotal", async ({ page }) => {
   await page.addInitScript(() => {
-    window.localStorage.setItem("eneba:cart:v1", JSON.stringify([
-      { offerId: "30000000-0000-4000-8000-000000000001", slug: "solar-drift", quantity: 1 },
-    ]));
+    window.localStorage.setItem(
+      "eneba:cart:v1",
+      JSON.stringify([
+        { offerId: "30000000-0000-4000-8000-000000000001", slug: "solar-drift", quantity: 1 },
+      ]),
+    );
   });
   await page.route("**/api/v1/products/solar-drift", async (route) => {
     await route.fulfill({ status: 503, contentType: "application/json", body: "private error" });

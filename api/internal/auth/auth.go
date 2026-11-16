@@ -68,9 +68,9 @@ type Service struct {
 
 func NewService(store Store) *Service {
 	return &Service{
-		store:   store,
-		failed:  make(map[[32]byte]attempts),
-		now:     time.Now,
+		store:  store,
+		failed: make(map[[32]byte]attempts),
+		now:    time.Now,
 	}
 }
 
