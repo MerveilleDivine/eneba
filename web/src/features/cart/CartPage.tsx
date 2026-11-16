@@ -4,66 +4,33 @@ import { useReadRequest } from "../../shared/api/use-read-request";
 import { displayEuro } from "../../shared/format/money";
 import { productHref } from "../../shared/navigation/product-links";
 import { platformLabels, regionLabels } from "../../shared/product/identity";
-import { fetchProduct, ProductRequestError, type ProductDetails } from "../product/product-api";
 import { removeCartLine, useCart, type CartLine } from "./cart-store";
+import { fetchCartQuote, QuoteRequestError, type QuoteFailure } from "./quote-api";
 import styles from "./CartPage.module.css";
 
-type CurrentProduct = {
-  slug: string;
-  details: ProductDetails | null;
-  missing: boolean;
-  failed: boolean;
+const quoteMessages: Record<QuoteFailure, string> = {
+  invalid: "Some cart items need attention. Remove the unavailable item and try again.",
+  unavailable: "Current prices aren't available right now. Please try again.",
+  timeout: "Checking prices is taking longer than usual. Please try again.",
+  network: "We couldn't reach the store. Check your connection and try again.",
+  unexpected: "We couldn't check your cart. Please try again.",
 };
-type CartFailure = "timeout";
-type CartItemState = {
-  line: CartLine;
-  product: ProductDetails | null;
-  offer: ProductDetails["offers"][number] | null;
-  missing: boolean;
-};
-
-async function readProducts(lines: readonly CartLine[], signal: AbortSignal) {
-  const slugs = [...new Set(lines.map((line) => line.slug))];
-  return Promise.all(
-    slugs.map(async (slug): Promise<CurrentProduct> => {
-      try {
-        return { slug, details: await fetchProduct(slug, signal), missing: false, failed: false };
-      } catch (error) {
-        if (signal.aborted) throw error;
-        const missing = error instanceof ProductRequestError && error.kind === "not-found";
-        return { slug, details: null, missing, failed: !missing };
-      }
-    }),
-  );
-}
 
 function CartItems({ lines }: { lines: readonly CartLine[] }) {
   const [storageError, setStorageError] = useState(false);
   const { state, retry } = useReadRequest({
-    read: (signal) => readProducts(lines, signal),
-    failure: () => "timeout" as CartFailure,
-    timeout: "timeout" as CartFailure,
+    read: (signal) => fetchCartQuote(lines, signal),
+    failure: (error): QuoteFailure =>
+      error instanceof QuoteRequestError ? error.kind : "unexpected",
+    timeout: "timeout" as QuoteFailure,
   });
-
-  const products = state.status === "ready" ? state.data : [];
-  const hasUnverifiedProducts = products.some((product) => product.failed);
-  const rows: CartItemState[] = lines.map((line) => {
-    const match = products.find((item) => item.slug === line.slug);
-    const product = match?.details ?? null;
-    const offer = product?.offers.find((item) => item.offerId === line.offerId) ?? null;
-    return { line, product, offer, missing: Boolean(match?.missing) };
-  });
-  const allAvailable =
-    state.status === "ready" &&
-    rows.every((row) => row.product !== null && row.offer?.available === true);
-  const subtotal = allAvailable
-    ? rows.reduce((total, row) => total + (row.offer?.priceCents ?? 0), 0)
-    : null;
-
+  const rows = lines.map((line, index) => ({
+    line,
+    quote: state.status === "ready" ? state.data.lines[index] : null,
+  }));
   function remove(offerId: string) {
     setStorageError(!removeCartLine(offerId));
   }
-
   return (
     <>
       <div className={styles.toolbar}>
@@ -71,60 +38,56 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
           {lines.length} {lines.length === 1 ? "item" : "items"}
         </p>
         <button type="button" onClick={retry}>
-          Refresh current offers
+          Refresh prices
         </button>
       </div>
       {storageError && (
         <p role="alert" className={styles.warning}>
-          We couldn't update the saved cart. Check your browser's storage settings and try again.
+          We couldn't update your cart. Check your browser's storage settings and try again.
         </p>
       )}
-      {state.status === "loading" && <p role="status">Checking seller prices and availability…</p>}
+      {state.status === "loading" && <p role="status">Checking prices and availability…</p>}
       {state.status === "failed" && (
         <p role="alert" className={styles.warning}>
-          We couldn't check current seller offers. Refresh the offers to try again.
-        </p>
-      )}
-      {hasUnverifiedProducts && (
-        <p role="alert" className={styles.warning}>
-          Some current seller offers could not be verified. Refresh current offers to try again.
+          {quoteMessages[state.kind]}
         </p>
       )}
       <ul className={styles.items}>
-        {rows.map(({ line, product, offer, missing }) => (
+        {rows.map(({ line, quote }) => (
           <li className={styles.item} key={line.offerId}>
             <div className={styles.itemInfo}>
-              <h2>{product?.product.name ?? "Saved seller offer"}</h2>
-              {product && (
+              <h2>{quote?.productName ?? "Saved item"}</h2>
+              {quote?.edition && quote.platform && quote.region && (
                 <p>
-                  {product.product.edition} edition · {platformLabels[product.product.platform]} ·{" "}
-                  {regionLabels[product.product.region]}
+                  {quote.edition} edition · {platformLabels[quote.platform]} ·{" "}
+                  {regionLabels[quote.region]}
                 </p>
               )}
-              {offer ? (
-                <>
-                  <p>
-                    Seller: <strong>{offer.sellerName}</strong> · {offer.sellerRatingPercent}%
-                    positive
-                  </p>
-                  <p className={offer.available ? styles.available : styles.warning}>
-                    {offer.available ? "Currently available" : "Sold out — cannot be purchased"}
-                  </p>
-                </>
-              ) : (
-                <p className={styles.warning}>
-                  {missing
-                    ? "This game is no longer listed."
-                    : state.status === "ready" && product
-                      ? "This seller offer is no longer listed for this game."
-                      : "Current offer details could not be verified."}
+              {quote?.sellerName && (
+                <p>
+                  Seller: <strong>{quote.sellerName}</strong>
+                  {quote.sellerRatingPercent !== null &&
+                    (" · " + quote.sellerRatingPercent + "% positive")}
+                </p>
+              )}
+              {quote && (
+                <p className={quote.available ? styles.available : styles.warning}>
+                  {quote.available
+                    ? "Available"
+                    : quote.productName === null
+                      ? "This offer is no longer available."
+                      : "Sold out"}
                 </p>
               )}
               <p>Quantity: 1</p>
-              <Link to={productHref(line.slug, line.offerId)}>View seller offer</Link>
+              <Link to={productHref(quote?.productSlug ?? line.slug, line.offerId)}>
+                View seller offer
+              </Link>
             </div>
             <div className={styles.itemActions}>
-              {offer && <strong>{displayEuro(offer.priceCents)}</strong>}
+              {quote?.unitPriceCents != null && (
+                <strong>{displayEuro(quote.unitPriceCents)}</strong>
+              )}
               <button type="button" onClick={() => remove(line.offerId)}>
                 Remove offer
               </button>
@@ -134,13 +97,17 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
       </ul>
       <section className={styles.summary} aria-labelledby="summary-title">
         <h2 id="summary-title">Cart summary</h2>
-        {subtotal !== null && Number.isSafeInteger(subtotal) ? (
+        {state.status === "ready" && state.data.totalCents !== null ? (
           <p className={styles.subtotal}>
-            <span>Estimated subtotal</span>
-            <strong>{displayEuro(subtotal)}</strong>
+            <span>Current subtotal</span>
+            <strong>{displayEuro(state.data.totalCents)}</strong>
           </p>
         ) : (
-          <p role="status">Estimated subtotal will appear when all saved items are available.</p>
+          <p role="status">
+            {state.status === "ready"
+              ? "Remove unavailable items to see your subtotal."
+              : "Subtotal will appear when current prices are available."}
+          </p>
         )}
         <p>Final prices and availability are confirmed at checkout.</p>
         <Link className={styles.browse} to="/catalog">
@@ -159,7 +126,7 @@ export function CartPage() {
       <header>
         <p className={styles.kicker}>Your selections</p>
         <h1>Shopping cart</h1>
-        <p>Review your items and compare seller prices.</p>
+        <p>Review your games and seller offers.</p>
       </header>
       {lines.length === 0 ? (
         <section className={styles.empty}>

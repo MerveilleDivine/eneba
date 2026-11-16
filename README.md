@@ -2,11 +2,11 @@
 
 An independent marketplace internship project built with React/TypeScript, a Go REST API and PostgreSQL. The interface demonstrates browsing, seller comparison, persistent carts and account sessions using original game artwork and controlled demo data.
 
-**Current milestone — 16 November 2026:** Slices 1–5 are implemented, and the core hosted authentication checks have passed. Simulated checkout (Slice 6), order history and owner-only key delivery (Slice 7), and final submission audit (Slice 8) remain to be completed. No real payments or redeemable game codes are involved.
+**Current milestone — 16 November 2026:** Slices 1–5 and Slice 6A (read-only server cart quotes) are implemented. Slice 6B atomic purchase, Slice 6C buyer checkout confirmation, Slice 6D review, Slice 7 order history/key delivery, and Slice 8 final audit remain. No real payments or redeemable game codes are involved.
 
 **Live site:** https://eneba-marketplace-demo.vercel.app — Vercel frontend, Render Go API and Neon PostgreSQL. The production site deploys from the private `feature/slice-2-catalog` branch; `main` remains unchanged.
 
-**Evidence:** [Independent hosted auth checks](docs/verification/hosted-slice5-2026-11-16.md) · [Off-Actions engineering verification](docs/verification/off-actions-2026-11-16.md) · [Checkout implementation plan](docs/plans/slice-6-checkout.md). Hosted browser checks and the frontend production build have passed for the recent releases, but the full exact-head CI matrix and physical-device/screen-reader acceptance are still pending.
+**Evidence:** [Slice 6A quote verification](docs/verification/slice-6a-2026-11-16.md) · [Quote API contract](docs/api/cart-quote.md) · [Independent hosted auth checks](docs/verification/hosted-slice5-2026-11-16.md) · [Off-Actions engineering verification](docs/verification/off-actions-2026-11-16.md) · [Checkout implementation plan](docs/plans/slice-6-checkout.md). Hosted browser checks and the frontend production build have passed for the recent releases, but the full exact-head CI matrix and physical-device/screen-reader acceptance are still pending.
 
 ## Verify before committing
 

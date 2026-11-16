@@ -2,7 +2,7 @@
 
 ## Current scope
 
-The user has subsequently authorized Slice 5 account authentication, after inspecting the committed Slice 4 product-read milestone. Work on `feature/slice-2-catalog`; keep checkpoints coherent and preserve existing work and history. The original Slice 4 client cart and activation guidance have been implemented as a new verification-pending follow-up. Complete independent Slice 4 review and local tests before accepting existing Slice 5 authentication work. GitHub Actions quota is exhausted; local formatting, tests and full integration evidence are required before Slice 5 can be accepted. Do not create another branch, merge into main, rewrite history, deploy, provision cloud resources, commit conversations/transcript archives, or begin checkout, payments, orders or digital-key delivery. Physical-device/screen-reader and hosted acceptance remain distinct. The archived master prompt does not override this agreement.
+The user authorized Slice 6 after hosted Slice 5 acceptance. The current vertical checkpoint is **6A: read-only server cart quotes and independent verification**. Build Slices 6B (atomic purchasing), 6C (buyer checkout UI) and 6D (release audit) as separately reviewed checkpoints. Continue on `feature/slice-2-catalog`; keep the repository private, and do not merge `main`, rewrite history, or commit conversations or secrets. The approved checkout scope lives in `docs/plans/slice-6-checkout.md`. GitHub Actions quota is exhausted; test outside Actions and report any verification limits.
 
 ## Boundaries
 

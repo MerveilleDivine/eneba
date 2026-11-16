@@ -17,6 +17,7 @@ import (
 	"github.com/MerveilleDivine/eneba/api/internal/database"
 	"github.com/MerveilleDivine/eneba/api/internal/home"
 	"github.com/MerveilleDivine/eneba/api/internal/httpapi"
+	"github.com/MerveilleDivine/eneba/api/internal/purchase"
 )
 
 func main() {
@@ -60,6 +61,9 @@ func run(logger *slog.Logger) error {
 	authRepository := auth.NewRepository(pool)
 	authService := auth.NewService(authRepository)
 	auth.NewHandler(authService, logger, cfg.Origin, cfg.Environment == "production").RegisterRoutes(mux)
+	quoteRepository := purchase.NewRepository(pool)
+	quoteService := purchase.NewService(quoteRepository)
+	purchase.NewHandler(quoteService, logger).RegisterRoutes(mux)
 	mux.HandleFunc("/", httpapi.NotFound)
 	server := &http.Server{
 		Addr:              net.JoinHostPort(host, cfg.Port),

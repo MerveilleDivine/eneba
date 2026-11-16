@@ -3,11 +3,7 @@ import { expect, test } from "@playwright/test";
 test("selected seller identity survives cart navigation and a hard reload", async ({ page }) => {
   await page.goto("/products/solar-drift");
   await expect(page.getByRole("heading", { name: "Activation instructions" })).toBeVisible();
-  await expect(
-    page.getByText(
-      "Nonredeemable demo key. This code cannot be activated on any real gaming platform.",
-    ),
-  ).toBeVisible();
+  await expect(page.getByText(/Activate a Product on Steam/)).toBeVisible();
   const group = page.getByRole("group", { name: "Choose a seller offer" });
   await group.getByRole("radio").first().click();
   const offerId = new URL(page.url()).searchParams.get("offerId");
@@ -24,11 +20,11 @@ test("selected seller identity survives cart navigation and a hard reload", asyn
     new RegExp("offerId=" + offerId + "$"),
   );
   await expect(page.getByText("Quantity: 1")).toBeVisible();
-  await expect(page.getByText("Estimated subtotal")).toBeVisible();
+  await expect(page.getByText("Current subtotal")).toBeVisible();
 
   await page.reload();
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
-  await expect(page.getByText("Estimated subtotal")).toBeVisible();
+  await expect(page.getByText("Current subtotal")).toBeVisible();
   await page.getByRole("button", { name: "Remove offer" }).click();
   await expect(page.getByRole("heading", { name: "Your cart is empty" })).toBeVisible();
 });
@@ -79,48 +75,39 @@ test("saved offer remains visible but is not priced as purchasable after stock r
       JSON.stringify([{ offerId: id, slug: "solar-drift", quantity: 1 }]),
     );
   }, savedOffer);
-  await page.route("**/api/v1/products/solar-drift", async (route) => {
+  await page.route("**/api/v1/cart/quote", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
         currency: "EUR",
-        product: {
-          id: "10000000-0000-4000-8000-000000000001",
-          slug: "solar-drift",
-          name: "Solar Drift",
+        lines: [{
+          offerId: savedOffer,
+          quantity: 1,
+          productSlug: "solar-drift",
+          productName: "Solar Drift",
           edition: "Standard",
           platform: "steam",
           region: "global",
-          coverUrl: "/images/covers/solar-drift.webp",
-          description: "Fictional demo.",
-          activationInstructions: "Nonredeemable demo key.",
+          sellerName: "Orbit Games",
+          sellerRatingPercent: 96,
+          unitPriceCents: 1136,
+          lineTotalCents: null,
           available: false,
-          lowestPriceCents: null,
-        },
-        offers: [
-          {
-            offerId: savedOffer,
-            sellerId: "20000000-0000-4000-8000-000000000002",
-            sellerName: "Orbit Games",
-            sellerRatingPercent: 96,
-            priceCents: 1136,
-            listPriceCents: null,
-            available: false,
-          },
-        ],
+        }],
+        totalCents: null,
       }),
     });
   });
   await page.goto("/cart");
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
-  await expect(page.getByText("Sold out — cannot be purchased")).toBeVisible();
-  await expect(page.getByText("Estimated subtotal")).toHaveCount(0);
+  await expect(page.getByText("Sold out")).toBeVisible();
+  await expect(page.getByText("Current subtotal")).toHaveCount(0);
   await page.getByRole("button", { name: "Remove offer" }).click();
   await expect(page.getByRole("heading", { name: "Your cart is empty" })).toBeVisible();
 });
 
-test("an unavailable product API never produces a made-up subtotal", async ({ page }) => {
+test("an unavailable quote API never produces a made-up subtotal", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem(
       "eneba:cart:v1",
@@ -129,12 +116,11 @@ test("an unavailable product API never produces a made-up subtotal", async ({ pa
       ]),
     );
   });
-  await page.route("**/api/v1/products/solar-drift", async (route) => {
+  await page.route("**/api/v1/cart/quote", async (route) => {
     await route.fulfill({ status: 503, contentType: "application/json", body: "private error" });
   });
   await page.goto("/cart");
-  await expect(page.getByText("Current offer details could not be verified.")).toBeVisible();
-  await expect(page.getByRole("alert")).toContainText("could not be verified");
-  await expect(page.getByText("Estimated subtotal")).toHaveCount(0);
+  await expect(page.getByRole("alert")).toContainText("Current prices aren't available");
+  await expect(page.getByText("Current subtotal")).toHaveCount(0);
   await expect(page.getByText("private error")).toHaveCount(0);
 });

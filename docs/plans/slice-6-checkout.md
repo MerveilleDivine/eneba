@@ -1,6 +1,6 @@
 # Slice 6 — Simulated checkout and atomic purchase plan
 
-**Status:** Planning checkpoint, 16 November 2026. No Slice 6 implementation is included in this document.
+**Status:** Slice 6A implemented and verified in an isolated test environment; Slices 6B–6D remain. See [6A evidence](../verification/slice-6a-2026-11-16.md).
 **Branch:** `feature/slice-2-catalog`. No new branch, merge, schema rewrite or paid service.
 **Buyer experience:** Authentic marketplace checkout with exactly one discreet, checkout-specific "Simulated purchase — no payment is taken" notice. Avoid implementation notes and repeated "fictional/demo/slice" language on store pages.
 
