@@ -79,9 +79,9 @@ See [verification evidence](docs/verification.md) for exact executed results and
 - [Architecture decisions](docs/decisions.md) — important design choices and trade-offs.
 - [Artwork provenance](docs/assets/README.md) — original illustrations and asset manifest.
 - [Verification evidence](docs/verification.md) — unit, database, browser and hosted checks.
-- [AI conversation records](docs/ai-history/README.md) — authentic partial Codex transcript and export instructions.
+- [AI conversation records](docs/ai-history/README.md) - original public conversation, source information and snapshot coverage.
 
-The conversation record currently preserves one original 12–13 November session, **not all later development sessions**. Any required missing conversations must be exported from their genuine source; they must not be reconstructed.
+The [original project conversation](https://chatgpt.com/s/cx_6afb756ca4f481919259b760b8a85bcb) is publicly readable without signing in. The history index records source provenance, independently checked message counts and the snapshot cutoff.
 
 ## Hosting
 

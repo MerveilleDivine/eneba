@@ -1,18 +1,25 @@
-# Conversation history
+# AI conversation records
 
-The assignment requires complete prompts and responses. This directory contains reviewed user/assistant transcript exports, not reconstructed summaries.
+[Read the original project conversation](https://chatgpt.com/s/cx_6afb756ca4f481919259b760b8a85bcb)
 
-Use:
+The owner supplied this public share link for the authentic **Plan project setup and architecture** conversation used throughout the project. On 16 November 2026, anonymous Chrome returned HTTP 200 and displayed the project title, original prompt and final handoff exchanges without sign-in. This link is the primary conversation record; the assignment permits accessible conversation links.
 
-~~~powershell
+## Source and coverage
+
+- One original human project session was identified in local Codex storage, spanning 12-16 November 2026. Internal approval-review sessions were excluded.
+- An independently inspected local snapshot contains **213 visible entries**: 49 user prompts, 144 assistant messages, 13 assistant questions and 7 user answers. Its range is **2026-11-12 13:07:46.293 UTC** through **2026-11-16 21:06:43.081 UTC**. These are snapshot counts, not a recount of the later shared page.
+- The snapshot uses the original session JSONL and six genuine visible assistant replies recovered from the same session's message cache. Four original pasted prompt attachments were located; no dialogue was reconstructed.
+- The owner also supplied a 2,119,006-byte Markdown export. SHA-256: `2800653fa13e568d19c3488ff36f461ac412215f416d48161aafc9fceaff1cff`. This raw export includes tool details and remains outside the repository.
+- The older [89-entry Markdown snapshot](rollout-2026-11-12T15-07-33-01a1cfde-e56e-70c0-a530-d4f5cce1808d.md) and its manifest remain as historical evidence. They cover only 12-13 November and do not replace the shared conversation.
+
+The link is a sharing-time snapshot. Exchanges after sharing are outside its cutoff. This index does not claim to reconstruct unavailable earlier blueprint discussions.
+
+## Export and privacy
+
+The existing local command remains available:
+
+```powershell
 npm run history:export -- "C:\path\to\a\Codex\rollout.jsonl"
-~~~
+```
 
-The exporter preserves user text and visible assistant commentary/final answers. User-input tool questions and their returned answers are included because they contain project decisions. Internal system/developer instructions, hidden reasoning, and unrelated tool internals are excluded.
-
-Known local credentials and recognizable secret tokens are redacted before writing, with counts in an adjacent manifest. No redacted value is recorded. Review every export before publication; automated detection is not proof that all sensitive information has been removed.
-
-Exports are snapshots. Refresh after a session ends so its final response is included. The manifest records the source message count and last included timestamp; it does not claim that an active conversation or all earlier chats are complete.
-
-**Coverage limit at 16 November 2026:** the available genuine Codex snapshot contains 89 visible entries from 12 November 13:07 UTC through 13 November 11:50 UTC. It is not the entire 12–16 November agent conversation. Later Codex sessions and earlier blueprint-planning conversations still require local original exports; their dialogue must not be invented. Preserve exports or accessible conversation links rather than inventing missing exchanges. Raw incoming material can be placed in ignored incoming/ for review. Do not commit raw secret-bearing logs.
-
+Review exports before publication. Preserve actual user prompts and visible assistant responses; exclude credentials, unrelated private conversations, hidden reasoning, system/developer messages and raw tool logs. Incoming files and recovery candidates remain ignored. Automated secret-pattern checks are supporting evidence, not a comprehensive privacy guarantee.

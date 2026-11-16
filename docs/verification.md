@@ -1,38 +1,48 @@
 # Release verification
 
-**Production application:** [eneba-marketplace-demo.vercel.app](https://eneba-marketplace-demo.vercel.app)  
-**Initial feature merge:** `ed67dfc` (16 November 2026); the current `main` branch includes subsequent housekeeping commits.
+**Production:** [eneba-marketplace-demo.vercel.app](https://eneba-marketplace-demo.vercel.app)
 
-This report distinguishes tests actually executed from remaining handoff requirements.
+**Application revision:** `04b0e7ff970094cdb475f1f35d5d3c59402dba9a`
 
-A post-merge repository cleanup removed obsolete planning/verification files while preserving application code, tests, migrations and the original assignment. The format-only checkpoint `d73b256` passed a full Prettier check, 3/3 tooling tests and a new Vercel build with 199/199 frontend tests.
+**Independent handoff review:** 16 November 2026. The final checkpoint changes documentation and the conversation index only; application source is unchanged.
 
-## Verified application behavior
+## Freshly verified in the final review
 
-| Area                             | Evidence                                                                                                                                                |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frontend                         | Vercel production build completed; TypeScript, ESLint, 199/199 Vitest tests across 19 files, Vite bundle                                                |
-| Backend                          | Go 1.27.4 unit tests, `go vet` and build passed                                                                                                         |
-| PostgreSQL integration           | Integration suite passed with isolated PostgreSQL 18.6 `eneba_test`, not production Neon                                                                |
-| Concurrency                      | `go test -race -tags=integration -p 1 ./... -count=1` passed on the isolated database                                                                   |
-| Dependencies                     | Vercel npm installation reported zero vulnerabilities; `govulncheck@v1.9.0` reported none                                                               |
-| Hosted API                       | Render deployment `62972b1` reported LIVE; readiness 200; anonymous order access 401; quote returned server prices                                      |
-| Hosted frontend                  | Vercel production deployment of merged `ed67dfc` reported READY; canonical public domain mapped to that build                                           |
-| Browser layout and accessibility | 15/15 public Chromium route/viewport checks at 360, 768 and 1280 px: no horizontal overflow, JavaScript exceptions or reported Axe WCAG A/AA violations |
-| Buyer journey                    | Browser-tested registration, cart, simulated purchase, private key delivery, reload and order-history navigation                                        |
-| Authorization                    | Separate buyer could not read original buyer's receipt; signing out revoked access                                                                      |
+| Area         | Result                                                                                                                                                                                                                                  |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Repository   | Public [MerveilleDivine/eneba](https://github.com/MerveilleDivine/eneba), default branch `main`; anonymous HTTP 200.                                                                                                                    |
+| Frontend     | Vercel production `dpl_HtEnmrkjaz6DCV77odLSaFJcWtrH` is READY at application revision `04b0e7ff970094cdb475f1f35d5d3c59402dba9a`, with the canonical public alias. Website HTTP 200.                                                    |
+| Backend      | Render `dep-dbtlcggm7kps73a1nbi0` is LIVE at `62972b1b4529c3390cae4ed3a97abe3cfb14977f`. Its complete `api/` tree matches the application revision: `358e75c3f0cd1ab67bc70aca8564fbcf549e90ff`. No backend redeployment was needed.     |
+| Public API   | Proxied `/readyz` returned 200 with status `ready`; anonymous `/api/v1/orders` returned 401.                                                                                                                                            |
+| Database     | Read-only Neon metadata confirmed PostgreSQL 18.7, required tables, Goose version 1 and all four seed checksums matching the repository. No production data was changed.                                                                |
+| Constraints  | Production metadata confirmed unique allocated keys, the matching offer/key composite foreign key and buyer/idempotency uniqueness.                                                                                                     |
+| Conversation | The [public conversation](https://chatgpt.com/s/cx_6afb756ca4f481919259b760b8a85bcb) opened anonymously in Chrome with the project title, original prompt and final handoff exchanges. See [source and coverage](ai-history/README.md). |
 
-The main merge only consolidated the tested application source and documentation. Simulated checkout consumes seeded nonredeemable inventory; it does not charge users.
+## Previously verified application evidence
 
-## Scope and limitations
+These are recorded results from the application handoff, not new runs in this documentation review.
 
-- The publicly deployed transaction-replay scenario was not separately stress-tested; isolated Go transaction, constraint and race tests passed.
-- Automated accessibility reports do not constitute a complete manual screen-reader or device audit.
-- The full GitHub Actions workflow did not pass at the final commit because earlier attempts were blocked by account runner capacity. The independent verification results above are separate.
-- The cold-start loading behavior passed frontend tests; a full real sleeping-Render wake-up duration was not measured.
-- The Render service remains configured to track `feature/slice-2-catalog` with auto-deploy disabled. Its deployed application source matched the frontend before the documentation-only merge. Switch the Render service to `main` before future API releases.
-- The archived Codex evidence currently includes 89 authentic visible entries from 12–13 November only. Later sessions are **missing**; no dialogue was invented.
-- The GitHub repository is **public**. An automated pattern scan inspected 861 Git blob objects reachable from 122 commits on the fetched branches, finding no common provider-token or private-key markers. Passworded PostgreSQL URL patterns occurred in Go test files. This is a bounded pattern scan, **not** a comprehensive secrets or transcript privacy audit; removed documents also remain in historical commits.
-- The internship submission email has **not** been sent; the English CV was attached to an Outlook draft, and the required full agent transcript remains incomplete.
+| Area                      | Recorded result                                                                                                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend                  | Vercel build: TypeScript, ESLint, 199/199 Vitest tests across 19 files and production bundle. Format checkpoint `d73b256` also passed full Prettier and 3/3 tooling tests.       |
+| Backend                   | Go 1.27.4 unit tests, vet and build passed. The deployed API source is unchanged.                                                                                                |
+| Integration               | Passed against isolated PostgreSQL 18.6 `eneba_test`, never production Neon.                                                                                                     |
+| Concurrency               | Linux `go test -race -tags=integration -p 1 ./... -count=1` passed against the isolated database.                                                                                |
+| Dependencies              | Recorded Vercel npm installation reported zero vulnerabilities; `govulncheck@v1.9.0` reported none.                                                                              |
+| Browser and accessibility | 15/15 public Chromium route/viewport checks at 360, 768 and 1280 px, with no horizontal overflow, JavaScript exceptions or reported Axe WCAG A/AA violations.                    |
+| Purchase and ownership    | Browser-tested registration, cart, simulated purchase, private key delivery, reload and history. A second buyer could not read the first buyer's receipt; logout revoked access. |
 
-For implementation boundaries see [architecture decisions](decisions.md); for the assignment text see [assignment.pdf](assignment.pdf).
+## Limits and handoff
+
+- Final documentation checks passed: Prettier on the changed Markdown, all 3 tooling tests and Git whitespace validation. This checkpoint contains no application changes.
+- The full application suite was **not rerun** in this documentation review. A fresh offline npm install stalled and was stopped; it produced no new test result.
+- GitHub Actions remains **pending by user choice** after runner-capacity failures. No passing final Actions run or new PostgreSQL 17 compatibility result is claimed.
+- Production replay/concurrency stress tests were not executed. Transaction tests use isolated databases. Hosted purchases and allocations were preserved.
+- Automated accessibility results are not a complete manual screen-reader, physical-device, 320 px or enlarged-text audit. No new full visual review is claimed here.
+- Real sleeping-Render wake-up duration was not measured; cold-start loading behavior has frontend test coverage.
+- Render still tracks `feature/slice-2-catalog` with auto-deploy disabled. Connected tools cannot update that setting. **Before the next backend release, select `main` in the existing service's dashboard.** The running API matches the reviewed source.
+- The repository was already public. The recorded bounded scan covered 861 reachable Git blobs across 122 commits, finding no common provider-token or private-key markers; PostgreSQL password patterns were in test fixtures. This is not a comprehensive history/privacy audit. Repository visibility and Git history were not changed.
+- The [history index](ai-history/README.md) distinguishes the 213-entry inspected snapshot from the later public sharing cutoff. The old 89-entry snapshot is no longer presented as complete.
+- The submission email has **not** been sent. The CV is excluded from this handoff, following the owner's instruction.
+
+See [architecture decisions](decisions.md) and the [original assignment](assignment.pdf).
