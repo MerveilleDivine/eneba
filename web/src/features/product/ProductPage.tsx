@@ -296,16 +296,18 @@ function ProductContent({ slug }: { slug: string }) {
                     <strong>{selected.sellerName}</strong> · {details.product.edition} edition
                   </p>
                   <p className={styles.selectedPrice}>{displayEuro(selected.priceCents)}</p>
-                  <button type="button" className={styles.addToCart} onClick={addSelectedOffer}>
-                    Add to cart
-                  </button>
+                  <div className={styles.selectionActions}>
+                    <button type="button" className={styles.addToCart} onClick={addSelectedOffer}>
+                      Add to cart
+                    </button>
+                    {(cartResult === "added" || cartResult === "already-added") && (
+                      <Link to="/cart">View cart</Link>
+                    )}
+                    <button type="button" onClick={() => choose()}>
+                      Clear offer selection
+                    </button>
+                  </div>
                   {cartResult && <p role="status">{cartMessages[cartResult]}</p>}
-                  {(cartResult === "added" || cartResult === "already-added") && (
-                    <Link to="/cart">View cart</Link>
-                  )}
-                  <button type="button" onClick={() => choose()}>
-                    Clear offer selection
-                  </button>
                 </>
               ) : (
                 <p>

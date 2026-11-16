@@ -287,12 +287,10 @@
   border-color: var(--color-accent);
   background: var(--color-accent);
   color: var(--color-background);
-  margin-right: 0.9rem;
 }
 .selection a {
   display: inline-block;
   color: var(--color-accent);
-  margin-right: 1rem;
   font-weight: 700;
   text-underline-offset: 0.25rem;
 }
@@ -304,5 +302,41 @@
   }
   .page button {
     padding: 0.6rem 0.5rem;
+  }
+}
+
+.selectionActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block: 1.1rem 0.5rem;
+}
+
+.selectionActions > button,
+.selectionActions > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0.7rem 1rem;
+  border-radius: 0.55rem;
+  text-align: center;
+}
+
+.selectionActions > a {
+  border: 1px solid var(--color-control-border);
+  text-decoration: none;
+}
+
+.selectionActions > a:hover {
+  border-color: var(--color-accent);
+}
+
+@media (max-width: 400px) {
+  .selectionActions > button,
+  .selectionActions > a {
+    flex: 1 1 9rem;
   }
 }

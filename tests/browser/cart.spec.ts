@@ -126,3 +126,70 @@ test("a rejected quote never produces a made-up subtotal", async ({ page }) => {
   await expect(page.getByText("Current subtotal")).toHaveCount(0);
   await expect(page.getByText("private error")).toHaveCount(0);
 });
+
+test("cart layout separates the summary and checkout actions across screen sizes", async ({
+  page,
+}) => {
+  const savedOffer = "30000000-0000-4000-8000-000000000001";
+  await page.addInitScript((id) => {
+    window.localStorage.setItem(
+      "eneba:cart:v1",
+      JSON.stringify([{ offerId: id, slug: "solar-drift", quantity: 1 }]),
+    );
+  }, savedOffer);
+  await page.route("**/api/v1/cart/quote", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        currency: "EUR",
+        lines: [
+          {
+            offerId: savedOffer,
+            quantity: 1,
+            productSlug: "solar-drift",
+            productName: "Solar Drift",
+            edition: "Standard",
+            platform: "steam",
+            region: "global",
+            sellerName: "Orbit Games",
+            sellerRatingPercent: 96,
+            unitPriceCents: 1136,
+            lineTotalCents: 1136,
+            available: true,
+          },
+        ],
+        totalCents: 1136,
+      }),
+    }),
+  );
+
+  for (const width of [360, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/cart");
+    await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+
+    const item = page.getByRole("listitem").filter({ hasText: "Solar Drift" });
+    const summary = page.getByRole("region", { name: "Cart summary" });
+    const primary = page.getByRole("link", { name: "Proceed to checkout" });
+    const secondary = page.getByRole("link", { name: "Continue browsing" });
+    const [itemBox, summaryBox, primaryBox, secondaryBox] = await Promise.all([
+      item.boundingBox(),
+      summary.boundingBox(),
+      primary.boundingBox(),
+      secondary.boundingBox(),
+    ]);
+    expect(itemBox && summaryBox && primaryBox && secondaryBox).toBeTruthy();
+    if (!itemBox || !summaryBox || !primaryBox || !secondaryBox) continue;
+
+    expect(secondaryBox.y - (primaryBox.y + primaryBox.height)).toBeGreaterThanOrEqual(8);
+    if (width > 920) {
+      expect(summaryBox.x).toBeGreaterThanOrEqual(itemBox.x + itemBox.width - 1);
+    } else {
+      expect(summaryBox.y).toBeGreaterThanOrEqual(itemBox.y + itemBox.height);
+    }
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+    ).toBe(false);
+  }
+});

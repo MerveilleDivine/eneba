@@ -33,71 +33,89 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
     setStorageError(!removeCartLine(offerId));
   }
   return (
-    <>
-      <div className={styles.toolbar}>
-        <p>
-          {lines.length} {lines.length === 1 ? "item" : "items"}
-        </p>
-        <button type="button" onClick={retry}>
-          Refresh prices
-        </button>
+    <div className={styles.cartLayout}>
+      <div className={styles.cartMain}>
+        <div className={styles.toolbar}>
+          <p>
+            {lines.length} {lines.length === 1 ? "item" : "items"}
+          </p>
+          <button type="button" onClick={retry}>
+            Refresh prices
+          </button>
+        </div>
+        {storageError && (
+          <p role="alert" className={styles.warning}>
+            We couldn't update your cart. Check your browser's storage settings and try again.
+          </p>
+        )}
+        {state.status === "loading" && (
+          <LoadingSkeleton kind="quote" label="Checking prices and availability…" />
+        )}
+        {state.status === "failed" && (
+          <p role="alert" className={styles.warning}>
+            {quoteMessages[state.kind]}
+          </p>
+        )}
+        <ul className={styles.items}>
+          {rows.map(({ line, quote }) => (
+            <li className={styles.item} key={line.offerId}>
+              <div className={styles.itemImage} aria-hidden="true">
+                <img
+                  src={`/images/covers/${quote?.productSlug ?? line.slug}.webp`}
+                  alt=""
+                  loading="lazy"
+                  onError={(event) => {
+                    event.currentTarget.hidden = true;
+                  }}
+                />
+              </div>
+              <div className={styles.itemInfo}>
+                <h2>{quote?.productName ?? "Saved item"}</h2>
+                {quote?.edition && quote.platform && quote.region && (
+                  <p>
+                    {quote.edition} edition · {platformLabels[quote.platform]} ·{" "}
+                    {regionLabels[quote.region]}
+                  </p>
+                )}
+                {quote?.sellerName && (
+                  <p className={styles.seller}>
+                    Sold by <strong>{quote.sellerName}</strong>
+                    {quote.sellerRatingPercent !== null &&
+                      " · " + quote.sellerRatingPercent + "% positive"}
+                  </p>
+                )}
+                <div className={styles.itemDetails}>
+                  {quote && (
+                    <span className={quote.available ? styles.available : styles.warning}>
+                      {quote.available
+                        ? "Available"
+                        : quote.productName === null
+                          ? "This offer is no longer available."
+                          : "Sold out"}
+                    </span>
+                  )}
+                  <span>Quantity: 1</span>
+                </div>
+                <Link to={productHref(quote?.productSlug ?? line.slug, line.offerId)}>
+                  View seller offer
+                </Link>
+              </div>
+              <div className={styles.itemActions}>
+                {quote?.unitPriceCents != null && (
+                  <strong>{displayEuro(quote.unitPriceCents)}</strong>
+                )}
+                <button
+                  type="button"
+                  className={styles.remove}
+                  onClick={() => remove(line.offerId)}
+                >
+                  Remove offer
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
-      {storageError && (
-        <p role="alert" className={styles.warning}>
-          We couldn't update your cart. Check your browser's storage settings and try again.
-        </p>
-      )}
-      {state.status === "loading" && (
-        <LoadingSkeleton kind="quote" label="Checking prices and availability…" />
-      )}
-      {state.status === "failed" && (
-        <p role="alert" className={styles.warning}>
-          {quoteMessages[state.kind]}
-        </p>
-      )}
-      <ul className={styles.items}>
-        {rows.map(({ line, quote }) => (
-          <li className={styles.item} key={line.offerId}>
-            <div className={styles.itemInfo}>
-              <h2>{quote?.productName ?? "Saved item"}</h2>
-              {quote?.edition && quote.platform && quote.region && (
-                <p>
-                  {quote.edition} edition · {platformLabels[quote.platform]} ·{" "}
-                  {regionLabels[quote.region]}
-                </p>
-              )}
-              {quote?.sellerName && (
-                <p>
-                  Seller: <strong>{quote.sellerName}</strong>
-                  {quote.sellerRatingPercent !== null &&
-                    " · " + quote.sellerRatingPercent + "% positive"}
-                </p>
-              )}
-              {quote && (
-                <p className={quote.available ? styles.available : styles.warning}>
-                  {quote.available
-                    ? "Available"
-                    : quote.productName === null
-                      ? "This offer is no longer available."
-                      : "Sold out"}
-                </p>
-              )}
-              <p>Quantity: 1</p>
-              <Link to={productHref(quote?.productSlug ?? line.slug, line.offerId)}>
-                View seller offer
-              </Link>
-            </div>
-            <div className={styles.itemActions}>
-              {quote?.unitPriceCents != null && (
-                <strong>{displayEuro(quote.unitPriceCents)}</strong>
-              )}
-              <button type="button" onClick={() => remove(line.offerId)}>
-                Remove offer
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
       <section className={styles.summary} aria-labelledby="summary-title">
         <h2 id="summary-title">Cart summary</h2>
         {state.status === "ready" && state.data.totalCents !== null ? (
@@ -112,17 +130,21 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
               : "Subtotal will appear when current prices are available."}
           </p>
         )}
-        <p>Final prices and availability are confirmed at checkout.</p>
-        {state.status === "ready" && state.data.totalCents !== null && (
-          <Link className={styles.browse} to="/checkout">
-            Proceed to checkout
+        <p className={styles.summaryNote}>
+          Final prices and availability are confirmed at checkout.
+        </p>
+        <div className={styles.summaryActions}>
+          {state.status === "ready" && state.data.totalCents !== null && (
+            <Link className={styles.checkoutLink} to="/checkout">
+              Proceed to checkout
+            </Link>
+          )}
+          <Link className={styles.browse} to="/catalog">
+            Continue browsing
           </Link>
-        )}
-        <Link className={styles.browse} to="/catalog">
-          Continue browsing
-        </Link>
+        </div>
       </section>
-    </>
+    </div>
   );
 }
 

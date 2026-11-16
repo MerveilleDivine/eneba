@@ -1,5 +1,5 @@
 .header {
-  background: #4616a7;
+  background: #21143a;
   border-bottom: 1px solid #ffffff20;
 }
 .inner {
@@ -76,7 +76,7 @@
   background: var(--color-accent);
 }
 .navBar {
-  background: #351080;
+  background: #301b4e;
 }
 .navigation {
   width: min(100% - 2.5rem, 1280px);
