@@ -120,6 +120,7 @@ test("an unavailable product API never produces a made-up subtotal", async ({ pa
   });
   await page.goto("/cart");
   await expect(page.getByText("Current offer details could not be verified.")).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("could not be verified");
   await expect(page.getByText("Current estimated subtotal")).toHaveCount(0);
   await expect(page.getByText("private error")).toHaveCount(0);
 });

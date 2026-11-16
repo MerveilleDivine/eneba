@@ -18,18 +18,21 @@ import (
 )
 
 const (
-	passwordIterations = 600000
-	sessionLifetime    = 7 * 24 * time.Hour
-	maxAttempts        = 6
-	attemptWindow      = 15 * time.Minute
-	maxTrackedAccounts = 4096
+	passwordIterations        = 600000
+	sessionLifetime           = 7 * 24 * time.Hour
+	maxAttempts               = 6
+	attemptWindow             = 15 * time.Minute
+	maxTrackedAccounts        = 4096
+	maxRegistrationsPerMinute = 30
+	registrationWindow        = time.Minute
 )
 
 var (
-	ErrInvalidInput = errors.New("invalid account details")
-	ErrEmailTaken   = errors.New("email already registered")
-	ErrUnauthorized = errors.New("unauthorized")
-	ErrRateLimited  = errors.New("too many sign-in attempts")
+	ErrInvalidInput        = errors.New("invalid account details")
+	ErrEmailTaken          = errors.New("email already registered")
+	ErrUnauthorized        = errors.New("unauthorized")
+	ErrRateLimited         = errors.New("too many sign-in attempts")
+	ErrRegistrationLimited = errors.New("too many registrations")
 )
 
 // User is the complete public account projection. No hashes or session IDs.
@@ -54,10 +57,12 @@ type attempts struct {
 }
 
 type Service struct {
-	store   Store
-	mu      sync.Mutex
-	failed  map[[32]byte]attempts
-	now     func() time.Time
+	store               Store
+	mu                  sync.Mutex
+	failed              map[[32]byte]attempts
+	registrationStarted time.Time
+	registrationCount   int
+	now                 func() time.Time
 }
 
 func NewService(store Store) *Service {
@@ -163,6 +168,25 @@ func tokenDigest(token string) ([]byte, bool) {
 	return digest[:], true
 }
 
+// allowRegistration reserves a bounded, process-local registration attempt
+// before expensive password derivation. Public multi-instance hosting also
+// requires a trusted shared ingress limiter.
+func (s *Service) allowRegistration() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	now := s.now()
+	if s.registrationStarted.IsZero() || !now.Before(s.registrationStarted.Add(registrationWindow)) {
+		s.registrationStarted = now
+		s.registrationCount = 0
+	}
+	if s.registrationCount >= maxRegistrationsPerMinute {
+		return false
+	}
+	s.registrationCount++
+	return true
+}
+
 func (s *Service) Register(ctx context.Context, name, email, password string) (User, string, error) {
 	var err error
 	email, err = normalizeEmail(email)
@@ -172,6 +196,9 @@ func (s *Service) Register(ctx context.Context, name, email, password string) (U
 	name, err = normalizeName(name)
 	if err != nil || !validPassword(password) {
 		return User{}, "", ErrInvalidInput
+	}
+	if !s.allowRegistration() {
+		return User{}, "", ErrRegistrationLimited
 	}
 	encoded, err := hashPassword(password)
 	if err != nil {

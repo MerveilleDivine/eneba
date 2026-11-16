@@ -12,6 +12,7 @@ type CurrentProduct = {
   slug: string;
   details: ProductDetails | null;
   missing: boolean;
+  failed: boolean;
 };
 type CartFailure = "timeout";
 type CartItemState = {
@@ -26,14 +27,11 @@ async function readProducts(lines: readonly CartLine[], signal: AbortSignal) {
   return Promise.all(
     slugs.map(async (slug): Promise<CurrentProduct> => {
       try {
-        return { slug, details: await fetchProduct(slug, signal), missing: false };
+        return { slug, details: await fetchProduct(slug, signal), missing: false, failed: false };
       } catch (error) {
         if (signal.aborted) throw error;
-        return {
-          slug,
-          details: null,
-          missing: error instanceof ProductRequestError && error.kind === "not-found",
-        };
+        const missing = error instanceof ProductRequestError && error.kind === "not-found";
+        return { slug, details: null, missing, failed: !missing };
       }
     }),
   );
@@ -48,6 +46,7 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
   });
 
   const products = state.status === "ready" ? state.data : [];
+  const hasUnverifiedProducts = products.some((product) => product.failed);
   const rows: CartItemState[] = lines.map((line) => {
     const match = products.find((item) => item.slug === line.slug);
     const product = match?.details ?? null;
@@ -82,6 +81,11 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
       {state.status === "failed" && (
         <p role="alert" className={styles.warning}>
           We couldn't check current seller offers. Refresh the offers to try again.
+        </p>
+      )}
+      {hasUnverifiedProducts && (
+        <p role="alert" className={styles.warning}>
+          Some current seller offers could not be verified. Refresh current offers to try again.
         </p>
       )}
       <ul className={styles.items}>

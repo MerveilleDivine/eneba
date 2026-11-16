@@ -54,3 +54,9 @@ A separate static audit before hosting found public-demo operational risks:
 - Added malformed JSON, oversized JSON, and unsupported-method response checks against the auth HTTP handler.
 
 **Acceptance remains withheld:** these are source changes and added assertions, not executed-test evidence. No full exact-head local run or hosted HTTPS session/proxy verification has occurred. Do not merge or mark production ready solely because these fixes are committed.
+
+## Corrective source checkpoint — 16 November
+
+The previous preflight described registration throttling but did not define `ErrRegistrationLimited` or actually reserve registration capacity before PBKDF2; the authentication package would not compile. This checkpoint defines the missing error and installs a lock-protected per-process 30-registration/minute gate ahead of hashing. Unit regressions cover saturation, concurrent admissions, minute-boundary reset, and invalid inputs; a new PostgreSQL integration test checks that session insertion invalidates older tokens while retaining the newest five. The cart flags partially unverified seller reads explicitly, retains known valid rows, and suppresses unavailable subtotals; browser regression coverage checks the warning.
+
+**Verification boundary:** static source improvements and added tests are not equivalent to passing the pinned toolchain, full format checks, PostgreSQL integrations, Chromium or HTTPS hosted verification. The branch remains private, unmerged and undeployed. Shared ingress throttling and the other production release gates remain outstanding.
