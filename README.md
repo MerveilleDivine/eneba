@@ -2,7 +2,7 @@
 
 An independent internship project: discover games, compare sellers, purchase with simulated payments and retrieve nonredeemable keys from your account.
 
-**[Public website (earlier release)](https://eneba-marketplace-demo.vercel.app)** | **[Development branch](https://github.com/MerveilleDivine/eneba/tree/feature/slice-2-catalog)**
+**[Live marketplace](https://eneba-marketplace-demo.vercel.app)** | **[Development branch](https://github.com/MerveilleDivine/eneba/tree/feature/slice-2-catalog)**
 
 ## Features
 
