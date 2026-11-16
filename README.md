@@ -1,39 +1,35 @@
-# Eneba marketplace
+# Eneba Marketplace
 
-An independent internship project: discover games, compare sellers, purchase with simulated payments and retrieve nonredeemable keys from your account.
+A full-stack digital game marketplace built for the Eneba Software Engineer Internship assignment. Browse games, compare seller offers, create an account, complete a simulated purchase, and retrieve a nonredeemable digital key from your own order history.
 
-**[Live marketplace](https://eneba-marketplace-demo.vercel.app)** | **[Development branch](https://github.com/MerveilleDivine/eneba/tree/feature/slice-2-catalog)**
+**[Live application](https://eneba-marketplace-demo.vercel.app)** · **[Original assignment](docs/assignment.pdf)** · **[Verification results](docs/verification.md)**
 
-## Features
+This is an independent project and is not affiliated with Eneba. No real payments or redeemable game keys are used.
 
-- Independently loaded featured banners, best sellers and seller-specific deals.
-- Typo-tolerant search, platform/region/price filters, sorting and stable pagination.
-- Product details, activation guidance, competing offers and persistent seller selections.
-- Persistent cart, registration, sign-in and secure server-side sessions.
-- Server-priced checkout with atomic inventory allocation and safe idempotent retries.
-- Buyer-only order history, historical receipts and key delivery with accessible copy controls.
-- Responsive layouts, keyboard navigation and animated skeletons that survive slow backend startup with silent, bounded recovery.
+## What works
 
-All game artwork is original; see [asset provenance](docs/assets/README.md). Payments are simulated and keys cannot be redeemed. The project is not affiliated with Eneba.
+- Database-driven banners, best sellers and deals, loaded independently.
+- Search, sorting, filters and pagination across real PostgreSQL catalog records.
+- Game details, edition/platform/region information and competing seller offers.
+- Persistent cart, registration, sign-in and authenticated buyer sessions.
+- Server-priced checkout with transactional inventory allocation and idempotent retries.
+- Buyer-only order receipts and key delivery; other accounts cannot retrieve an order's key.
+- Responsive pages, keyboard interaction and animated skeletons during slow API responses.
 
-## Technology and structure
+## Stack
 
-React, TypeScript and Vite provide the frontend. A Go REST API uses pgx and direct SQL against PostgreSQL. Vercel hosts the frontend, Render hosts the API, and Neon hosts the database. Same-origin rewrites carry browser requests and authentication cookies to Go.
+- **Frontend:** React, TypeScript, Vite, CSS Modules; deployed on Vercel.
+- **Backend:** Go REST API using pgx and SQL; deployed on Render.
+- **Database:** PostgreSQL on Neon, with Goose migrations and checksum-verified seed data.
+- **Tests:** Vitest, Playwright, Axe, Go unit/integration tests and the Go race detector.
 
-| Directory        | Responsibility                                                                |
-| ---------------- | ----------------------------------------------------------------------------- |
-| api              | Server entry points and feature-owned handlers, services and SQL repositories |
-| web/src/features | Colocated screens, requests, state and tests for each feature                 |
-| web/src/shared   | Shared product identity, HTTP read lifecycle, formatting and layout           |
-| db               | Goose migrations and immutable, checksum-verified seeds                       |
-| scripts          | Reproducible tooling and explicit database maintenance                        |
-| docs             | API contracts, consequential decisions, verification and source references    |
+Application source lives in `web/` and `api/`. Versioned schema and demo data live in `db/`. The `scripts/` directory contains local setup, verification and maintenance commands.
 
-The server constructs concrete dependencies. Business code does not import maintenance tooling. [Architecture decisions](docs/decisions.md) explain these boundaries and their costs.
+## Run locally
 
-## Run locally on Windows
+The checked-in bootstrap scripts target Windows PowerShell. They install pinned development tools under ignored directories and provision an isolated local PostgreSQL cluster.
 
-Prerequisites: Git and PowerShell 5.1+. Run from the repository root:
+From the repository root:
 
 ```powershell
 .\scripts\bootstrap.ps1
@@ -43,56 +39,52 @@ npm run db:local:start
 npm run db:provision
 npm run db:migrate
 npm run db:seed
-npm run doctor
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173**. Vite proxies API requests to Go on port 8080.
+Open `http://127.0.0.1:5173`. Provisioning is a **one-time** operation. On later runs, start PostgreSQL, load the environment helper and run `npm run dev`; never provision over an existing database.
 
-Bootstrap downloads and checksum-verifies Go 1.27.4, Node 22.23.5 (npm 10.9.9) and PostgreSQL 18.7 into ignored project directories. Load the environment helper in every new terminal. The project-owned database cluster listens on loopback port 5433; an existing system PostgreSQL service on port 5432 remains independent.
+If you use an existing PostgreSQL installation instead, configure isolated owner/application roles and follow [`.env.example`](.env.example). Secrets belong in ignored local environment files, never in frontend variables or committed files.
 
-Provisioning runs **once**. It creates eneba_dev and eneba_test with separate migration/application credentials, saving private configuration in ignored .env files. Later sessions only need the cluster start and development commands. Use npm run db:local:status or npm run db:local:stop to manage this cluster.
+## Verify
 
-Provisioning refuses existing resource names or configuration instead of adopting them. If it fails, preserve the ignored .env.provisioning.local recovery file, inspect the named resources and complete only missing resources before publishing .env. Never drop a database or guess a replacement password to retry.
-
-For an existing native PostgreSQL installation, provide administrator PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE and PGSSLMODE in ignored .env.bootstrap.local, then run provisioning without starting the project cluster. The [environment example](.env.example) documents application settings; never put database credentials in browser variables.
-
-## Verification
-
-```powershell
-npm run hooks:install
+```sh
+npm ci
 npm run verify
 npm run test:integration
 npm run test:browser
 npm run audit
 ```
 
-verify checks Prettier, Go formatting/vet/tests/build, tooling boundaries and frontend types/lint/tests/build. Integration tests require the isolated eneba_test database and run packages serially. Browser tests start fresh applications and wait for proxied readiness; install Chrome if it is unavailable. Network access is needed for dependency audits.
-
-Run transaction race checks on Linux with a C compiler:
+The integration suite requires the separate `eneba_test` database. Browser tests require a Chromium/Chrome installation. To test transaction races on Linux with CGO and a C compiler:
 
 ```sh
 node scripts/run-go.mjs test -race -tags=integration -p 1 ./... -count=1
 ```
 
-Vercel preview builds additionally run TypeScript, ESLint and the full frontend unit suite before the static bundle is published. The latest recorded check passed **199 frontend tests in 19 files** at commit `2f7cf89`; this does not cover Go, Playwright or hosted purchases.
+See [verification evidence](docs/verification.md) for exact executed results and remaining limitations. GitHub Actions may report failed runs when the account's runner allowance is exhausted; those runs are not evidence of application test failures or passes.
 
-The pre-commit hook verifies the complete staged snapshot. [Final verification](docs/verification/final-submission.md) distinguishes local, Linux, browser and hosted results, exact revisions and pending checks. GitHub Actions remains pending because account capacity is unavailable; workflow configuration alone is not a passing run.
+## Design and security
 
-## Data and security
+- Money is represented in integer EUR cents. The API calculates and validates prices, stock and totals.
+- Orders allocate keys in one PostgreSQL transaction. Uniqueness and foreign-key constraints protect each allocation.
+- Checkout checks an idempotent replay before current stock, and locks the buyer before seller offers in deterministic order.
+- Session cookies are `HttpOnly`, `Secure` and `SameSite` in production; mutating requests validate their origin.
+- Order detail SQL is scoped to the authenticated buyer. Key responses are not cached and keys are never stored in browser persistence.
+- Read-only pages retry transient API failures quietly with bounded loading skeletons. Checkout mutations are never automatically repeated without their idempotency safeguards.
 
-Application tables live in the marketplace schema. Only Go accesses them; schema-owner credentials stay out of the running API. Startup never migrates or seeds. Run npm run db:migrate and npm run db:seed explicitly. Applied versions are immutable, and repeated seeds never replenish allocated inventory.
+## Supporting documents
 
-Amounts use integer EUR cents. Checkout locks the buyer before sorted offers, resolves idempotent replays before stock checks, validates current server prices and commits every order item together. Unique key allocation and the composite offer/key foreign key protect inventory independently of application code.
+- [API contracts](docs/api/) — request and response behavior.
+- [Architecture decisions](docs/decisions.md) — important design choices and trade-offs.
+- [Artwork provenance](docs/assets/README.md) — original illustrations and asset manifest.
+- [Verification evidence](docs/verification.md) — unit, database, browser and hosted checks.
+- [AI conversation records](docs/ai-history/README.md) — authentic partial Codex transcript and export instructions.
 
-Order queries scope ownership in SQL and use purchased name/price snapshots. Keys are returned only to the purchasing session with no-store responses. The browser keeps keys in memory and clears protected views on account changes or when a tab returns. Logs contain request IDs and generic failures, never keys or credentials.
+The conversation record currently preserves one original 12–13 November session, **not all later development sessions**. Any required missing conversations must be exported from their genuine source; they must not be reconstructed.
 
-[API contracts](docs/api/) cover catalog, home, authentication, quotes, checkout and orders.
+## Hosting
 
-## Deployment and limitations
+Vercel serves the browser app and proxies `/api` requests to Render. Neon provides persistent PostgreSQL storage. API startup never migrates or seeds production data.
 
-Vercel serves the SPA and forwards API requests through web/vercel.json. Render builds and runs the Go API from the same feature branch. Production requires APP_ENV=production, APP_ORIGIN set to the canonical HTTPS frontend, DATABASE_URL for the restricted application role and PORT supplied by the host. Run approved database maintenance separately using owner credentials.
-
-This is a bounded internship marketplace: one key per offer per order, at most ten cart lines, EUR only and no real payment processing. Free hosting can have cold starts. Authentication rate limits are process-local; a larger deployment would need shared ingress limits. Automated accessibility checks complement keyboard/responsive inspection and do not certify screen-reader or physical-device coverage.
-
-An authentic Codex conversation snapshot (12–13 November, 89 visible entries) is preserved under [docs/ai-history](docs/ai-history/README.md). **This is not the complete development transcript.** Missing later sessions must be exported from their original sources and privacy-reviewed before claiming full conversation coverage. See [final submission verification](docs/verification/final-submission.md). Original assignment documents remain unchanged under docs/reference/.
+**Deployment maintenance:** the running Render service was last verified with the matching application source, but its automatic deployment setting is disabled and its configured Git branch is still `feature/slice-2-catalog`. For future backend changes made on `main`, change the Render service branch to `main` in its dashboard before deploying. This repository does not contain production credentials.

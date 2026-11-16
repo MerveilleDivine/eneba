@@ -1,17 +1,35 @@
+# Dependencies and generated output
 node_modules/
+dist/
 web/dist/
 api/bin/
-.tools/
-.local/
-.cache/
-.env
-.env.*.local
-!.env.example
 coverage/
 test-results/
 playwright-report/
-docs/ai-history/incoming/
-*.log
+.vercel/
+.next/
+
+# Locally provisioned tools, databases and temporary data
+.tools/
+.local/
+.cache/
+*.sqlite
+*.sqlite3
+*.db
+*.tmp
+*.swp
 *.tsbuildinfo
+*.log
+
+# Secrets (keep the safe example)
+.env*
+!.env.example
+*.pem
+*.key
+
+# Source AI conversation imports, prior to redaction/export
+docs/ai-history/incoming/
+
+# OS-generated files
 .DS_Store
 Thumbs.db
