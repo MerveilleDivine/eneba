@@ -1,7 +1,13 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render as renderView, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ProductCard } from "./ProductCard";
-import type { CatalogProduct } from "./catalog-api";
+import { MemoryRouter } from "react-router";
+import type { ReactNode } from "react";
+import type { ProductSummary as CatalogProduct } from "../api/product-summary";
+
+function render(ui: ReactNode) {
+  return renderView(ui, { wrapper: MemoryRouter });
+}
 
 const solar: CatalogProduct = {
   id: "game-1",
@@ -30,16 +36,12 @@ function variationFor(name: string): string | null | undefined {
 }
 
 describe("product card presentation", () => {
-  it("provides a visible-text accessible name when used inside a link", () => {
-    const { container } = render(
-      <a href="/catalog">
-        <ProductCard product={solar} as="div" />
-      </a>,
-    );
+  it("links to the exact SKU using visible card text without nested links", () => {
+    const { container } = render(<ProductCard product={solar} />);
     const link = screen.getByRole("link", { name: /Solar Drift/ });
-    expect(link).toHaveAccessibleName(/Solar Drift/);
-    expect(link.querySelector("article")).toBeNull();
-    expect(container.querySelector("a > div")).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "/products/solar-drift");
+    expect(link.querySelector("a")).toBeNull();
+    expect(container.querySelectorAll("article a")).toHaveLength(1);
   });
   it("keeps each product cover variation when product order changes", () => {
     const { rerender } = render(

@@ -264,3 +264,30 @@ React independently fetches and retries Best Sellers, while the banner stays ava
 ## Phase 3D — seller-offer Deals are not catalog prices
 
 The homepage Deals section is keyed by homepage_deals.offer_id and joins that exact active seller offer and product. Its current/list price and rounded-down discount belong exclusively to that offer; the lowest catalog price is a different product-level read projection and must not be reused here. Eligible offers require an unallocated key for their own offer ID, with the stock-existence SQL predicate shared by catalog/Best Sellers and Deals. Seller-specific text, cover paths and safe cent bounds are independently validated. The section loads independently, does not reveal key codes, and links to catalog search without pretending to select an offer. No migrations, inventory refills, extra server processes, global state or placeholder checkout actions were introduced. Verify the current feature branch in CI before treating this implementation as accepted.
+
+## Slice 4 — product reads and explicit seller identity
+
+Product detail remains in the Go catalog feature: it is a second public read of
+the same SKU/offer data, not a new purchase subsystem. Its handler translates HTTP,
+service validates public metadata and price consistency, and concrete repository
+performs two bounded set reads in one read-only repeatable-read snapshot. It
+reuses the canonical inventory predicate. Active sold-out offers stay visible;
+inactive offers stay absent. More than 50 active offers fails closed rather than
+silently dropping a requested seller. Larger data requires offer pagination.
+This guard and bounded text checks are documented in `docs/api/product.md`.
+No new runtime dependency, migration, fixture mutation or stock count is needed.
+
+The browser's URL owns only product/offer identity. Plain product links choose
+nothing, and an invalid/missing/unavailable offer never falls back to the cheapest
+seller. Native radio choices preserve history and focus; prices and availability
+come from Go. No local storage, reservation, frontend-priced purchase or checkout
+control is introduced. Future purchase code must revalidate inventory and prices
+transactionally; this read is a snapshot, not a guarantee of future availability.
+
+Three real consumers justify small shared frontend modules for public product
+summaries, SKU facets/labels, exact EUR formatting, product links and the product
+card. One shared read hook owns the already-tested timeout, cancellation,
+obsolete-response and retry lifecycle; a keyed owner captures one immutable query
+or slug. Feature-specific HTTP error policies and selection rules remain in their
+features. The existing catalog adversarial tests protect the extraction. No
+global state/cache, generic repository or new application layer is introduced.

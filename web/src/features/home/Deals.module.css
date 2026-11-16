@@ -219,7 +219,7 @@
 
 @media (max-width: 480px) {
   .heading h2 {
-    font-size: clamp(1.5rem, 5vw, 2.9rem);
+    font-size: clamp(1.3rem, 5vw, 2.9rem);
   }
   .card {
     flex-direction: column;

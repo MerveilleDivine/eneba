@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { displayEuro } from "../catalog/catalog-api";
-import { platformLabels, regionLabels } from "../catalog/catalog-labels";
+import { displayEuro } from "../../shared/format/money";
+import { platformLabels, regionLabels } from "../../shared/product/identity";
 import { catalogHref, defaultCatalogQuery } from "../catalog/catalog-query";
 import type { Deal } from "./deals-api";
 import styles from "./Deals.module.css";

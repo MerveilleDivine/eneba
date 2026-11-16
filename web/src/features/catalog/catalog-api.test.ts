@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  CatalogRequestError,
-  displayEuro,
-  fetchCatalog,
-  parseCatalogResponse,
-} from "./catalog-api";
+import { CatalogRequestError, fetchCatalog, parseCatalogResponse } from "./catalog-api";
+import { displayEuro } from "../../shared/format/money";
 import { defaultCatalogQuery } from "./catalog-query";
 
 const query = defaultCatalogQuery();

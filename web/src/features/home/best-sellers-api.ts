@@ -1,7 +1,7 @@
-import { isCatalogProduct, type CatalogProduct } from "../catalog/catalog-api";
+import { isProductSummary, type ProductSummary } from "../../shared/api/product-summary";
 import { HomeRequestError, requestHomeData } from "./home-request";
 
-export type BestSeller = CatalogProduct & { demoWeeklySales: number };
+export type BestSeller = ProductSummary & { demoWeeklySales: number };
 export type BestSellersData = { items: BestSeller[]; currency: "EUR" };
 
 function record(value: unknown): value is Record<string, unknown> {
@@ -12,7 +12,7 @@ function isBestSeller(value: unknown): value is BestSeller {
   if (!record(value)) return false;
   const sales = value.demoWeeklySales;
   return (
-    isCatalogProduct(value) &&
+    isProductSummary(value) &&
     typeof sales === "number" &&
     Number.isSafeInteger(sales) &&
     sales >= 0 &&

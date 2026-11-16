@@ -1,4 +1,4 @@
-import { platforms, regions } from "../catalog/catalog-query";
+import { platforms, regions } from "../../shared/product/identity";
 import { HomeRequestError, requestHomeData } from "./home-request";
 
 export type Deal = {

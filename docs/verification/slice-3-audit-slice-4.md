@@ -103,3 +103,46 @@ images were inspected; the corrected phone title stays readable without splittin
 its ordinary final word. Local build/checkpoint and exact-head CI evidence follow
 below when observed. Physical devices, screen readers and hosted timings remain
 unverified.
+
+Audit checkpoint `9905d23` passed the full local verification hook. Remote runs
+[43808895459](https://github.com/MerveilleDivine/eneba/actions/runs/43808895459) and
+[43808889083](https://github.com/MerveilleDivine/eneba/actions/runs/43808889083)
+failed the new 320px enlarged-word check on Linux (84/85 browser cases passed).
+They are not accepted CI runs. The initial heading size fit Windows' font metrics
+but still split the word with Linux's system font; the narrow heading size was
+reduced further, keeping the same assertion. All prior format/type/lint/build,
+unit, tooling, audit and PostgreSQL integration steps in those runs passed. Race
+steps were skipped after the browser failure. Reverification follows on the
+integrated checkpoint.
+
+## First product checkpoint
+
+Implemented the two-read catalog-owned product API and `/products/:slug`, with
+catalog and Best Sellers entry points. Product labels/details, current available
+From-price, active seller offers, safe integer prices, stock and ratings come from
+PostgreSQL. No default seller is chosen. URL selection preserves the exact offer,
+including disabled sold-out selections and recoverable invalid/foreign/missing
+links. Catalog return context survives normal navigation and reload.
+
+Shared summary/facet/money/card modules remove existing home-to-catalog
+presentation dependencies. One captured-identity read hook now owns the previous
+catalog/home timeout, cancellation and retry mechanics; product uses the same
+boundary. Existing catalog adversarial tests remain passing. Removed the unused
+homepage link styling after the shared card took responsibility for navigation
+and keyboard focus.
+
+Local evidence before the checkpoint: 139 frontend tests plus three new product
+navigation/late-response/deadline tests pass; types, lint and production build pass.
+Real PostgreSQL product tests cover exact seller identity, unavailable cheaper
+offers, inactive/missing products, allocations, empty offers, bounded reads,
+literal public-field allowlists, cancellation, generic failures and the actual
+three-second pool-wait deadline. A committed concurrent price mutation between
+the two production repository reads proves snapshot consistency; fresh requests
+see the new price and bounded cleanup restores both original prices.
+
+The first targeted browser run passed 12/13 checks; its failure was a test's wrong
+Solar Drift seller assumption, corrected from the immutable seed. The subsequent
+12 product/homepage checks passed without retries, including filter return context,
+keyboard focus, unavailable/invalid links, retry, axe and viewport/200%-text home
+checks. All eight Best Sellers checks also passed. Deals-specific entry and final
+visual/full-pipeline acceptance remain in the next checkpoint.

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test("loads ranked Go products and links to the catalog", async ({ page }) => {
+test("loads ranked Go products and opens their exact product pages", async ({ page }) => {
   const response = await page.request.get("/api/v1/home/best-sellers");
   expect(response.status()).toBe(200);
   const data = await response.json();
@@ -18,7 +18,7 @@ test("loads ranked Go products and links to the catalog", async ({ page }) => {
   await expect(shelf.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   await shelf.getByRole("link", { name: /Solar Drift/ }).click();
-  await expect(page).toHaveURL(/\/catalog\?q=Solar\+Drift$/);
+  await expect(page).toHaveURL(/\/products\/solar-drift$/);
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
 });
 

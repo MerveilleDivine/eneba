@@ -3,6 +3,7 @@ import { SiteHeader } from "../shared/layout/SiteHeader";
 import { CatalogPage } from "../features/catalog/CatalogPage";
 import { CatalogSearch } from "../features/catalog/CatalogSearch";
 import { HomePage } from "../features/home/HomePage";
+import { ProductPage } from "../features/product/ProductPage";
 import styles from "./App.module.css";
 
 function NotFound() {
@@ -29,6 +30,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
+          <Route path="/products/:slug" element={<ProductPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

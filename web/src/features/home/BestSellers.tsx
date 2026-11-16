@@ -1,6 +1,5 @@
 import { Link } from "react-router";
-import { ProductCard } from "../catalog/ProductCard";
-import { catalogHref, defaultCatalogQuery } from "../catalog/catalog-query";
+import { ProductCard } from "../../shared/product/ProductCard";
 import { fetchBestSellers } from "./best-sellers-api";
 import { useHomeRequest } from "./use-home-request";
 import { useHomeRetryFocus } from "./use-home-retry-focus";
@@ -62,14 +61,7 @@ export function BestSellers() {
         <ul className={styles.grid}>
           {state.data.items.map((product) => (
             <li key={product.id} className={styles.item}>
-              <Link
-                className={styles.productLink}
-                to={catalogHref(
-                  defaultCatalogQuery(Array.from(product.name).slice(0, 100).join("")),
-                )}
-              >
-                <ProductCard product={product} as="div" />
-              </Link>
+              <ProductCard product={product} />
             </li>
           ))}
         </ul>

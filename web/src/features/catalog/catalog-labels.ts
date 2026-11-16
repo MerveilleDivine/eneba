@@ -1,18 +1,5 @@
-import type { Platform, Region, Sort } from "./catalog-query";
-
-export const platformLabels: Record<Platform, string> = {
-  steam: "Steam",
-  xbox: "Xbox",
-  playstation: "PlayStation",
-  nintendo: "Nintendo",
-  other: "Other",
-};
-
-export const regionLabels: Record<Region, string> = {
-  global: "Global",
-  europe: "Europe",
-  "united-states": "United States",
-};
+import type { Sort } from "./catalog-query";
+export { platformLabels, regionLabels } from "../../shared/product/identity";
 
 export const sortLabels: Record<Sort, string> = {
   relevance: "Relevance",

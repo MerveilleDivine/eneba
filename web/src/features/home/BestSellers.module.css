@@ -57,8 +57,7 @@
 }
 
 .catalogLink:focus-visible,
-.retry:focus-visible,
-.productLink:focus-visible {
+.retry:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }
@@ -79,23 +78,6 @@
 
 .item {
   min-width: 0;
-}
-
-.productLink {
-  display: block;
-  height: 100%;
-  color: inherit;
-  text-decoration: none;
-  border-radius: 0.8rem;
-}
-
-.productLink > div {
-  height: 100%;
-}
-
-.productLink:hover > div,
-.productLink:focus-visible > div {
-  border-color: var(--color-accent);
 }
 
 .skeletons,
@@ -135,14 +117,8 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .productLink > div {
-    transition: none;
-  }
-}
-
 @media (max-width: 480px) {
   .heading h2 {
-    font-size: clamp(1.5rem, 5vw, 2.9rem);
+    font-size: clamp(1.3rem, 5vw, 2.9rem);
   }
 }

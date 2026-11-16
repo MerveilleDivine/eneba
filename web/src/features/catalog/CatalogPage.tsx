@@ -1,13 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useMemo, useRef, useState, type MouseEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { CatalogFilters, CatalogSort } from "./CatalogFilters";
-import { ProductCard } from "./ProductCard";
-import {
-  CatalogRequestError,
-  fetchCatalog,
-  type CatalogFailureKind,
-  type CatalogPageData,
-} from "./catalog-api";
+import { ProductCard } from "../../shared/product/ProductCard";
+import { useReadRequest } from "../../shared/api/use-read-request";
+import { CatalogRequestError, fetchCatalog, type CatalogFailureKind } from "./catalog-api";
 import {
   catalogHref,
   catalogRequestPath,
@@ -16,11 +12,6 @@ import {
   type CatalogQuery,
 } from "./catalog-query";
 import styles from "./CatalogPage.module.css";
-
-type RequestState =
-  | { status: "loading" }
-  | { status: "ready"; data: CatalogPageData }
-  | { status: "failed"; kind: CatalogFailureKind };
 
 const failureMessages: Record<CatalogFailureKind, { title: string; description: string }> = {
   invalid: {
@@ -54,39 +45,12 @@ function CatalogResults({ query, onAction }: ResultsProps) {
   // The parent key changes whenever the canonical request changes.
   // Keep this query stable when only the URL spelling changes.
   const [requestQuery] = useState(query);
-  const [request, setRequest] = useState<RequestState>({ status: "loading" });
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let current = true;
-    let timedOut = false;
-    // Own the deadline here. Some transports ignore abort, so the timeout
-    // must remain visible and late responses must never replace it.
-    const timeout = window.setTimeout(() => {
-      if (!current) return;
-      timedOut = true;
-      controller.abort();
-      setRequest({ status: "failed", kind: "timeout" });
-    }, 6000);
-    void fetchCatalog(requestQuery, controller.signal)
-      .then((data) => {
-        if (current && !timedOut) setRequest({ status: "ready", data });
-      })
-      .catch((error: unknown) => {
-        if (!current || timedOut) return;
-        setRequest({
-          status: "failed",
-          kind: error instanceof CatalogRequestError ? error.kind : "unexpected",
-        });
-      })
-      .finally(() => window.clearTimeout(timeout));
-    return () => {
-      current = false;
-      controller.abort();
-      window.clearTimeout(timeout);
-    };
-  }, [requestQuery, attempt]);
+  const { state: request, retry } = useReadRequest({
+    read: (signal) => fetchCatalog(requestQuery, signal),
+    failure: (error): CatalogFailureKind =>
+      error instanceof CatalogRequestError ? error.kind : "unexpected",
+    timeout: "timeout" as CatalogFailureKind,
+  });
 
   const result = request.status === "ready" ? request.data : null;
   const pages = result ? Math.ceil(result.total / result.pageSize) : 0;
@@ -129,8 +93,7 @@ function CatalogResults({ query, onAction }: ResultsProps) {
               className={styles.primaryButton}
               onClick={() => {
                 onAction();
-                setRequest({ status: "loading" });
-                setAttempt((value) => value + 1);
+                retry();
               }}
             >
               Try again
