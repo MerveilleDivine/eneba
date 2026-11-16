@@ -1,9 +1,11 @@
 # Release verification
 
 **Production application:** [eneba-marketplace-demo.vercel.app](https://eneba-marketplace-demo.vercel.app)  
-**Merged source:** `main`, commit `ed67dfc` (16 November 2026)
+**Initial feature merge:** `ed67dfc` (16 November 2026); the current `main` branch includes subsequent housekeeping commits.
 
 This report distinguishes tests actually executed from remaining handoff requirements.
+
+A post-merge repository cleanup removed obsolete planning/verification files while preserving application code, tests, migrations and the original assignment. The format-only checkpoint `d73b256` passed a full Prettier check, 3/3 tooling tests and a new Vercel build with 199/199 frontend tests.
 
 ## Verified application behavior
 
@@ -30,7 +32,7 @@ The main merge only consolidated the tested application source and documentation
 - The cold-start loading behavior passed frontend tests; a full real sleeping-Render wake-up duration was not measured.
 - The Render service remains configured to track `feature/slice-2-catalog` with auto-deploy disabled. Its deployed application source matched the frontend before the documentation-only merge. Switch the Render service to `main` before future API releases.
 - The archived Codex evidence currently includes 89 authentic visible entries from 12–13 November only. Later sessions are **missing**; no dialogue was invented.
-- The GitHub repository is **public**, but public visibility does not establish a complete historical secret audit. An initial current-tree pattern scan found no obvious live GitHub/OpenAI keys or private-key blocks; further history and transcript review is still advisable.
+- The GitHub repository is **public**. An automated pattern scan inspected 861 Git blob objects reachable from 122 commits on the fetched branches, finding no common provider-token or private-key markers. Passworded PostgreSQL URL patterns occurred in Go test files. This is a bounded pattern scan, **not** a comprehensive secrets or transcript privacy audit; removed documents also remain in historical commits.
 - The internship submission email has **not** been sent; the English CV was attached to an Outlook draft, and the required full agent transcript remains incomplete.
 
 For implementation boundaries see [architecture decisions](decisions.md); for the assignment text see [assignment.pdf](assignment.pdf).
