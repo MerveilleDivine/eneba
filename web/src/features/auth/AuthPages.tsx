@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { useReadRequest } from "../../shared/api/use-read-request";
 import { AuthRequestError, currentAccount, registerAccount, signIn, signOut, type AuthFailure } from "./auth-api";
@@ -17,6 +17,13 @@ function message(error: unknown): string {
 }
 function AuthForm({ mode }: { mode: "register" | "login" }) {
   const navigate = useNavigate();
+  const mounted = useRef(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+  useEffect(() => { heading.current?.focus(); }, [mode]);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,18 +38,18 @@ function AuthForm({ mode }: { mode: "register" | "login" }) {
     try {
       if (isRegister) await registerAccount(displayName, email, password);
       else await signIn(email, password);
-      navigate("/account", { replace: true });
+      if (mounted.current) navigate("/account", { replace: true });
     } catch (reason) {
-      setError(message(reason));
+      if (mounted.current) setError(message(reason));
     } finally {
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
   return (
     <section className={styles.shell}>
       <div className={styles.panel}>
         <p className={styles.kicker}>Unofficial marketplace demo</p>
-        <h1>{isRegister ? "Create your account" : "Welcome back"}</h1>
+        <h1 ref={heading} tabIndex={-1}>{isRegister ? "Create your account" : "Welcome back"}</h1>
         <p className={styles.description}>
           {isRegister
             ? "Create a demo buyer account. No real purchases or payment information are involved."
@@ -89,6 +96,11 @@ export function SignInPage() { return <AuthForm mode="login" />; }
 
 export function AccountPage() {
   const navigate = useNavigate();
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
   const [busy, setBusy] = useState(false);
   const [signOutError, setSignOutError] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
@@ -103,9 +115,9 @@ export function AccountPage() {
     setSignOutError("");
     try {
       await signOut();
-      navigate("/sign-in", { replace: true });
+      if (mounted.current) navigate("/sign-in", { replace: true });
     } catch (reason) {
-      setSignOutError(message(reason));
+      if (mounted.current) setSignOutError(message(reason));
     } finally {
       setBusy(false);
     }

@@ -2,7 +2,13 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -44,6 +50,9 @@ func TestCredentialRulesAndSessions(t *testing.T) {
 	}
 	if normalized,err := normalizeEmail(" Test@Example.COM "); err != nil || normalized!="test@example.com" { t.Fatal("email normalization") }
 	if _,err := normalizeName("\u202e"); !errors.Is(err,ErrInvalidInput) { t.Fatal("bidi name accepted") }
+	for _, name := range []string{"\uFEFF", "\u200e", "Valid\uFEFFName", "Name\u202e"} {
+		if _, err := normalizeName(name); !errors.Is(err, ErrInvalidInput) { t.Fatalf("accepted unsafe name %q", name) }
+	}
 	if validPassword("short") || !validPassword("very secure password 123") { t.Fatal("password bounds") }
 	store := &fakeStore{}
 	svc := NewService(store)
@@ -73,4 +82,41 @@ func TestLoginAndThrottling(t *testing.T) {
 	}
 	_,_,err=svc.Login(context.Background(),"user@example.com","correct password 123")
 	if !errors.Is(err,ErrRateLimited) { t.Fatal("rate limit bypassed",err) }
+}
+
+func TestLoginFailureCounterAtCapacity(t *testing.T) {
+	svc := NewService(&fakeStore{})
+	now := time.Now()
+	svc.now = func() time.Time { return now }
+	email := "known@example.com"
+	target := sha256.Sum256([]byte(email))
+	svc.failed[target] = attempts{count: 1, until: now.Add(attemptWindow)}
+	for i := 0; len(svc.failed) < 4096; i++ {
+		key := sha256.Sum256([]byte("random-" + strconv.Itoa(i)))
+		if key != target { svc.failed[key] = attempts{count: 1, until: now.Add(attemptWindow)} }
+	}
+	svc.markFailure(email)
+	if got := svc.failed[target].count; got != 2 { t.Fatalf("existing identity was no longer throttled at capacity: %d", got) }
+	if !svc.isBlocked("new@example.com") { t.Fatal("unknown identities were allowed at capacity") }
+}
+
+func TestProductionCookieFlags(t *testing.T) {
+	handler := NewHandler(nil, slog.Default(), "https://marketplace.example", true)
+	writer := httptest.NewRecorder()
+	handler.setCookie(writer, strings.Repeat("a", 43), time.Now().Add(sessionLifetime))
+	result := writer.Result()
+	defer result.Body.Close()
+	cookies := result.Cookies()
+	if len(cookies) != 1 { t.Fatal("missing session cookie") }
+	c := cookies[0]
+	if c.Name != "__Host-eneba_session" || !c.Secure || !c.HttpOnly ||
+		c.Path != "/" || c.Domain != "" || c.SameSite != http.SameSiteLaxMode {
+		t.Fatalf("unsafe production session cookie: %+v", c)
+	}
+	clear := httptest.NewRecorder()
+	handler.clearCookie(clear)
+	gone := clear.Result().Cookies()
+	if len(gone) != 1 || gone[0].Name != "__Host-eneba_session" || gone[0].MaxAge >= 0 || !gone[0].Secure {
+		t.Fatal("logout did not securely clear the host-only session cookie")
+	}
 }

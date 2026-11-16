@@ -58,6 +58,14 @@ func TestAuthHTTPAndDatabase(t *testing.T) {
 		for _,c:=range res.Cookies() {if c.Name=="eneba_session" {session=c}}
 		return res.StatusCode,data,session
 	}
+	for _, path := range []string{"/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/logout"} {
+		if status, _, _ := request("POST", path, "{}", nil, "https://attacker.example"); status != 403 {
+			t.Fatalf("%s accepted foreign Origin", path)
+		}
+		if status, _, _ := request("POST", path, "{}", nil, ""); status != 403 {
+			t.Fatalf("%s accepted missing Origin", path)
+		}
+	}
 	payload,_:=json.Marshal(map[string]string{"displayName":"Demo Buyer","email":email,"password":"correct password 123"})
 	status,data,cookie:=request("POST","/api/v1/auth/register",string(payload),nil,"http://127.0.0.1:5173")
 	if status!=201 || cookie==nil || !cookie.HttpOnly || cookie.Secure || cookie.SameSite!=http.SameSiteLaxMode || cookie.Path!="/" {

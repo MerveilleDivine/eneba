@@ -13,3 +13,34 @@ The remote-code editor has access to GitHub files, but not the user's checkout, 
 
 ## Remaining release gates
 Complete client cart (unfinished Slice 4); quote and atomic simulated checkout (Slice 6), owner-only order/key delivery (Slice 7); hosting/proxy/cookie/Origin measurements, public URL, complete audited conversations and formal handoff (Slice 8). Never describe a protected frontend account route alone as proof of server-side order ownership.
+
+## Independent security and integration review — 16 November
+
+A separate review of the already-committed Slice 5 implementation identified
+three meaningful weaknesses and added focused corrective cases:
+
+1. Go display-name normalization had the same BOM-only invisible-name mismatch
+   previously found in content services. Normalization now trims BOM with
+   whitespace and rejects dangerous embedded BOM/directional-format controls;
+   the frontend public-account parser agrees with those rules.
+2. When the per-account failed-login map reached capacity, it stopped updating
+   the failure count of *existing* identities. A saturated limiter could thereby
+   allow unlimited password checks for an already-tracked account. The limiter
+   now updates existing entries at capacity and fails closed for new identities.
+3. Login, registration and sign-out used incomplete POST deadlines: a delayed
+   response body could hang after the fetch call returned, and sign-out had no
+   deadline. They now share one ten-second cancellation/race boundary that
+   returns a clear unavailable state even if an asynchronous request ignores
+   cancellation. No leaked credentials are exposed in errors.
+
+Added Go tests for the saturated limiter, invisible names, and production
+__Host- cookie flags; PostgreSQL/HTTP tests for foreign/missing Origin on all
+mutation routes; frontend transport tests for response rejection and bounded
+request timeouts; and a Chromium path covering register → persist through reload
+→ logout → rejected password → login, plus 320px/200%-text layout.
+
+**Evidence boundary:** these tests were committed for execution; the assistant
+could not execute the project-pinned local toolchain, PostgreSQL or Chromium
+from its current container. GitHub Actions quota was exhausted, so no CI pass
+is claimed. The authenticated order/checkout routes are still intentionally
+unimplemented. Do not treat this checkpoint as production security approval.

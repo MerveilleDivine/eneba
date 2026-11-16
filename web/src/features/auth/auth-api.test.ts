@@ -13,6 +13,8 @@ describe("authentication transport", () => {
     expect(parseAccount({ user })).toEqual(user);
     expect(() => parseAccount({ user: { ...user, id: "invalid" } })).toThrow(AuthRequestError);
     expect(() => parseAccount({ user: { ...user, displayName: "" } })).toThrow(AuthRequestError);
+    expect(() => parseAccount({ user: { ...user, displayName: "\uFEFF" } })).toThrow(AuthRequestError);
+    expect(() => parseAccount({ user: { ...user, displayName: "Buyer\u202e" } })).toThrow(AuthRequestError);
   });
   it("treats an anonymous session as a guest without exposing server response details", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("private diagnostic", { status: 401 })));
@@ -52,5 +54,25 @@ describe("authentication transport", () => {
       "/api/v1/auth/logout",
       expect.objectContaining({ method: "POST", credentials: "same-origin" }),
     );
+  });
+});
+
+describe("bounded authentication requests", () => {
+  it("reports a timeout even when a mocked fetch ignores cancellation", async () => {
+    vi.useFakeTimers();
+    let cancelled = false;
+    vi.stubGlobal("fetch", vi.fn((_url: string, options: RequestInit) => {
+      (options.signal as AbortSignal).addEventListener("abort", () => { cancelled = true; });
+      return new Promise<Response>(() => {});
+    }));
+    try {
+      const action = signIn("demo@example.com", "some valid password 123");
+      const result = expect(action).rejects.toMatchObject({ kind: "unavailable" });
+      await vi.advanceTimersByTimeAsync(10000);
+      await result;
+      expect(cancelled).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

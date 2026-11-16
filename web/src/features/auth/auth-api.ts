@@ -15,7 +15,8 @@ export function parseAccount(value: unknown): Account {
   const { id, email, displayName } = value.user;
   if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ||
     typeof email !== "string" || email.length < 5 || email.length > 254 || !email.includes("@") ||
-    typeof displayName !== "string" || displayName.trim().length === 0 || Array.from(displayName).length > 80) {
+    typeof displayName !== "string" || displayName.trim().length === 0 || Array.from(displayName).length > 80 ||
+    /[\u200e\u200f\u202a-\u202e\u2066-\u2069\uFEFF]/u.test(displayName)) {
     throw new AuthRequestError("unexpected");
   }
   return { id, email, displayName };
@@ -47,38 +48,56 @@ export async function currentAccount(signal: AbortSignal): Promise<Account | nul
   if (!response.ok) throw new AuthRequestError(failure(response.status));
   return readAccount(response);
 }
-async function postAccount(path: "register" | "login", body: unknown): Promise<Account> {
+async function withPostTimeout<T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 10000);
-  let response: Response;
+  let timeout = 0;
+  const deadline = new Promise<never>((_, reject) => {
+    timeout = window.setTimeout(() => {
+      controller.abort();
+      reject(new AuthRequestError("unavailable"));
+    }, 10000);
+  });
   try {
-    response = await fetch("/api/v1/auth/" + path, {
-      method: "POST", credentials: "same-origin", cache: "no-store",
-      signal: controller.signal,
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-  } catch {
+    return await Promise.race([run(controller.signal), deadline]);
+  } catch (error) {
+    if (error instanceof AuthRequestError) throw error;
     throw new AuthRequestError(controller.signal.aborted ? "unavailable" : "network");
   } finally {
     window.clearTimeout(timeout);
   }
-  if (!response.ok) throw new AuthRequestError(failure(response.status));
-  return readAccount(response);
 }
+
+async function postAccount(path: "register" | "login", body: unknown): Promise<Account> {
+  return withPostTimeout(async (signal) => {
+    const response = await fetch("/api/v1/auth/" + path, {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      signal,
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new AuthRequestError(failure(response.status));
+    return readAccount(response);
+  });
+}
+
 export function registerAccount(displayName: string, email: string, password: string) {
   return postAccount("register", { displayName, email, password });
 }
 export function signIn(email: string, password: string) {
   return postAccount("login", { email, password });
 }
+
 export async function signOut(): Promise<void> {
-  let response: Response;
-  try {
-    response = await fetch("/api/v1/auth/logout", {
-      method: "POST", credentials: "same-origin", cache: "no-store",
+  await withPostTimeout(async (signal) => {
+    const response = await fetch("/api/v1/auth/logout", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      signal,
       headers: { Accept: "application/json" },
     });
-  } catch { throw new AuthRequestError("network"); }
-  if (!response.ok) throw new AuthRequestError(failure(response.status));
+    if (!response.ok) throw new AuthRequestError(failure(response.status));
+  });
 }
