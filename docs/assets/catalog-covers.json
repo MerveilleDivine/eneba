@@ -1,0 +1,167 @@
+{
+  "created": "2026-11-14",
+  "generator": "OpenAI built-in image_gen, one independent generation per game; no reference images",
+  "export": "Chromium canvas WebP, quality 0.82, high-quality resampling to 432×576; no cropping or creative editing",
+  "assets": [
+    {
+      "slug": "solar-drift",
+      "path": "web/public/images/covers/solar-drift.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 33658,
+      "sha256": "5b8286d1f4a827fc52d2ed5061e576373f8619a45eded1863b54620cd077130c",
+      "originalSha256": "ea779ca91ce8d6523aa59154c7820a72aa021fb71b329e803347a3461d26909f",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 game cover illustration for a fictional game called Solar Drift, for an unofficial marketplace demo. A single small sleek exploration spacecraft arcs past a luminous orange sun into immense indigo space, rings of stardust and a pale crescent planet, dramatic diagonal composition, rich painterly cinematic science-fiction art, fine material detail, readable silhouette at thumbnail size. Full bleed portrait artwork, focal subject in upper two thirds, darker uncluttered lower quarter for an HTML title overlay. Palette: molten gold, midnight blue, subtle violet. No text, no lettering, no logos, no brands, no watermarks, no UI, no borders, no existing franchise characters or recognisable copyrighted designs. This is finished cover art, not an abstract placeholder or mockup."
+    },
+    {
+      "slug": "the-last-outpost",
+      "path": "web/public/images/covers/the-last-outpost.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 33278,
+      "sha256": "265fbf5076fb6c1cf2875bcc067165b13ed4980e4fdd797b032d054854a4f245",
+      "originalSha256": "c0af2a28d2a0f56c0666622e1de516635ff031b37b87942663d0736e5675100b",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. The Last Outpost: a lone explorer in a rugged orange survival coat approaches a remote metal outpost on rust-red desert cliffs, immense ochre moons and a dust storm on the horizon, teal lights against copper dusk, sense of isolation and discovery."
+    },
+    {
+      "slug": "neon-circuit",
+      "path": "web/public/images/covers/neon-circuit.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 49696,
+      "sha256": "ad36146a9f2aa5c066f1e5455761e2d25fc1929fff6401cc61f836e1fb18d340",
+      "originalSha256": "a025613674eedba21abb7ca760ba9320a89cad6a7e076246b30d0b0ce46135a8",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Neon Circuit: an original low-slung futuristic racing vehicle with flowing wheel arches speeding through a rain-soaked violet neon city circuit, wet street reflections, turquoise energy trails and saturated magenta lights, dynamic low camera, thrilling speed."
+    },
+    {
+      "slug": "wild-frontier",
+      "path": "web/public/images/covers/wild-frontier.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 57352,
+      "sha256": "5db73c300d1c821d904d7ebc075d11a194abbc020b525207698d71fb336ddcbf",
+      "originalSha256": "e7a7f11411aeb1a81a1d96fa07ce18abf07882c94f1d8deda9000ec9ebf1ecae",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Wild Frontier: a small backpacked ranger and a wild red fox on a pine-covered ridge overlooking a vast sunlit river valley and layered mountains, lush emerald foliage, warm golden sunrise, adventurous whimsical world, no weapons."
+    },
+    {
+      "slug": "echoes-of-orion",
+      "path": "web/public/images/covers/echoes-of-orion.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 39702,
+      "sha256": "2316e68fb54207cf5dcd2545154b71f23e584f62ec30aac8e4e3b3985f0acdf1",
+      "originalSha256": "09d2914df6cffd6c005fe839f9a421f16e83ba0e5a1a327df4e05a7a387df6db",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Echoes of Orion: a tiny astronaut standing beneath immense ancient orbital arches on a violet alien moon, glowing blue nebula beyond, luminous crystalline ruins and drifting cosmic dust, contemplative exploration, scale and mystery."
+    },
+    {
+      "slug": "ironbound",
+      "path": "web/public/images/covers/ironbound.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 37054,
+      "sha256": "7b751d6882ec9f7f880da20851ac18b2140e6adbaf8a921a9ea8e11c875a6668",
+      "originalSha256": "299642a383a19c3076006930f89a8d83759e433073ec17b9478c3762b41aac3a",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Ironbound: a weathered steel-clad traveler with an original angular shield crossing a narrow basalt bridge toward an iron fortress, forge embers, stormy skies, cold steel blue and deep copper, grounded medieval fantasy, no heraldry."
+    },
+    {
+      "slug": "tides-of-aether",
+      "path": "web/public/images/covers/tides-of-aether.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 40364,
+      "sha256": "f51c16be26ade72b752d8f9379a510e9426c41bf47d8f14f96abc6f9d9e5fe3b",
+      "originalSha256": "7841cfd50c8188d9d1f8bc9715f7beb0080a2baa4dcffc4c81ac037dbc952443",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Tides of Aether: an elegant small sailing vessel travels between floating turquoise islands and waterfalls spilling into cloud seas, enormous luminous rays swimming through the sky, dreamy cyan and lavender atmosphere, fantastical painterly wonder."
+    },
+    {
+      "slug": "midnight-protocol",
+      "path": "web/public/images/covers/midnight-protocol.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 27172,
+      "sha256": "7cb3f95a8f18033b80f3f07c8288f9009cd741cff339e8fd719b78a506549375",
+      "originalSha256": "8c95990226d7a3a0bb2c3efa35f573e63e2eeb78616ad80e1d522620711a91ea",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Midnight Protocol: a lone anonymous investigator in a dark coat on a rain-wet rooftop above a midnight city, holding a small glowing amber data device, cyan-lit windows, distant drone silhouettes, noir intrigue and deep purple shadows, no weapons or written signage."
+    },
+    {
+      "slug": "pixel-odyssey",
+      "path": "web/public/images/covers/pixel-odyssey.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 42378,
+      "sha256": "60808b4666189ea57f3e62a12e00814864cfa15b54f4d0bf04222510c12bc0e3",
+      "originalSha256": "360d3c218077c17bedac22ae2ae6f42d7e200379602d333c87761e41cfd69043",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Pixel Odyssey: an original cheerful small robot adventurer with a single round cyan eye on a floating grassy cube island, a winding trail of jewel-like voxel stepping stones toward a warm peach planet, colorful handmade voxel-inspired 3D world, whimsical and inviting, no resemblance to existing characters."
+    },
+    {
+      "slug": "starfall-tactics",
+      "path": "web/public/images/covers/starfall-tactics.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 40762,
+      "sha256": "1298c428146d41fed13eeb59267c577d1fd43b6a566278853cb539cb12e9becd",
+      "originalSha256": "3bc0ee09e9113a6970a93660da5edbcaafe90a2f4a4a847165fa3b1d6f87bf50",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Starfall Tactics: aerial three-quarter view of a crystalline sci-fi command citadel on an asteroid, two tiny original scout ships and glowing strategic blue energy bridges, a meteor shower against deep burgundy space, dramatic gold starlight, intricate world art without diagrams, labels or HUD."
+    },
+    {
+      "slug": "frostline",
+      "path": "web/public/images/covers/frostline.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 43980,
+      "sha256": "3b74728f9fb5eef56089c2bd4031938d3bd20ae46708603ec4c12709943175d0",
+      "originalSha256": "683d730daf170e03e433a044501bf99614752e29afcf15656c5e97d29ccb8381",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Frostline: a lone mountaineer in a saffron expedition jacket under an immense sculpted glacier arch, windswept snow and a distant polar research light, aurora sweeping across a deep navy sky, icy cyan detail, cold grand cinematic survival landscape."
+    },
+    {
+      "slug": "beyond-the-vale",
+      "path": "web/public/images/covers/beyond-the-vale.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 41928,
+      "sha256": "c15cc9cd1a984acc82649bfe4e332aeb0e73d39862fc2c0de40ce7ead22d9826",
+      "originalSha256": "002a7cea74e018482e2c5db6b4aff1fc98cfebf904280bc52845292c36b4619b",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Beyond the Vale: a cloaked traveler with a lantern at a moss-covered stone gateway leading into an ancient misty woodland, luminous silver deer in the distance, soft sage green, lilac fog and warm amber lantern, enchanted painterly fantasy, serene mystery."
+    },
+    {
+      "slug": "skyline-racer",
+      "path": "web/public/images/covers/skyline-racer.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 36708,
+      "sha256": "cf506d59bc38187887e14ca646c90d0493a7e7996461d44d17b7e804a34da41a",
+      "originalSha256": "a1d7f9cf9447d66aa928caa62477c7bd5298fe73fda8369f9999eeb2fd0e28ce",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Skyline Racer: an original silver and vermilion sports car leaping along an elevated highway among elegant towers at sunset, dramatic banking curve, golden glass and deep blue shadows, high-speed motion, clear vehicle silhouette, no logos or licensed car styling."
+    },
+    {
+      "slug": "emberlight",
+      "path": "web/public/images/covers/emberlight.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 45696,
+      "sha256": "1cfc97be4c35d382d1b51aa92159c0122593e0eecb53642c8b5e8b025696f882",
+      "originalSha256": "15bf37f7ca74b731c5219059ab37dad12a15bf1110ea0dcf15896e38a4d5f435",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Emberlight: a young lantern keeper in a russet cloak carrying a bright enchanted flame through the remains of an autumn forest shrine, warm floating embers and giant roots, amber and crimson foliage against deep violet twilight, comforting magical adventure, no franchise imagery."
+    },
+    {
+      "slug": "deep-signal",
+      "path": "web/public/images/covers/deep-signal.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 27118,
+      "sha256": "2ef4c2042c3ce0e60803018023c9c9d1e29e6cea813c6b470a4753a4269b2004",
+      "originalSha256": "ab4ddf03a5a93135c5467213978923864a70bd74d63bb004529d55a09c7aeddf",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Deep Signal: an isolated scientific submersible with two bright searchlights below immense dark ocean depths, an ancient circular structure emitting faint teal pulses from the seabed, towering rock columns and bioluminescent life, mysterious cinematic underwater exploration, deep ink blue and emerald."
+    },
+    {
+      "slug": "lunar-legacy",
+      "path": "web/public/images/covers/lunar-legacy.webp",
+      "width": 432,
+      "height": 576,
+      "bytes": 40058,
+      "sha256": "c94ecec544e173f76dbc3afa7567dd690d2f1e7e2d9b3dcbc0cf2d5f877e6aa2",
+      "originalSha256": "7ca0e9894046c23ad2619c411f4d309abad1363af0be6283580840431e403700",
+      "prompt": "Use case: stylized-concept. Create an original finished vertical 3:4 cover illustration for a fictional game in an unofficial marketplace demo. Rich painterly cinematic game key art with fine detail and a strong readable silhouette at thumbnail size. Full bleed portrait, subject in upper two thirds, darker uncluttered lower quarter for a separate HTML title overlay. No text, letters, logos, brands, watermarks, UI, borders, existing franchise characters or recognisable copyrighted designs. Finished bespoke cover artwork, not an abstract placeholder or mockup. Lunar Legacy: a lone silver-suited explorer on a pale lunar ridge facing an ancient crescent-shaped observatory, a huge blue-white planet rises beyond, subtle violet dust and amber beacon lights, contemplative majestic space archaeology, original architecture."
+    }
+  ]
+}

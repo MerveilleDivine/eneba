@@ -1,23 +1,7 @@
-import {
-  catalogRequestPath,
-  platforms,
-  regions,
-  type CatalogQuery,
-  type Platform,
-  type Region,
-} from "./catalog-query";
+import { catalogRequestPath, type CatalogQuery } from "./catalog-query";
+import { isProductSummary, type ProductSummary } from "../../shared/api/product-summary";
 
-export type CatalogProduct = {
-  id: string;
-  slug: string;
-  name: string;
-  edition: string;
-  platform: Platform;
-  region: Region;
-  coverUrl: string;
-  lowestPriceCents: number | null;
-  available: boolean;
-};
+export type CatalogProduct = ProductSummary;
 
 export type CatalogPageData = {
   items: CatalogProduct[];
@@ -59,35 +43,6 @@ function safeNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }
 
-function nonEmptyText(value: unknown): value is string {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-function validCoverUrl(value: unknown): value is string {
-  if (!nonEmptyText(value)) return false;
-  if (value.startsWith("/") && !value.startsWith("//") && !value.includes("\\")) return true;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" && Boolean(url.hostname) && !url.username && !url.password;
-  } catch {
-    return false;
-  }
-}
-
-function isProduct(value: unknown): value is CatalogProduct {
-  if (!record(value)) return false;
-  return (
-    ["id", "slug", "name", "edition"].every((field) => nonEmptyText(value[field])) &&
-    platforms.includes(value.platform as Platform) &&
-    regions.includes(value.region as Region) &&
-    validCoverUrl(value.coverUrl) &&
-    typeof value.available === "boolean" &&
-    (value.lowestPriceCents === null ||
-      (safeNumber(value.lowestPriceCents) && value.lowestPriceCents > 0)) &&
-    value.available === (value.lowestPriceCents !== null)
-  );
-}
-
 export function parseCatalogResponse(
   value: unknown,
   expected: Pick<CatalogQuery, "page" | "pageSize">,
@@ -95,7 +50,7 @@ export function parseCatalogResponse(
   if (
     !record(value) ||
     !Array.isArray(value.items) ||
-    !value.items.every(isProduct) ||
+    !value.items.every(isProductSummary) ||
     !safeNumber(value.total) ||
     !safeNumber(value.page) ||
     value.page < 1 ||
@@ -151,18 +106,4 @@ export async function fetchCatalog(
     throw new CatalogRequestError(error instanceof TypeError ? "network" : "unexpected");
   }
   return parseCatalogResponse(data, query);
-}
-
-const euroFormatter = new Intl.NumberFormat("en-IE", {
-  style: "currency",
-  currency: "EUR",
-});
-
-export function displayEuro(cents: number): string {
-  const euros = BigInt(cents) / 100n;
-  const fraction = String(BigInt(cents) % 100n).padStart(2, "0");
-  return euroFormatter
-    .formatToParts(euros)
-    .map((part) => (part.type === "fraction" ? fraction : part.value))
-    .join("");
 }

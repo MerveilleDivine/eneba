@@ -1,9 +1,7 @@
-export const platforms = ["steam", "xbox", "playstation", "nintendo", "other"] as const;
-export const regions = ["global", "europe", "united-states"] as const;
+import { platforms, regions, type Platform, type Region } from "../../shared/product/identity";
+export { platforms, regions };
+export type { Platform, Region };
 export const sorts = ["relevance", "name_asc", "price_asc", "price_desc"] as const;
-
-export type Platform = (typeof platforms)[number];
-export type Region = (typeof regions)[number];
 export type Sort = (typeof sorts)[number];
 
 export type CatalogQuery = {

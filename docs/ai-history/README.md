@@ -14,5 +14,5 @@ Known local credentials and recognizable secret tokens are redacted before writi
 
 Exports are snapshots. Refresh after a session ends so its final response is included. The manifest records the source message count and last included timestamp; it does not claim that an active conversation or all earlier chats are complete.
 
-Earlier blueprint-planning conversations remain to be imported from their accessible chats. Preserve exports or accessible conversation links rather than inventing missing exchanges. Raw incoming material can be placed in ignored incoming/ for review. Do not commit raw secret-bearing logs.
+**Coverage limit at 16 November 2026:** the available genuine Codex snapshot contains 89 visible entries from 12 November 13:07 UTC through 13 November 11:50 UTC. It is not the entire 12–16 November agent conversation. Later Codex sessions and earlier blueprint-planning conversations still require local original exports; their dialogue must not be invented. Preserve exports or accessible conversation links rather than inventing missing exchanges. Raw incoming material can be placed in ignored incoming/ for review. Do not commit raw secret-bearing logs.
 

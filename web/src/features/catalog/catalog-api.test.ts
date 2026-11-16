@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  CatalogRequestError,
-  displayEuro,
-  fetchCatalog,
-  parseCatalogResponse,
-} from "./catalog-api";
+import { CatalogRequestError, fetchCatalog, parseCatalogResponse } from "./catalog-api";
+import { displayEuro } from "../../shared/format/money";
 import { defaultCatalogQuery } from "./catalog-query";
 
 const query = defaultCatalogQuery();
@@ -24,6 +20,16 @@ const payload = { items: [product], total: 1, page: 1, pageSize: 12, currency: "
 afterEach(() => vi.unstubAllGlobals());
 
 describe("catalog transport boundary", () => {
+  it.each([
+    "/\n/external.example/cover.webp",
+    "/\r/external.example/cover.webp",
+    "/\t/external.example/cover.webp",
+  ])("rejects URL controls before browser normalization: %j", (coverUrl) => {
+    expect(new URL(coverUrl, "https://demo.example").origin).toBe("https://external.example");
+    expect(() =>
+      parseCatalogResponse({ ...payload, items: [{ ...product, coverUrl }] }, query),
+    ).toThrow(CatalogRequestError);
+  });
   it("accepts the complete valid server response", () => {
     expect(parseCatalogResponse(payload, query).items[0].name).toBe("Solar Drift");
     const withHttpsCover = {

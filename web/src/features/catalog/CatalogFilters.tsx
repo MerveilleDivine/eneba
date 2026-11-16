@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import {
   euroInput,
   parseEuroInput,
@@ -27,8 +27,12 @@ function priceDraftFor(query: CatalogQuery) {
 }
 
 export function CatalogFilters({ query, onChange, onClear }: Props) {
+  const [open, setOpen] = useState(false);
   const applied = priceDraftFor(query);
   const [draft, setDraft] = useState(() => applied);
+  const platformInput = useRef<HTMLSelectElement>(null);
+  const minimumInput = useRef<HTMLInputElement>(null);
+  const maximumInput = useRef<HTMLInputElement>(null);
 
   // Preserve unsubmitted edits across unrelated filters, but restore the URL's
   // prices when the applied range changes (including Back/Forward).
@@ -49,6 +53,8 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
         ...previous,
         error: "Enter valid euro prices, with the minimum no higher than the maximum.",
       }));
+      const focusTarget = maximum === null && minimum !== null ? maximumInput : minimumInput;
+      focusTarget.current?.focus();
       return;
     }
     setDraft((previous) => ({ ...previous, error: "" }));
@@ -60,7 +66,21 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
   function clearFilters() {
     setDraft({ ...applied, min: "", max: "", error: "" });
     onClear();
+    platformInput.current?.focus();
   }
+
+  // Describe only the fields that actually need correcting. A reversed range
+  // involves both endpoints; malformed text in one input does not invalidate the other.
+  const minimum = parseEuroInput(draft.min);
+  const maximum = parseEuroInput(draft.max);
+  const reversedRange =
+    minimum !== null &&
+    minimum !== undefined &&
+    maximum !== null &&
+    maximum !== undefined &&
+    minimum > maximum;
+  const invalidMinimum = Boolean(draft.error) && (minimum === null || reversedRange);
+  const invalidMaximum = Boolean(draft.error) && (maximum === null || reversedRange);
 
   const hasFilters = Boolean(
     query.platform ||
@@ -71,90 +91,115 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
   );
   return (
     <aside className={styles.sidebar} aria-label="Catalog filters">
-      <div className={styles.filterHeading}>
-        <h2>Filters</h2>
-        {hasFilters && (
-          <button type="button" className={styles.clear} onClick={clearFilters}>
-            Clear all
-          </button>
-        )}
-      </div>
-      <div className={styles.filterFields}>
-        <label className={styles.field}>
-          <span>Platform</span>
-          <select
-            value={query.platform}
-            onChange={(event) =>
-              onChange({
-                ...query,
-                platform: event.target.value as CatalogQuery["platform"],
-                page: 1,
-              })
-            }
-          >
-            <option value="">All platforms</option>
-            {platforms.map((platform) => (
-              <option key={platform} value={platform}>
-                {platformLabels[platform]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.field}>
-          <span>Region</span>
-          <select
-            value={query.region}
-            onChange={(event) =>
-              onChange({ ...query, region: event.target.value as CatalogQuery["region"], page: 1 })
-            }
-          >
-            <option value="">All regions</option>
-            {regions.map((region) => (
-              <option key={region} value={region}>
-                {regionLabels[region]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <form onSubmit={submitPrice} className={styles.priceForm}>
-          <fieldset>
-            <legend>Price range (€)</legend>
-            <div className={styles.priceRow}>
-              <label className={styles.field}>
-                <span>Min</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={draft.min}
-                  onChange={(event) =>
-                    setDraft((previous) => ({ ...previous, min: event.target.value, error: "" }))
-                  }
-                  placeholder="0.00"
-                />
-              </label>
-              <label className={styles.field}>
-                <span>Max</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={draft.max}
-                  onChange={(event) =>
-                    setDraft((previous) => ({ ...previous, max: event.target.value, error: "" }))
-                  }
-                  placeholder="Any"
-                />
-              </label>
-            </div>
-            {draft.error && (
-              <p role="alert" className={styles.fieldError}>
-                {draft.error}
-              </p>
-            )}
-            <button type="submit" className={styles.applyButton}>
-              Apply price
+      <button
+        className={styles.mobileToggle}
+        type="button"
+        aria-expanded={open}
+        aria-controls="catalog-filter-panel"
+        onClick={() => setOpen((value) => !value)}
+      >
+        Filters <span aria-hidden="true">{open ? "−" : "+"}</span>
+      </button>
+      <div
+        id="catalog-filter-panel"
+        className={`${styles.filterPanel} ${open ? styles.filterPanelOpen : ""}`}
+      >
+        <div className={styles.filterHeading}>
+          <h2>Filters</h2>
+          {hasFilters && (
+            <button type="button" className={styles.clear} onClick={clearFilters}>
+              Clear all
             </button>
-          </fieldset>
-        </form>
+          )}
+        </div>
+        <div className={styles.filterFields}>
+          <label className={styles.field}>
+            <span>Platform</span>
+            <select
+              ref={platformInput}
+              value={query.platform}
+              onChange={(event) =>
+                onChange({
+                  ...query,
+                  platform: event.target.value as CatalogQuery["platform"],
+                  page: 1,
+                })
+              }
+            >
+              <option value="">All platforms</option>
+              {platforms.map((platform) => (
+                <option key={platform} value={platform}>
+                  {platformLabels[platform]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={styles.field}>
+            <span>Region</span>
+            <select
+              value={query.region}
+              onChange={(event) =>
+                onChange({
+                  ...query,
+                  region: event.target.value as CatalogQuery["region"],
+                  page: 1,
+                })
+              }
+            >
+              <option value="">All regions</option>
+              {regions.map((region) => (
+                <option key={region} value={region}>
+                  {regionLabels[region]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <form onSubmit={submitPrice} className={styles.priceForm}>
+            <fieldset>
+              <legend>Price range (€)</legend>
+              <div className={styles.priceRow}>
+                <label className={styles.field}>
+                  <span>Min</span>
+                  <input
+                    ref={minimumInput}
+                    aria-invalid={invalidMinimum || undefined}
+                    aria-describedby={invalidMinimum ? "catalog-price-error" : undefined}
+                    type="text"
+                    inputMode="decimal"
+                    value={draft.min}
+                    onChange={(event) =>
+                      setDraft((previous) => ({ ...previous, min: event.target.value, error: "" }))
+                    }
+                    placeholder="0.00"
+                  />
+                </label>
+                <label className={styles.field}>
+                  <span>Max</span>
+                  <input
+                    ref={maximumInput}
+                    aria-invalid={invalidMaximum || undefined}
+                    aria-describedby={invalidMaximum ? "catalog-price-error" : undefined}
+                    type="text"
+                    inputMode="decimal"
+                    value={draft.max}
+                    onChange={(event) =>
+                      setDraft((previous) => ({ ...previous, max: event.target.value, error: "" }))
+                    }
+                    placeholder="Any"
+                  />
+                </label>
+              </div>
+              {draft.error && (
+                <p id="catalog-price-error" role="alert" className={styles.fieldError}>
+                  {draft.error}
+                </p>
+              )}
+              <button type="submit" className={styles.applyButton}>
+                Apply price
+              </button>
+            </fieldset>
+          </form>
+        </div>
       </div>
     </aside>
   );

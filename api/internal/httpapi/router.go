@@ -52,7 +52,9 @@ func WriteJSON(w http.ResponseWriter, code int, value any) {
 		body = []byte(`{"error":{"code":"internal_error","message":"The service could not complete the request."}}`)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Cache-Control", "no-store")
+	if w.Header().Get("Cache-Control") == "" {
+		w.Header().Set("Cache-Control", "no-store")
+	}
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)
 	_, _ = w.Write(append(body, '\n'))

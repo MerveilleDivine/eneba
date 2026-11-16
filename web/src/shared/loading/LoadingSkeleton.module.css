@@ -1,0 +1,71 @@
+.loading {
+  padding: clamp(1rem, 3vw, 1.6rem);
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.body {
+  display: flex;
+  min-width: 0;
+  gap: clamp(1rem, 3vw, 2rem);
+}
+.details {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 1rem;
+}
+.bar,
+.cover {
+  display: block;
+  border-radius: 0.3rem;
+  background: linear-gradient(105deg, #33205c 10%, #634492 50%, #33205c 90%);
+  background-size: 220% 100%;
+  animation: loadingSweep 1.6s ease-in-out infinite;
+}
+.bar {
+  height: 1rem;
+}
+.wide { width: 93%; height: 1.25rem; }
+.medium { width: 67%; }
+.narrow { width: 40%; }
+.divider {
+  display: block;
+  height: 1px;
+  background: var(--color-border);
+  margin-block: 0.3rem;
+}
+.cover {
+  width: min(38%, 15rem);
+  aspect-ratio: 3 / 4;
+  flex-shrink: 0;
+}
+.orders .body, .receipt .body { min-height: 7.5rem; }
+.product .body { min-height: 17rem; }
+.quote .body { min-height: 8rem; }
+.account .body { min-height: 3rem; }
+@keyframes loadingSweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (max-width: 36rem) {
+  .product .body { flex-direction: column; }
+  .cover { width: min(65%, 12rem); }
+  .loading { padding: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar, .cover { animation: none; }
+}

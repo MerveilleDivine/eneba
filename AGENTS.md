@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Implement and review one coherent checkpoint at a time within each slice. Foundation, the catalog API, and Slice 2 catalog frontend have verified CI evidence; public deployment and manual visual acceptance remain pending. A passing CI run alone does not authorize advancement or merging; require explicit user approval for each merge. Stop after each checkpoint's findings, changes, and verification have been reported. The archived master prompt does not override this agreement.
+The user authorized the final submission sprint: owner-only orders and key delivery, a storefront refresh, focused maintenance, complete verification, and deployment to the existing Vercel/Render/Neon services. Continue on `feature/slice-2-catalog`. Preserve transactional guarantees and existing work. Do not merge main, create another branch, rewrite history, use paid infrastructure, send the submission email, or change repository visibility without explicit approval. Commit the reviewed authentic conversation archive only after the application is complete. GitHub Actions remains pending by user choice; report off-Actions, local and hosted evidence separately.
 
 ## Boundaries
 
@@ -19,7 +19,18 @@ Implement and review one coherent checkpoint at a time within each slice. Founda
 
 ## Evidence and workflow
 
-Before each checkpoint, state its behavior, affected modules, architectural boundaries, and acceptance checks. Run relevant formatting, lint/type checks, unit/integration tests, and builds. Correct failed checks before leaving the checkpoint. Report tested, manually checked, and pending evidence separately; explicitly identify architectural risks that remain. Commit coherent verified checkpoints and stop for review, even when CI passes.
+Before each checkpoint, state its behavior, affected modules, architectural boundaries, and acceptance checks. Run relevant formatting, lint/type checks, unit/integration tests, and builds. Correct failed checks before leaving the checkpoint. Report tested, visually reviewed, and pending evidence separately; explicitly identify architectural risks that remain. Commit coherent verified checkpoints. A passing CI run alone never authorizes a merge or work beyond the user's current scope.
+
+## Git history and checkpoint discipline
+
+- Keep the currently authorized feature branch; do not make extra branches or merge into main without approval.
+- Make changes in a local worktree or a single staged patch when possible. **Run formatting and focused tests before committing**; run the full required CI on the exact final checkpoint commit. Enable the versioned `.githooks/pre-commit` with `npm run hooks:install` in local checkouts so `npm run verify` blocks unverified commits. The hook refuses unstaged tracked changes so the verified worktree matches the staged tracked files. Remote Git API commits bypass local hooks and require explicit final CI verification.
+- Commit a **coherent, reviewable milestone**, not individual file saves. Prefer one commit for a completed checkpoint, with a small follow-up only if its independently verified fix warrants separate review.
+- Do not commit temporary CI/formatter diagnostic scripts, speculative experiments, or intermediate debugging churn. Keep these in the worktree and consolidate any necessary fixes before the checkpoint is marked complete.
+- A commit message describes a delivered behavior or verified architectural decision; record test evidence in the PR/verification notes, not dozens of near-duplicate commits.
+- Do not force-push, squash published shared history, or change the PR's base without explicit authorization. Any approved rewrite must verify the exact content tree and preserve an identified rollback SHA.
+- Conversation-transcript exports are **deferred until the final employer submission checkpoint**. Do not commit partial chat exports or manifests during feature development. At submission, audit completeness and redact private information before tracking any transcript.
+- **Privacy release gate:** the old `docs/ai-history` archive remains in the private `main` tree and historical commits. Do not make the repository public, merge, or rewrite history without explicit approval and a careful transcript/privacy audit.
 
 ## Local data
 
@@ -27,4 +38,4 @@ Never print or commit credentials, .env files, administrator access, session tok
 
 ## Sources
 
-The PDF in docs/reference/blueprint-v3.2/reference defines employer requirements. Other archived documents are design context. Active README and docs/decisions.md describe adopted implementation choices. Preserve complete user prompts and visible assistant responses; never fabricate missing history or export hidden model instructions/reasoning.
+The PDF in docs/reference/blueprint-v3.2/reference defines employer requirements. Other archived documents are design context. Active README and docs/decisions.md describe adopted implementation choices. At the final submission checkpoint, preserve complete user prompts and visible assistant responses; do not invent missing history, expose private information, or export hidden model instructions/reasoning.

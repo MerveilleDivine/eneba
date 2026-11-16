@@ -12,8 +12,9 @@ func TestLoad(t *testing.T) {
 		ok   bool
 	}{
 		{"defaults", map[string]string{"DATABASE_URL": "postgres://app:private@localhost/eneba_dev"}, true},
-		{"production", map[string]string{"APP_ENV": "production", "PORT": "10000", "DATABASE_URL": "postgresql://app:private@localhost/eneba_dev"}, true},
+		{"production", map[string]string{"APP_ENV": "production", "APP_ORIGIN": "https://marketplace.example", "PORT": "10000", "DATABASE_URL": "postgresql://app:private@localhost/eneba_dev"}, true},
 		{"missing database", map[string]string{}, false},
+		{"production without HTTPS origin", map[string]string{"APP_ENV": "production", "DATABASE_URL": "postgres://app:private@localhost/eneba_dev", "APP_ORIGIN": "http://marketplace.example"}, false},
 		{"invalid port", map[string]string{"PORT": "0", "DATABASE_URL": "postgres://app:private@localhost/eneba_dev"}, false},
 		{"invalid environment", map[string]string{"APP_ENV": "prod", "DATABASE_URL": "postgres://app:private@localhost/eneba_dev"}, false},
 		{"wrong scheme", map[string]string{"DATABASE_URL": "https://app:private@localhost/eneba_dev"}, false},

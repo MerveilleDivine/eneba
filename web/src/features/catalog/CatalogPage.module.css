@@ -1,11 +1,11 @@
 .catalogPage {
-  width: min(100% - 3rem, 1440px);
+  width: min(100% - 3rem, var(--content-width));
   margin: 0 auto;
   padding-bottom: 5rem;
 }
 
 .intro {
-  padding: clamp(2.5rem, 5vw, 4rem) 0;
+  padding: 1.75rem 0;
   border-bottom: 1px solid var(--color-border);
   background: radial-gradient(ellipse at 80% 45%, #55318d33, transparent 60%);
 }
@@ -21,7 +21,7 @@
 
 .intro h1 {
   margin: 0.6rem 0;
-  font-size: clamp(2.6rem, 5vw, 4.8rem);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
   letter-spacing: -0.065em;
   line-height: 1.05;
 }
@@ -35,8 +35,8 @@
 
 .browseLayout {
   display: grid;
-  grid-template-columns: minmax(205px, 248px) minmax(0, 1fr);
-  gap: clamp(1.5rem, 3vw, 3.2rem);
+  grid-template-columns: minmax(12rem, 14rem) minmax(0, 1fr);
+  gap: 1.5rem;
   align-items: start;
   padding-top: 2rem;
 }
@@ -46,7 +46,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.3rem;
 }
 
 .resultsToolbar h2 {
@@ -59,15 +59,16 @@
 }
 
 .count {
-  margin: 0.3rem 0 0;
+  margin: 0 0 1.5rem;
   color: var(--color-muted);
   font-size: 0.86rem;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(0.8rem, 1.7vw, 1.5rem);
+  /* Let enlarged text reduce the column count before card content is clipped. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(9rem, 22vw, 11rem)), 1fr));
+  gap: 0.85rem;
 }
 
 .feedback {
@@ -120,10 +121,13 @@
   background: linear-gradient(115deg, #2a1a46, #3c285b, #2a1a46);
   border-radius: 0.8rem;
   opacity: 0.8;
+  background-size: 220% 100%;
+  animation: skeletonSweep 1.6s ease-in-out infinite;
 }
 
 .pagination {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 1rem;
@@ -148,31 +152,19 @@
   opacity: 0.4;
 }
 
-@media (max-width: 1160px) {
-  .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 860px) {
   .browseLayout {
     grid-template-columns: 1fr;
-  }
-  .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 610px) {
   .catalogPage {
-    width: min(100% - 2rem, 1440px);
+    width: min(100% - 2rem, var(--content-width));
   }
   .resultsToolbar {
     align-items: flex-start;
     flex-wrap: wrap;
-  }
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .pagination {
     gap: 0.55rem;
@@ -180,7 +172,19 @@
 }
 
 @media (max-width: 380px) {
+  .intro h1 {
+    /* Preserve whole words at the minimum supported width with enlarged text. */
+    font-size: clamp(2rem, 5vw, 2.6rem);
+  }
   .grid {
     gap: 0.65rem;
   }
+}
+
+@keyframes skeletonSweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
 }

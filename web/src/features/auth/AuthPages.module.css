@@ -1,0 +1,107 @@
+.shell {
+  width: min(100% - 2rem, 560px);
+  margin: clamp(2rem, 7vw, 6rem) auto;
+  padding-bottom: 3rem;
+}
+.panel {
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+.kicker {
+  color: var(--color-purple);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+  letter-spacing: 0.07em;
+}
+.panel h1 {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  line-height: 1.15;
+  margin: 0.55rem 0 1rem;
+}
+.description,
+.hint,
+.alternate {
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+.form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.field {
+  display: grid;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+.field input {
+  background: var(--color-background);
+  border: 1px solid var(--color-control-border);
+  color: var(--color-text);
+  padding: 0.9rem 0.85rem;
+  border-radius: 0.55rem;
+  width: 100%;
+  min-width: 0;
+}
+.field input:focus-visible {
+  outline-offset: 3px;
+}
+.hint {
+  margin: 0;
+  font-size: 0.88rem;
+}
+.submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: var(--color-accent);
+  color: var(--color-background);
+  border-radius: 0.55rem;
+  padding: 0.9rem 1.25rem;
+  text-align: center;
+  text-decoration: none;
+  font: inherit;
+  font-weight: 800;
+  max-width: 100%;
+}
+.submit:disabled {
+  opacity: 0.75;
+}
+.error {
+  color: #ffd0de;
+  background: #6a2348;
+  border: 1px solid #f4a2bf;
+  padding: 0.8rem;
+  border-radius: 0.5rem;
+}
+.alternate a,
+.back {
+  color: var(--color-accent);
+  text-underline-offset: 0.25rem;
+}
+.back {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-weight: 700;
+}
+.facts {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.facts div {
+  display: grid;
+  gap: 0.25rem;
+}
+.facts dt {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

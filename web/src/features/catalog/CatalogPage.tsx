@@ -1,13 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useRef, useState, type MouseEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { CatalogFilters, CatalogSort } from "./CatalogFilters";
-import { ProductCard } from "./ProductCard";
-import {
-  CatalogRequestError,
-  fetchCatalog,
-  type CatalogFailureKind,
-  type CatalogPageData,
-} from "./catalog-api";
+import { ProductCard } from "../../shared/product/ProductCard";
+import { useReadRequest } from "../../shared/api/use-read-request";
+import { CatalogRequestError, fetchCatalog, type CatalogFailureKind } from "./catalog-api";
 import {
   catalogHref,
   catalogRequestPath,
@@ -16,11 +12,6 @@ import {
   type CatalogQuery,
 } from "./catalog-query";
 import styles from "./CatalogPage.module.css";
-
-type RequestState =
-  | { status: "loading" }
-  | { status: "ready"; data: CatalogPageData }
-  | { status: "failed"; kind: CatalogFailureKind };
 
 const failureMessages: Record<CatalogFailureKind, { title: string; description: string }> = {
   invalid: {
@@ -47,46 +38,19 @@ const failureMessages: Record<CatalogFailureKind, { title: string; description: 
 
 type ResultsProps = {
   query: CatalogQuery;
-  onChange: (next: CatalogQuery) => void;
+  onAction: (event?: MouseEvent<HTMLAnchorElement>) => void;
 };
 
-function CatalogResults({ query, onChange }: ResultsProps) {
+function CatalogResults({ query, onAction }: ResultsProps) {
   // The parent key changes whenever the canonical request changes.
   // Keep this query stable when only the URL spelling changes.
   const [requestQuery] = useState(query);
-  const [request, setRequest] = useState<RequestState>({ status: "loading" });
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let current = true;
-    let timedOut = false;
-    // Own the deadline here. Some transports ignore abort, so the timeout
-    // must remain visible and late responses must never replace it.
-    const timeout = window.setTimeout(() => {
-      if (!current) return;
-      timedOut = true;
-      controller.abort();
-      setRequest({ status: "failed", kind: "timeout" });
-    }, 6000);
-    void fetchCatalog(requestQuery, controller.signal)
-      .then((data) => {
-        if (current && !timedOut) setRequest({ status: "ready", data });
-      })
-      .catch((error: unknown) => {
-        if (!current || timedOut) return;
-        setRequest({
-          status: "failed",
-          kind: error instanceof CatalogRequestError ? error.kind : "unexpected",
-        });
-      })
-      .finally(() => window.clearTimeout(timeout));
-    return () => {
-      current = false;
-      controller.abort();
-      window.clearTimeout(timeout);
-    };
-  }, [requestQuery, attempt]);
+  const { state: request, retry } = useReadRequest({
+    read: (signal) => fetchCatalog(requestQuery, signal),
+    failure: (error): CatalogFailureKind =>
+      error instanceof CatalogRequestError ? error.kind : "unexpected",
+    timeout: "timeout" as CatalogFailureKind,
+  });
 
   const result = request.status === "ready" ? request.data : null;
   const pages = result ? Math.ceil(result.total / result.pageSize) : 0;
@@ -97,16 +61,10 @@ function CatalogResults({ query, onChange }: ResultsProps) {
     request.status === "failed" && request.kind === "invalid" && catalogHref(query) !== "/catalog";
 
   return (
-    <section className={styles.results} aria-label="Game results">
-      <div className={styles.resultsToolbar}>
-        <div>
-          <h2>Browse games</h2>
-          <p aria-live="polite" aria-atomic="true" className={styles.count}>
-            {result ? result.total + (result.total === 1 ? " game" : " games") : "Discover games"}
-          </p>
-        </div>
-        <CatalogSort query={query} onChange={onChange} />
-      </div>
+    <div>
+      <p aria-live="polite" aria-atomic="true" className={styles.count}>
+        {result ? result.total + (result.total === 1 ? " game" : " games") : "Discover games"}
+      </p>
       {request.status === "loading" && (
         <div role="status" className={styles.loadingArea}>
           <p>Loading games…</p>
@@ -134,14 +92,14 @@ function CatalogResults({ query, onChange }: ResultsProps) {
               type="button"
               className={styles.primaryButton}
               onClick={() => {
-                setRequest({ status: "loading" });
-                setAttempt((value) => value + 1);
+                onAction();
+                retry();
               }}
             >
               Try again
             </button>
             {canReset && (
-              <Link className={styles.primaryLink} to="/catalog">
+              <Link className={styles.primaryLink} to="/catalog" onClick={onAction}>
                 Reset filters
               </Link>
             )}
@@ -158,6 +116,7 @@ function CatalogResults({ query, onChange }: ResultsProps) {
           </p>
           <Link
             className={styles.primaryLink}
+            onClick={onAction}
             to={query.page > 1 ? catalogHref({ ...query, page: 1 }) : "/catalog"}
           >
             {query.page > 1 ? "First page" : "Clear filters"}
@@ -174,7 +133,9 @@ function CatalogResults({ query, onChange }: ResultsProps) {
       {result && pages > 1 && (
         <nav aria-label="Catalog pages" className={styles.pagination}>
           {showPrevious ? (
-            <Link to={catalogHref({ ...query, page: query.page - 1 })}>Previous</Link>
+            <Link to={catalogHref({ ...query, page: query.page - 1 })} onClick={onAction}>
+              Previous
+            </Link>
           ) : (
             <span aria-disabled="true">Previous</span>
           )}
@@ -182,23 +143,41 @@ function CatalogResults({ query, onChange }: ResultsProps) {
             Page {query.page} of {pages}
           </span>
           {showNext ? (
-            <Link to={catalogHref({ ...query, page: query.page + 1 })}>Next</Link>
+            <Link to={catalogHref({ ...query, page: query.page + 1 })} onClick={onAction}>
+              Next
+            </Link>
           ) : (
             <span aria-disabled="true">Next</span>
           )}
         </nav>
       )}
-    </section>
+    </div>
   );
 }
 
 export function CatalogPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const resultsHeading = useRef<HTMLHeadingElement>(null);
   const parsed = useMemo(() => parseCatalogSearch(location.search), [location.search]);
 
   function changeQuery(query: CatalogQuery) {
     navigate(catalogHref(query));
+  }
+
+  function focusResults(event?: MouseEvent<HTMLAnchorElement>) {
+    // A modified link opens another tab/window; leave this page's focus alone.
+    if (
+      event &&
+      (event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey)
+    )
+      return;
+    resultsHeading.current?.focus();
   }
 
   const query = parsed.ok ? parsed.query : defaultCatalogQuery();
@@ -208,10 +187,7 @@ export function CatalogPage() {
       <section className={styles.intro} aria-labelledby="catalog-title">
         <p className={styles.eyebrow}>Find your next adventure</p>
         <h1 id="catalog-title">Explore games</h1>
-        <p>
-          Find a world worth getting lost in. Explore fictional demo titles across your favorite
-          platforms.
-        </p>
+        <p>Explore new worlds, compare editions and find games for your favorite platforms.</p>
       </section>
       {!parsed.ok ? (
         <section className={styles.feedback} role="alert">
@@ -228,7 +204,15 @@ export function CatalogPage() {
             onChange={changeQuery}
             onClear={() => navigate("/catalog")}
           />
-          <CatalogResults key={catalogRequestPath(query)} query={query} onChange={changeQuery} />
+          <section className={styles.results} aria-label="Game results">
+            <div className={styles.resultsToolbar}>
+              <h2 ref={resultsHeading} tabIndex={-1}>
+                Browse games
+              </h2>
+              <CatalogSort query={query} onChange={changeQuery} />
+            </div>
+            <CatalogResults key={catalogRequestPath(query)} query={query} onAction={focusResults} />
+          </section>
         </div>
       )}
     </div>

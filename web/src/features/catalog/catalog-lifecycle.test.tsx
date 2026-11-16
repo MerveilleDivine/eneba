@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Link, MemoryRouter } from "react-router";
@@ -45,6 +45,21 @@ afterEach(() => {
 });
 
 describe("catalog request lifecycle under competing results", () => {
+  it("keeps keyboard focus on sorting while its request changes", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(() => Promise.resolve(responseFor(steam))),
+    );
+    renderCatalog();
+    await screen.findByRole("heading", { name: "Solar Drift" });
+    const sort = screen.getByLabelText("Sort by");
+    sort.focus();
+    await userEvent.selectOptions(sort, "price_desc");
+    expect(screen.getByLabelText("Sort by")).toHaveFocus();
+    await screen.findByRole("heading", { name: "Solar Drift" });
+    expect(screen.getByLabelText("Sort by")).toHaveFocus();
+  });
+
   it("keeps an in-flight request when navigating between equivalent catalog URLs", async () => {
     let finish!: (response: Response) => void;
     const pending = new Promise<Response>((resolve) => {
@@ -116,7 +131,7 @@ describe("catalog request lifecycle under competing results", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("keeps a retry pending when its timed-out predecessor succeeds late", async () => {
+  it("keeps a silent retry pending when a timed-out predecessor succeeds late", async () => {
     vi.useFakeTimers();
     let finishOld!: (response: Response) => void;
     let finishRetry!: (response: Response) => void;
@@ -131,11 +146,11 @@ describe("catalog request lifecycle under competing results", () => {
     renderCatalog();
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(6000);
+      await vi.advanceTimersByTimeAsync(26_200);
     });
-    expect(screen.getByRole("alert")).toHaveTextContent("took too long");
-    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(screen.getByRole("status")).toHaveTextContent("Loading games");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
 
     await act(async () => {
       finishOld(responseFor(xbox));
@@ -149,7 +164,6 @@ describe("catalog request lifecycle under competing results", () => {
       await Promise.resolve();
     });
     expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("ignores a rejected old request after a newer filter result succeeds", async () => {
@@ -216,7 +230,7 @@ describe("catalog request lifecycle under competing results", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it("ignores a timed-out request after retry starts", async () => {
+  it("ignores an aborted network error after automatic retry starts", async () => {
     vi.useFakeTimers();
     let rejectOld!: (reason: Error) => void;
     let resolveRetry!: (response: Response) => void;
@@ -234,11 +248,8 @@ describe("catalog request lifecycle under competing results", () => {
     renderCatalog();
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(6000);
+      await vi.advanceTimersByTimeAsync(26_200);
     });
-    expect(screen.getByRole("alert")).toHaveTextContent("took too long");
-
-    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(screen.getByRole("status")).toHaveTextContent("Loading games");
     await act(async () => {
       rejectOld(new TypeError("private stale connection"));
@@ -271,7 +282,7 @@ describe("catalog request lifecycle under competing results", () => {
     });
     expect(parse).toHaveBeenCalledOnce();
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(6000);
+      await vi.advanceTimersByTimeAsync(90_000);
     });
     expect(screen.getByRole("alert")).toHaveTextContent("took too long");
 
@@ -294,7 +305,7 @@ describe("catalog request lifecycle under competing results", () => {
     expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(6000);
+      await vi.advanceTimersByTimeAsync(90_000);
     });
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();

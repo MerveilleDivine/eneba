@@ -25,6 +25,7 @@ func NewHandler(service *Service, logger *slog.Logger) *Handler {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	httpapi.HandleGET(mux, "/api/v1/products", h.list)
+	httpapi.HandleGET(mux, "/api/v1/products/{slug}", h.product)
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
@@ -39,8 +40,20 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 		httpapi.WriteJSON(w, http.StatusOK, page)
 		return
 	}
+	h.writeReadError(ctx, w, err)
+}
+
+func (h *Handler) writeReadError(ctx context.Context, w http.ResponseWriter, err error) {
 	if errors.Is(err, ErrInvalidQuery) {
 		httpapi.WriteError(w, http.StatusBadRequest, "invalid_query", err.Error())
+		return
+	}
+	if errors.Is(err, ErrInvalidProductSlug) {
+		httpapi.WriteError(w, http.StatusBadRequest, "invalid_product", "This product link is invalid.")
+		return
+	}
+	if errors.Is(err, ErrProductNotFound) {
+		httpapi.WriteError(w, http.StatusNotFound, "product_not_found", "This product is not available in the catalog.")
 		return
 	}
 	requestID := w.Header().Get("X-Request-ID")
@@ -75,12 +88,12 @@ func parseFilter(rawQuery string) (Filter, error) {
 		case "sort":
 			filter.Sort = value
 		case "page":
-			filter.Page, parseError = strconv.ParseInt(value, 10, 64)
+			filter.Page, parseError = parseCatalogInteger(value)
 		case "pageSize":
-			filter.PageSize, parseError = strconv.ParseInt(value, 10, 64)
+			filter.PageSize, parseError = parseCatalogInteger(value)
 		case "minPriceCents", "maxPriceCents":
 			var amount int64
-			amount, parseError = strconv.ParseInt(value, 10, 64)
+			amount, parseError = parseCatalogInteger(value)
 			if key == "minPriceCents" {
 				filter.MinPriceCents = &amount
 			} else {
@@ -94,4 +107,11 @@ func parseFilter(rawQuery string) (Filter, error) {
 		}
 	}
 	return filter, nil
+}
+
+// Browser URLs and API queries share unsigned decimal spelling. ParseUint
+// rejects signs (including -0) without a second promotional-link parser.
+func parseCatalogInteger(value string) (int64, error) {
+	amount, err := strconv.ParseUint(value, 10, 63)
+	return int64(amount), err
 }

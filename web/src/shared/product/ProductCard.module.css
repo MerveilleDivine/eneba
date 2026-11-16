@@ -1,0 +1,202 @@
+.productCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  overflow: hidden;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.productCard:focus-within {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.link:focus-visible {
+  outline: none;
+}
+
+.productCard:hover {
+  border-color: #b89aff7a;
+  transform: none;
+}
+
+.cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: linear-gradient(145deg, #512989, #2e1957 45%, #170d30);
+}
+
+.cover[data-variation="1"] {
+  background: linear-gradient(145deg, #2d487e, #281c55 45%, #160d31);
+}
+
+.cover[data-variation="2"] {
+  background: linear-gradient(145deg, #694064, #391c53 45%, #160d31);
+}
+
+.cover[data-variation="3"] {
+  background: linear-gradient(145deg, #1f5266, #30235a 45%, #160d31);
+}
+
+.cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+}
+
+.coverText {
+  position: relative;
+  z-index: 1;
+  padding: 0.8rem 0.85rem 1rem;
+  width: 100%;
+  background: linear-gradient(transparent, #0f0928c9 35%, #0f0928e6);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.coverEdition {
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  font-weight: 800;
+}
+
+.coverTitle {
+  font-size: clamp(1.1rem, 1.9vw, 1.85rem);
+  font-weight: 850;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
+}
+
+.soldOutBadge {
+  position: absolute;
+  z-index: 2;
+  right: 0.55rem;
+  top: 0.55rem;
+  border-radius: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  background: #191021ed;
+  color: #fff;
+  border: 1px solid #ffffff40;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0.8rem 0.75rem 1rem;
+}
+
+.productInfo h3 {
+  margin: 0;
+  font-size: 0.97rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.productEdition {
+  margin: 0.3rem 0 0.75rem;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.productBadges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.productBadges span {
+  border: 1px solid #d7c0f43d;
+  border-radius: 0.3rem;
+  padding: 0.25rem 0.35rem;
+  color: #ddd1ee;
+  font-size: 0.69rem;
+  line-height: 1.2;
+}
+
+.productPrice {
+  margin-top: auto;
+  padding-top: 1rem;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.productPrice span {
+  color: var(--color-muted);
+  font-size: 0.76rem;
+}
+
+.productPrice strong {
+  font-size: 1.4rem;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.soldOutPrice {
+  margin: auto 0 0;
+  padding-top: 1rem;
+  min-height: 2.2rem;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 610px) {
+  .coverTitle {
+    font-size: clamp(1rem, 4.6vw, 1.5rem);
+  }
+}
+
+@media (max-width: 380px) {
+  .productInfo {
+    padding: 0.7rem 0.55rem 0.85rem;
+  }
+  .productInfo h3 {
+    font-size: 0.88rem;
+  }
+  .productBadges span {
+    font-size: 0.63rem;
+  }
+  .productPrice strong {
+    font-size: 1.12rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .productCard {
+    transition: none;
+  }
+  .productCard:hover {
+    transform: none;
+  }
+}
+
+.compact .cover {
+  aspect-ratio: 4 / 3;
+}

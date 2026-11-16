@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Original fantasy portal world">
+  <defs>
+    <linearGradient id="sky" x2=".86" y2="1">
+      <stop stop-color="#100623"/>
+      <stop offset=".47" stop-color="#2a1054"/>
+      <stop offset="1" stop-color="#683e9c"/>
+    </linearGradient>
+    <radialGradient id="nebula" cx=".72" cy=".42" r=".7">
+      <stop stop-color="#d6a9ff" stop-opacity=".72"/>
+      <stop offset=".37" stop-color="#9443ed" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#6e28b5" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="portal" cx=".5" cy=".49" r=".58">
+      <stop stop-color="#fdf3e5"/>
+      <stop offset=".28" stop-color="#d7dcff"/>
+      <stop offset=".68" stop-color="#78b6d6"/>
+      <stop offset="1" stop-color="#643bc2"/>
+    </radialGradient>
+    <linearGradient id="land" x2="0" y2="1">
+      <stop stop-color="#8559c8"/>
+      <stop offset=".5" stop-color="#44206e"/>
+      <stop offset="1" stop-color="#100824"/>
+    </linearGradient>
+    <linearGradient id="frame" x2="1" y2="1">
+      <stop stop-color="#1c123c"/>
+      <stop offset=".5" stop-color="#583c7c"/>
+      <stop offset="1" stop-color="#150925"/>
+    </linearGradient>
+    <linearGradient id="glow" x2="1" y2="0">
+      <stop stop-color="#e8ff80" stop-opacity="0"/>
+      <stop offset=".7" stop-color="#d9ff76" stop-opacity=".65"/>
+      <stop offset="1" stop-color="#a9ff62"/>
+    </linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="38"/></filter>
+    <filter id="smallBlur"><feGaussianBlur stdDeviation="8"/></filter>
+    <filter id="portalGlow"><feGaussianBlur stdDeviation="14"/></filter>
+    <pattern id="stars" width="121" height="109" patternUnits="userSpaceOnUse">
+      <circle cx="23" cy="19" r="1.3" fill="#fff7fa" opacity=".7"/>
+      <circle cx="94" cy="45" r=".8" fill="#f9f8ff" opacity=".5"/>
+      <circle cx="61" cy="98" r=".95" fill="#d4c3ff" opacity=".64"/>
+      <circle cx="11" cy="70" r=".6" fill="#fff" opacity=".6"/>
+    </pattern>
+    <clipPath id="arch"><path d="M883 610 Q871 355 1023 212 Q1195 65 1388 225 Q1514 345 1483 600 L1483 650 883 650Z"/></clipPath>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <rect width="1600" height="900" fill="url(#nebula)"/>
+  <rect width="1600" height="650" fill="url(#stars)" opacity=".8"/>
+  <g filter="url(#blur)" opacity=".58">
+    <ellipse cx="1237" cy="233" rx="375" ry="210" fill="#a43cf2"/>
+    <ellipse cx="1328" cy="636" rx="380" ry="95" fill="#e1b1f5"/>
+  </g>
+  <circle cx="785" cy="158" r="92" fill="#786bb8"/>
+  <circle cx="785" cy="158" r="92" fill="#130d35" opacity=".53"/>
+  <path d="M705 113 Q755 38 840 109 Q870 157 830 223 Q848 113 705 113Z" fill="#b6baff" opacity=".72"/>
+  <circle cx="661" cy="122" r="17" fill="#bca0e6" opacity=".7"/>
+  <path d="M0 625L95 576 166 607 274 504 398 570 526 471 639 540 731 463 849 558 1007 420 1092 560 1309 485 1470 589 1600 541V900H0Z" fill="#2e1955" opacity=".82"/>
+  <path d="M0 710L150 639 252 672 410 573 512 646 674 522 799 617 917 501 1082 633 1211 558 1400 668 1600 628V900H0Z" fill="#4e2a73" opacity=".74"/>
+  <g clip-path="url(#arch)">
+    <rect x="870" y="109" width="655" height="561" fill="url(#portal)"/>
+    <path d="M877 468L978 388 1041 430 1140 287 1209 357 1303 255 1486 411V665H877Z" fill="#7a83c0"/>
+    <path d="M877 513L962 458 1060 516 1154 408 1214 462 1314 385 1494 489V660H877Z" fill="#404a92"/>
+    <path d="M878 578L995 527 1096 565 1179 511 1290 551 1499 482V670H878Z" fill="#2b376f"/>
+    <path d="M1092 546L1111 652M1216 496L1203 672M1359 481L1334 659" stroke="#d5ffef" stroke-width="14" opacity=".87"/>
+    <path d="M1015 384L1120 348 1231 370 1346 338 1410 350 1435 378 1350 407 1219 398 1091 419Z" fill="#a5d88e" opacity=".8"/>
+    <path d="M1178 286L1208 247 1235 277 1208 308Z" fill="#edf2ff" opacity=".5"/>
+    <ellipse cx="1229" cy="551" rx="320" ry="102" fill="#dcfaff" opacity=".35" filter="url(#blur)"/>
+    <circle cx="1352" cy="260" r="51" fill="#f9d7f3" opacity=".55"/>
+  </g>
+  <path d="M845 640 Q813 364 974 181 Q1166 -31 1431 188 Q1594 343 1521 655" fill="none" stroke="#f0abff" stroke-width="55" opacity=".42" filter="url(#portalGlow)"/>
+  <path d="M845 640 Q813 364 974 181 Q1166 -31 1431 188 Q1594 343 1521 655" fill="none" stroke="url(#frame)" stroke-width="54"/>
+  <path d="M859 615 Q836 367 992 201 Q1177 27 1408 207 Q1544 359 1495 634" fill="none" stroke="#b05dfc" stroke-width="7"/>
+  <path d="M851 640L790 549 812 442 784 350 850 262 847 192 942 178 962 128 1000 180 919 312 875 470 882 640Z" fill="url(#frame)"/>
+  <path d="M1438 183L1495 125 1501 262 1576 341 1520 430 1579 566 1536 656 1485 574 1498 382Z" fill="#21143d"/>
+  <path d="M0 820Q355 679 617 718Q939 652 1192 700L1600 670V900H0Z" fill="#1b1135"/>
+  <path d="M622 900Q772 736 951 751Q1109 700 1260 742Q1496 675 1600 727V900Z" fill="#30204f"/>
+  <path d="M662 902Q817 763 1010 788Q1198 746 1470 696L1600 734 1600 900Z" fill="#4d3377" opacity=".78"/>
+  <path d="M670 897Q1074 781 1448 727L1557 759" fill="none" stroke="url(#glow)" stroke-width="12" opacity=".9"/>
+  <path d="M1123 697l28-83 24 89-21 83Z" fill="#ad73f5"/>
+  <path d="M1541 840l22-90 28 63 9 87h-70Z" fill="#bb82ff"/>
+  <path d="M1139 676l14-50 14 52Z" fill="#e9b6ff"/>
+  <g fill="#dffca0" opacity=".9">
+    <circle cx="1102" cy="744" r="3"/><circle cx="1201" cy="760" r="2"/>
+    <circle cx="1360" cy="722" r="3"/><circle cx="1481" cy="744" r="2"/>
+    <circle cx="862" cy="799" r="2"/>
+  </g>
+  <g transform="translate(1353 622)" fill="#130b23">
+    <path d="M0 29Q2 12 14 12Q26 12 28 29L25 52 32 95 21 113 16 74 10 116-1 113 2 78-6 56Z"/>
+    <circle cx="14" cy="1" r="15"/>
+    <path d="M25 27Q55 38 103 14Q85 58 38 66L28 50Z" fill="#291448"/>
+    <path d="M0 50L-19 76-26 75-16 46Z"/>
+  </g>
+  <rect width="770" height="900" fill="#130923" opacity=".21"/>
+</svg>

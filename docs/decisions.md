@@ -1,195 +1,35 @@
-# Adopted engineering decisions
+# Architecture decisions
 
-These decisions describe the implementation. The supplied blueprint remains unchanged under reference.
+## One transactional application
 
-## One modular Go API
+The Go API is a modular application with catalog, home, auth and purchase features. Each feature owns HTTP translation, business policy and SQL. The entry point wires concrete dependencies. Shared interfaces exist only at real boundaries, such as the authentication store; there is no generic repository, ORM or separate inventory service. Keeping purchase and inventory in PostgreSQL gives one atomic integrity boundary with less operational complexity.
 
-Checkout, key allocation, and idempotency need one PostgreSQL transaction. One deployable keeps that boundary explicit. Feature ownership gives us understandable modules without adding distributed infrastructure. Constructor wiring lives in cmd/server; shared HTTP helpers do not import feature packages.
+## SKU identity and money
 
-Prefer direct code to extra layers. Isolate unavoidable complexity in stable boundaries: scripts for native tooling and database/maintenance for provisioning, Goose, and seeds. The server does not import maintenance code. Feature services will use small behavior contracts only when a real boundary needs them. Compatibility assumptions and pending checks are recorded rather than treated as proven.
+A SKU includes game, edition, platform and region. A seller offer has its own identity and price. Public prices are integer EUR cents within JavaScript's safe range; formatting never changes authoritative amounts. The current product deliberately supports one key per seller offer per order and ten cart lines. Multi-quantity needs an explicit migration and allocation design rather than an implicit change to these rules.
 
-## Native tools with an isolated local cluster
+## Allocation and idempotency
 
-Use checksum-pinned project-local PostgreSQL 18.7 binaries and a checkout-owned cluster on loopback port 5433. Administrator access to the existing service was unavailable, so a separate cluster gives reproducible setup without modifying other applications' databases. The project cluster was originally created with installed 18.6 binaries; patch updates preserve its data after a local backup. The original installed service is outside this update's scope.
+An order-item reference is the allocation; there is no separate sold flag to synchronize. PostgreSQL enforces unique key allocation and the composite key/offer relationship. Checkout locks the buyer first, checks matching idempotent replays, then locks offers in UUID order. It validates prices after locking and uses a new READ COMMITTED statement to observe earlier committed allocations. Every receipt and allocation commits together or rolls back.
 
-Go and Node are versioned local installations with verified archive checksums. This costs some checkout-local disk/cache space and avoids changing toolchains used by other projects.
+A matching retry returns the original receipt before considering current stock or price. Transport failure does not prove purchase failure, so the client preserves the same buyer-scoped attempt and UUID. Historical order reads use purchased name/price snapshots and the already allocated key, including after removal from sale.
 
-The selected TypeScript version is 6.0.3 because the current TypeScript ESLint release supports versions below 6.1; the newest TypeScript 7 release is incompatible with that range. Runtime dependencies and tool versions are pinned in the lockfiles.
+## Read ownership and bounded work
 
-The root overrides minimatch to 11.0.1 only for ESLint, config-array and TypeScript-ESLint's parser infrastructure to address [GHSA-g3hv-75wg-m249](https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249). Version 11 removes APIs, so this is a deliberate cross-major override: the current consumers use retained constructors and match methods; test:tooling verifies discovery, ignored output and actual rule execution. Linux CI repeats it. Remove these overrides when parent packages require a patched version themselves; do not run audit fix --force to downgrade the lint stack.
+Authorization is part of order SQL, using the session-derived buyer; foreign and missing orders have the same response. Keys never appear in public projections or history summaries. Catalog and history count/page reads share repeatable-read snapshots. Queries are set-based and bounded, with request deadlines and sanitized errors. Demo-scale scans are preferable to speculative search infrastructure. Homepage banner, ranking and deal sources load and recover independently; deal prices always belong to the selected seller offer.
 
-## Direct PostgreSQL access and one migration authority
+## Browser state and security
 
-Use pgx for explicit SQL and Goose for version tracking. Supabase supplies PostgreSQL hosting rather than application authentication or browser data access. A second migration history would create competing sources of truth.
+URLs own catalog filters and product/offer selections. Browser storage holds validated cart identities and buyer-scoped checkout recovery, never delivered keys or credentials. Protected order readers clear their state on session notifications, tab visibility changes and focus, abort old requests and reject late responses. A small invalidation signal crosses tabs; the server authorizes every new read.
 
-Schema ownership and runtime access use separate logins. Local development and integration tests also have separate databases/logins. Environment-specific grants are applied by the explicit migration command after Goose, rather than embedding local role names into portable schema SQL. Before Goose starts, require matching explicit endpoints/databases (and Supabase pooler project suffixes), reject multi-host configurations, and authenticate both identities. Using different direct/pooler endpoints for owner and application is intentionally unsupported rather than inferred to be safe.
+Authentication uses hashed server-side sessions and Secure, HttpOnly, SameSite cookies in production. Mutating requests require the configured exact Origin. Same-origin Vercel rewrites preserve this model across the Render API. Process-local rate limiting fits one demo instance; horizontal deployment would require a shared ingress policy.
 
-Local provisioning persists recovery credentials before resource creation because CREATE DATABASE and a filesystem write cannot share a transaction. Failures keep the ignored recovery file for inspection; successful completion publishes .env exclusively. There is no automatic adoption, destructive cleanup or hidden retry state machine.
+## Reproducible maintenance
 
-Goose's operational ledger is explicitly qualified as public.goose_db_version. Application DDL uses the private search path, so bookkeeping must not depend on that path. A real-database run caught this boundary before the initial migration was accepted.
+Pinned Go, Node, npm and PostgreSQL versions plus lockfiles/checksums make the toolchain explicit. Local development uses a separate project-owned cluster and isolated development/test databases. Migration and application credentials have different responsibilities. Goose owns schema history; checksum-verified seeds own fixture history. Neither runs during server startup, and applied versions never change or restock allocated keys. Recovery credentials are persisted before provisioning creates resources.
 
-## Private schema and explicit maintenance
+## Presentation and delivery
 
-Marketplace data belongs to the unexposed marketplace schema. The dedicated hosted project's unused Data API must be disabled before deployment. Go owns authorization; Supabase Auth policies would not describe our opaque Go sessions.
+Feature screens share a small set of visual tokens and product components. Original artwork is reused with explicit compact or portrait card presentation. Marketing actions lead to implemented destinations; no unsupported controls or invented promotions are shown. Payments and keys remain simulated, with one discreet project disclosure and the necessary checkout notice.
 
-Application startup does not perform maintenance. Migration/seed failures remain explicit setup failures rather than partially starting an application that silently changes data.
-
-## Immutable fixture history
-
-A seed_versions table records each fixture filename and SHA-256. Applied files are checked and skipped; edited versions fail. This small operational ledger prevents repeated setup from replenishing allocated or deliberately removed demo keys. It is separate from purchase idempotency and introduces no new business state.
-
-## Blueprint clarifications
-
-- SKU identity includes edition alongside game, platform, and region.
-- Keep one unit per selected offer and the v1 order/offer uniqueness constraint.
-- Preserve composite key/offer identity and unique key allocation in the database.
-- The pgcrypto extension is unnecessary for the supported PostgreSQL versions' built-in gen_random_uuid. Keep pg_trgm for the planned search.
-- Future migration examples do not reserve a particular numeric version.
-- Development proceeds one reviewed checkpoint at a time within each slice. Passing checks alone do not constitute architectural acceptance or authorization to proceed to the next checkpoint.
-
-## Contracts grow with implemented behavior
-
-The foundation introduced health and readiness. Slice 1 added public catalog projections and query rules; the Slice 2 draft now renders a routed catalog with a shared header. The temporary connection-check screen was replaced, so the frontend no longer makes a preliminary readiness request. Feature DTOs, business errors, authentication, and state management are introduced with their owning slices. Architecture and visual acceptance are separate from CI success.
-
-## Frontend composition and design freedom
-
-The app composes routing, shared layout and feature-owned UI. The header owns navigation and the location of its search slot, while the catalog owns search behavior and styling. Shared modules must not import features; lint enforces this direction. React Router supplies active-link semantics instead of manually mirroring route state. Component styling stays local so visual changes do not require changing business or transport code. The app remains a draft until visual and public deployment checks pass.
-
-## Catalog interaction-state ownership
-
-The catalog URL is the single source of truth for applied search and filters. The header keeps an uncommitted native input draft, without mirroring it in React state or recreating the input for every debounced query. Debounced search commits via navigation and preserves focus. External navigation (Back/Forward, filter changes, and even navigation to the same URL) cancels pending work and restores the applied URL; this uses the router location key as well as the path and search. Search-created history entries explicitly mark their origin through React Router state, instead of requiring a mutable URL-matching ref; Back/Forward and ordinary links still restore the applied query. Input-method composition never schedules a partial search, and submitting an unchanged query normalizes the displayed text. The catalog request effect cancels obsolete requests; regression tests check that stale responses cannot replace the latest view. These are behavioral invariants rather than reasons to add a global state library.
-
-## Catalog reads and consistency
-
-The catalog owns one validated read use case and one SQL repository, wired with concrete constructors. No interface is needed for tests because query behavior is exercised against PostgreSQL and validation is a plain function. DTOs are feature-owned read projections; there is no generic entity/repository layer.
-
-Count and page use the same filtered SQL in a read-only repeatable-read transaction. This costs two data reads plus transaction commands, keeps their snapshot consistent and preserves totals on empty pages without elaborate window-count mapping. Availability and lowest prices come from active offers with unallocated keys, before filters/sorting/pagination. This snapshot does not reserve inventory; later quote/checkout still verifies current server prices and stock.
-
-Integer cents must fit JavaScript's safe range at the request and projection boundaries. Search uses literal escaped ILIKE and a fixed word_similarity threshold of 0.4 for three-or-more-character queries. At demo scale, bounded set-based scans are an explicit cost; the fuzzy function is not presented as an indexed search. Query deadlines, stable ties and real database tests give us useful guarantees before adding optimization or another service.
-
-## Catalog facets and cross-layer contract changes
-
-The frontend URL contract owns the supported platform and region values used by search, filters, and response validation. One feature-owned label mapping supplies their human-readable names to filters and product cards; typed exhaustive mappings prevent UI labels drifting from accepted values. The backend independently validates those values, while PostgreSQL constraints prevent invalid stored SKUs. These checks protect different trust boundaries and must not be removed simply to eliminate textual repetition.
-
-When a platform or region changes, update the PostgreSQL constraint through a new migration, Go query validation, and the frontend contract together. Browser integration tests exercise every frontend-supported platform, region and sort against the real Go API; database integration tests check that the supported platform and region values are insertable. This detects drift without introducing runtime schema fetches, generated clients, or a second migration authority. Search length, money, pagination bounds and defaults remain boundary-specific, with targeted tests for the shared invariants.
-
-## Filter drafts and applied URL state
-
-Catalog filters keep one local price draft for unsubmitted user input. Applied prices remain authoritative in the URL: when the applied price range changes, the draft resets to those values without remounting the filter controls. Unrelated platform, region, sorting and search changes preserve unfinished price edits; Clear all explicitly clears them even when no price range was previously applied. Invalid price input stays local until corrected, and unchanged submissions do not create redundant navigation. This avoids additional state managers, DOM synchronization effects and keyed remounts of the entire filter panel.
-
-## Catalog results request ownership
-
-The catalog route parses and owns the applied URL query and renders persistent filters. A results view keyed by the canonical request path owns its own loading, ready, failed and retry state. Changing the request replaces only the results view; the old view aborts its fetch and cannot write stale results. This removes the extra response-key field and the derived fallback loading state. Keep the results lifecycle local; do not add a generic fetching hook or state manager without a demonstrated need. The present error copy and filter draft synchronization remain separate review checkpoints.
-
-## Architecture review after frontend cleanups 1–5
-
-The production-facing catalog code was reviewed for change amplification, unknown dependencies, and unnecessary abstraction. Catalog query values own the frontend platform, region, and sort vocabularies, while one feature-local label mapping provides UI presentation for all three. Filter controls derive their options from those values; the API and database independently enforce the public and storage contracts. A contract update requires reviewing all three boundaries and their integration tests, not introducing a runtime metadata service.
-
-The catalog route composes filters and a request-keyed results view. The URL holds applied state; the search input and price fields hold temporary drafts. Search navigation origin is an explicit effect dependency, avoiding a latent React Hooks lint warning. This keeps request cancellation, browser navigation and form drafts locally understandable. Remaining work is deliberately assigned to Checkpoint D (error classification/recovery) and subsequent visual and deployment acceptance. Green CI verifies automated behavior only; it does not establish live hosting or manual accessibility/device quality.
-
-## Catalog component and visual ownership
-
-The catalog page owns its layout, results, loading, empty/error presentation, and pagination styles. Filter/Sort owns its form-control styles; the product card owns its cover, badge, price, and card presentation. Each component imports its own CSS module; the layout does not reach into filter or card internals. Media queries and reduced-motion behaviors stay with the components they affect. Style extraction preserves the existing declarations and breakpoints rather than redesigning the storefront during an architectural cleanup.
-
-Cover gradient variants derive deterministically from the product's stable ID instead of its position in a search or sorted list. The same product keeps its visual identity across filters, sorting, and pagination without per-product persisted state or a theme manager. Visual-device acceptance and real product artwork remain distinct from automated layout, CSS, and interaction checks.
-
-## D3 adversarial follow-up: canonical request identity and test evidence
-
-The query-keyed results component captures the initial query for its canonical API request.
-Equivalent URL spellings retain the same component and request rather than refetching due to
-a newly parsed query object. A changed canonical request still remounts and cancels the
-obsolete request. The request-owner timeout and retry state machine are unchanged.
-
-Adversarial tests now cover equivalent URLs with both pending and settled requests, a late
-successful response after a timeout while a newer retry is pending, and Strict Mode effect
-replay. Lifecycle fixtures align with the seeded product platform and region identities.
-The browser test coordinates obsolete request delivery explicitly and distinguishes
-intentional browser cancellation from unexpected route errors; fixed delays are not used
-to prove the race. Full deployment and manual device acceptance remain separate evidence.
-
-## Catalog recovery and cancellation verification (Checkpoint D3)
-
-The catalog request lifecycle stays local to the results view and relies on a query-keyed
-component identity, an abort controller, and a six-second deadline. D3 tests the behavior
-under intentionally hostile ordering rather than adding another state manager or transport
-abstraction. Acceptance includes A-to-B-to-A navigation with out-of-order responses, an old
-request rejecting after a newer query succeeds, retries while the timed-out request rejects,
-slow response-body parsing after the deadline, route departure canceling obsolete requests,
-and avoiding a timeout after successful completion. The browser suite also covers late
-server errors after filters change. The newest request alone may own the visible result.
-
-This checkpoint verifies these behaviors in the automated test environment; external
-network proxies, mobile browsers, accessibility review, and deployed integrations still
-require their own acceptance. Retain the current request boundary unless a test exposes
-an actual correctness problem.
-
-## Catalog frontend failure classification (Checkpoint D2)
-
-The transport boundary classifies 400 as an invalid query, 502/503 as service unavailability,
-408/504 as a request/gateway timeout, unexpected HTTP or malformed JSON as unexpected, and
-browser network failures as network errors. Failure while reading a successful response body
-is a network error only for a TypeError; invalid JSON remains unexpected. Aborted reads
-propagate cancellation rather than being misreported as network failures.
-
-The results view owns its six-second client-side deadline. It aborts at that deadline and
-shows a timeout even when the underlying transport ignores AbortSignal. Responses arriving
-after the deadline cannot replace the timeout state; navigating away also aborts obsolete
-requests without showing their errors. Transport classification does not own this deadline.
-
-All failures offer Retry without losing the applied query. Rejected queries with non-default
-catalog options additionally offer Reset filters. A rejected default query instead explains
-that the catalog could not be opened and suggests retrying or choosing another search or
-platform. The UI never shows raw HTTP bodies, backend messages, or JavaScript exceptions.
-The catalog feature owns its messages and actions without a generic notification framework.
-
-Timeout, cancellation, gateway, and response-body failure paths have focused regression
-coverage. D3 remains the broader adversarial recovery and overlapping-request review.
-
-## Catalog frontend response contract
-
-A successful catalog response must match its requested page and page size and contain the exact number of products implied by the total. An out-of-range page can legitimately return an empty array while retaining the total. Product identifiers must be distinct within a page; prices must be positive, JavaScript-safe integer cents or null for sold-out items. The frontend accepts the supported platform and region values and only root-relative asset paths or HTTPS cover URLs. The Go API remains authoritative for catalog business rules; this boundary detects inconsistent transport data without duplicating SQL or pricing logic.
-
-## Slice 2 final architectural review (Checkpoint D5)
-
-Reviewed catalog URL and draft-state ownership, API/request lifecycle, feature and shared-module
-boundaries, Go handler/service/repository separation, PostgreSQL inventory and price projections,
-CSS module ownership, API-to-browser acceptance, and automated accessibility/responsive checks.
-The feature's URL remains the authority for applied controls; query-keyed results own fetch/retry
-and timeout state; temporary search and price drafts stay local. Shared layout does not import
-catalog feature code. Handler validation and database constraints deliberately repeat policy at
-different trust boundaries; they are not accidental duplication.
-
-The review found no demonstrated need for global state, generalized fetching, a new repository
-interface, service decomposition, or a cross-layer DTO generator. It consolidated a duplicate
-`resultsToolbar` CSS block and a duplicate `filterHeading` block without changing their
-effective style. The prior D3 canonical-request, cancellation, retry, and fixture defects already
-have dedicated regression coverage. D4 confirms real PostgreSQL inventory and search values
-through Go, the same-origin development proxy, and Chromium.
-
-Remaining user-experience and delivery limitations are explicit: product-card navigation,
-seller offers, authentication, cart and checkout are later slices, not inert placeholder controls.
-The reusable seed cover treatment is an interim catalog visual; original/licensed artwork and
-hands-on mobile and accessibility review remain separate visual acceptance. A public HTTPS
-frontend/API/database deployment was not made; the user deferred it. This prevents declaring
-Slice 2 fully released even with passing automated checks. Any future contract extension must
-update API, schema, and frontend compatibility checks together.
-
-## Pre-merge catalog correctness review
-
-The final Slice 2 review verified and corrected two boundary inconsistencies. Monetary
-display previously divided safe integer cents by 100, losing cent precision near the
-supported maximum. It now uses BigInt for the whole-euro/fraction split and the same
-locale formatter for separators and currency symbols; accepted cents remain exact.
-The header search formerly used HTML maxlength=100, which counts UTF-16 code units
-instead of the 100 Unicode code points accepted by the frontend URL parser and Go
-API. Search now caps code points without splitting surrogate pairs and waits until
-composition ends before enforcing that limit. Regression tests cover both boundaries.
-
-No other application feature was added during this review. Automated acceptance
-remains distinct from visual/device review and public hosting. Product-card detail
-navigation, purchasing and authentication remain later vertical slices; do not
-introduce inert UI controls to imply otherwise.
-
-## Evidence before claims
-
-Local checks, browser observations, remote CI, and public deployment are distinct evidence. Document pending checks rather than inferring that generated configuration has worked. Preserve complete user prompts and visible assistant responses, including user-input decisions, without hidden model reasoning or credentials.
+Tests exercise real PostgreSQL ownership, concurrency and constraints as well as frontend request lifecycles and browser behavior. Evidence names source revisions, environments and limits. A public release additionally requires a full-history privacy review and explicit visibility approval. Conversation exports contain authentic visible exchanges with an explicit coverage cutoff, never reconstructed history or hidden reasoning.

@@ -1,0 +1,248 @@
+.section {
+  padding: 2rem 0 0.5rem;
+  min-width: 0;
+}
+
+.heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.heading h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.heading p:last-child {
+  margin: 0.4rem 0 0;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.catalogLink,
+.retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.catalogLink:hover,
+.retry:hover {
+  border-color: var(--color-accent);
+}
+
+.catalogLink:focus-visible,
+.retry:focus-visible,
+.offerLink:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.retry {
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.grid {
+  display: grid;
+  /* Rem-sized minimum grows with user text scaling, avoiding cramped 200% cards. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  min-width: 0;
+}
+
+.offerLink {
+  display: block;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 0.3rem;
+}
+
+.card {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 0.3rem;
+  background: var(--color-surface);
+  transition: border-color 150ms ease;
+}
+
+.offerLink:hover .card,
+.offerLink:focus-visible .card {
+  border-color: var(--color-accent);
+}
+
+.cover {
+  position: relative;
+  width: 38%;
+  flex: 0 0 38%;
+  min-height: 13rem;
+  background: linear-gradient(145deg, #512989, #2e1957 45%, #170d30);
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+}
+
+.discount {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1;
+  padding: 0.35rem 0.45rem;
+  border-radius: 0.35rem;
+  color: var(--color-background);
+  background: var(--color-accent);
+  font-weight: 850;
+  font-size: 0.75rem;
+}
+
+.details {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(0.7rem, 1.5vw, 1rem);
+  gap: 0.5rem;
+}
+
+.details h3 {
+  font-size: 1.1rem;
+  line-height: 1.2;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.identity,
+.seller {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.prices {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.prices strong {
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  white-space: nowrap;
+}
+
+.prices del {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.destination {
+  font-size: 0.75rem;
+  color: var(--color-accent);
+  font-weight: 750;
+}
+
+.feedback {
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.3rem;
+  background: var(--color-surface);
+}
+
+.feedback p {
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.feedback h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.skeleton {
+  min-height: 13rem;
+  border-radius: 0.3rem;
+  background: linear-gradient(135deg, #35234f, #483368, #291a48);
+  background-size: 220% 100%;
+  animation: skeletonSweep 1.6s ease-in-out infinite;
+}
+
+@media (max-width: 480px) {
+  .heading h2 {
+    font-size: clamp(1.3rem, 5vw, 2.9rem);
+  }
+  .card {
+    flex-direction: column;
+  }
+
+  .cover {
+    width: 100%;
+    flex: 0 0 auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+
+  .details {
+    padding: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}
+
+@keyframes skeletonSweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}

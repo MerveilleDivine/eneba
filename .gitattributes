@@ -2,4 +2,7 @@
 *.pdf binary
 *.zip binary
 *.png binary
+*.jpg binary
+*.webp binary
 docs/reference/blueprint-v3.2/** -text
+docs/ai-history/attachments/** -text

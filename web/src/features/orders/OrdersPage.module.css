@@ -1,0 +1,155 @@
+.page {
+  padding-block: 2.5rem 4rem;
+  width: min(100% - 2rem, 60rem);
+  margin-inline: auto;
+}
+.header {
+  margin-bottom: 1.5rem;
+}
+.header h1 {
+  margin: 0.4rem 0;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+.header p,
+.panel p {
+  color: var(--color-text-muted);
+}
+.kicker {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+.panel,
+.order,
+.receipt {
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 0.5rem;
+}
+.panel h2,
+.order h2 {
+  margin-block: 0.5rem;
+  font-size: 1.2rem;
+}
+.order,
+.receipt,
+.itemHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+.orderAction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+}
+.reference {
+  overflow-wrap: anywhere;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  text-decoration: none;
+}
+.primary {
+  color: var(--color-background);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.secondary {
+  color: var(--color-text);
+  background: transparent;
+}
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: right;
+}
+.total strong {
+  font-size: 1.5rem;
+}
+.notice {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+.delivery {
+  margin-top: 1.25rem;
+}
+.delivery label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.keyRow {
+  display: flex;
+  gap: 0.5rem;
+}
+.keyRow input {
+  min-width: 0;
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: monospace;
+  border-radius: 0.25rem;
+}
+.copyStatus {
+  margin-bottom: 0;
+  min-height: 1.5em;
+  font-size: 0.875rem;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.back {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+@media (max-width: 36rem) {
+  .page {
+    padding-top: 1.5rem;
+  }
+  .panel,
+  .order,
+  .receipt {
+    padding: 1rem;
+  }
+  .order {
+    flex-direction: column;
+  }
+  .orderAction {
+    align-items: flex-start;
+  }
+  .keyRow {
+    flex-direction: column;
+  }
+  .itemHeading {
+    flex-wrap: wrap;
+  }
+}

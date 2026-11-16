@@ -4,7 +4,7 @@ GET /api/v1/products is public and read-only. It lists active game/platform/regi
 
 ## Query parameters
 
-All parameters are optional and may appear only once. Unknown parameters, invalid query encoding and unsupported values return 400. Parameters use their documented names and enum casing.
+All parameters are optional and may appear only once. Unknown parameters, invalid query encoding and unsupported values return 400. Parameters use their documented names and enum casing. Numeric values use decimal digits only: signs (including `+1` and `-0`), fractions and exponents are rejected. Promotional catalog links follow this same grammar.
 
 | Parameter     | Accepted values and default                                                                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------------- |

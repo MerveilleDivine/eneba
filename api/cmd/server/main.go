@@ -11,10 +11,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/MerveilleDivine/eneba/api/internal/auth"
 	"github.com/MerveilleDivine/eneba/api/internal/catalog"
 	"github.com/MerveilleDivine/eneba/api/internal/config"
 	"github.com/MerveilleDivine/eneba/api/internal/database"
+	"github.com/MerveilleDivine/eneba/api/internal/home"
 	"github.com/MerveilleDivine/eneba/api/internal/httpapi"
+	"github.com/MerveilleDivine/eneba/api/internal/purchase"
 )
 
 func main() {
@@ -46,6 +49,23 @@ func run(logger *slog.Logger) error {
 	catalogRepository := catalog.NewRepository(pool)
 	catalogService := catalog.NewService(catalogRepository)
 	catalog.NewHandler(catalogService, logger).RegisterRoutes(mux)
+	bannerRepository := home.NewBannerRepository(pool)
+	bannerService := home.NewBannerService(bannerRepository)
+	home.NewBannerHandler(bannerService, logger).RegisterRoutes(mux)
+	bestSellerRepository := home.NewBestSellerRepository(pool)
+	bestSellerService := home.NewBestSellerService(bestSellerRepository)
+	home.NewBestSellerHandler(bestSellerService, logger).RegisterRoutes(mux)
+	dealRepository := home.NewDealRepository(pool)
+	dealService := home.NewDealService(dealRepository)
+	home.NewDealHandler(dealService, logger).RegisterRoutes(mux)
+	authRepository := auth.NewRepository(pool)
+	authService := auth.NewService(authRepository)
+	auth.NewHandler(authService, logger, cfg.Origin, cfg.Environment == "production").RegisterRoutes(mux)
+	quoteRepository := purchase.NewRepository(pool)
+	quoteService := purchase.NewService(quoteRepository)
+	purchase.NewHandler(quoteService, logger).RegisterRoutes(mux)
+	purchase.NewCheckoutHandler(purchase.NewCheckoutService(quoteRepository), authService, logger, cfg.Origin, cfg.Environment == "production").RegisterRoutes(mux)
+	purchase.NewOrderHandler(purchase.NewOrderService(quoteRepository), authService, logger, cfg.Environment == "production").RegisterRoutes(mux)
 	mux.HandleFunc("/", httpapi.NotFound)
 	server := &http.Server{
 		Addr:              net.JoinHostPort(host, cfg.Port),
