@@ -80,22 +80,37 @@ export function parseOrder(v: unknown): OrderDetail {
     throw new OrderRequestError("unexpected");
   return { id: v.id, createdAt: v.createdAt, totalCents: v.totalCents, currency: "EUR", items };
 }
-export function parseOrders(v: unknown): OrderPage {
+export function parseOrders(v: unknown, expectedPage?: number): OrderPage {
   if (
     !record(v) ||
     !Array.isArray(v.items) ||
     !positive(v.page) ||
+    (expectedPage !== undefined && v.page !== expectedPage) ||
     !positive(v.pageSize) ||
     v.pageSize > 50 ||
     typeof v.total !== "number" ||
     !Number.isSafeInteger(v.total) ||
-    v.total < 0 ||
-    v.items.length > v.pageSize
+    v.total < 0
   )
     throw new OrderRequestError("unexpected");
+
+  // Do not show a stale or inconsistent account page after navigation or a
+  // concurrent purchase. Pages and counts must describe one server snapshot.
+  const offset = (v.page - 1) * v.pageSize;
+  if (!Number.isSafeInteger(offset)) throw new OrderRequestError("unexpected");
+  const expectedCount = Math.min(v.pageSize, Math.max(0, v.total - offset));
+  if (v.items.length !== expectedCount) throw new OrderRequestError("unexpected");
+  const seen = new Set<string>();
   const items = v.items.map((item: unknown): OrderSummary => {
-    if (!summary(item) || !record(item) || !positive(item.itemCount))
+    if (
+      !summary(item) ||
+      !record(item) ||
+      !positive(item.itemCount) ||
+      item.itemCount > 10 ||
+      seen.has(item.id)
+    )
       throw new OrderRequestError("unexpected");
+    seen.add(item.id);
     return {
       id: item.id,
       createdAt: item.createdAt,
@@ -106,6 +121,7 @@ export function parseOrders(v: unknown): OrderPage {
   });
   return { items, page: v.page, pageSize: v.pageSize, total: v.total };
 }
+
 async function read(path: string, signal: AbortSignal): Promise<unknown> {
   try {
     const response = await fetch(path, {
@@ -131,7 +147,7 @@ async function read(path: string, signal: AbortSignal): Promise<unknown> {
   }
 }
 export async function fetchOrders(page: number, signal: AbortSignal) {
-  return parseOrders(await read(`/api/v1/orders?page=${page}`, signal));
+  return parseOrders(await read(`/api/v1/orders?page=${page}`, signal), page);
 }
 export async function fetchOrder(id: string, signal: AbortSignal) {
   if (!offerIdPattern.test(id)) throw new OrderRequestError("missing");

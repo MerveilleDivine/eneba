@@ -52,4 +52,36 @@ describe("order boundaries", () => {
     );
     await expect(fetchOrder(id, new AbortController().signal)).rejects.toThrow("unauthorized");
   });
+  it("rejects inconsistent, duplicated or stale order-history pages", () => {
+    const summary = {
+      id,
+      createdAt: order.createdAt,
+      totalCents: 1250,
+      currency: "EUR",
+      itemCount: 1,
+    };
+    const valid = { items: [summary], page: 1, pageSize: 20, total: 1 };
+    expect(parseOrders(valid, 1).items).toHaveLength(1);
+    for (const value of [
+      { ...valid, page: 2 },
+      { ...valid, total: 2 },
+      { ...valid, items: [summary, summary], total: 2 },
+      { ...valid, items: [], total: 1 },
+      { ...valid, items: [{ ...summary, itemCount: 11 }] },
+      { ...valid, pageSize: 0 },
+      { ...valid, page: Number.MAX_SAFE_INTEGER },
+    ]) expect(() => parseOrders(value, 1)).toThrow("unexpected");
+  });
+
+  it("rejects a response belonging to a different order-history page", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      items: [],
+      page: 1,
+      pageSize: 20,
+      total: 0,
+    }))));
+    const { fetchOrders } = await import("./orders-api");
+    await expect(fetchOrders(2, new AbortController().signal)).rejects.toThrow("unexpected");
+  });
+
 });
