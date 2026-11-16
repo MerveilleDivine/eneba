@@ -19,11 +19,9 @@ export function BestSellers() {
     >
       <div className={styles.heading}>
         <div>
-          <p className={styles.eyebrow}>Trending now</p>
           <h2 id="best-sellers-title" ref={headingRef} tabIndex={-1}>
             Best sellers
           </h2>
-          <p>Popular picks from across our catalog.</p>
         </div>
         <Link className={styles.catalogLink} to="/catalog">
           Browse all games
@@ -61,7 +59,7 @@ export function BestSellers() {
         <ul className={styles.grid}>
           {state.data.items.map((product) => (
             <li key={product.id} className={styles.item}>
-              <ProductCard product={product} />
+              <ProductCard product={product} compact />
             </li>
           ))}
         </ul>

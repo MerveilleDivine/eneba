@@ -1,4 +1,9 @@
-import { offerIdPattern, platforms, regions, validProductSlug } from "../../shared/product/identity";
+import {
+  offerIdPattern,
+  platforms,
+  regions,
+  validProductSlug,
+} from "../../shared/product/identity";
 import type { CartLine } from "./cart-store";
 
 export type QuotedLine = {
@@ -73,12 +78,14 @@ export function parseQuote(value: unknown, lines: readonly CartLine[]): CartQuot
     value.lines.length !== lines.length ||
     !value.lines.every(isLine) ||
     (value.totalCents !== null && !price(value.totalCents))
-  ) throw invalid();
+  )
+    throw invalid();
   const quoted: QuotedLine[] = value.lines;
   let sum = 0;
   for (let index = 0; index < quoted.length; index++) {
     const line = quoted[index];
-    if (line.offerId !== lines[index].offerId || line.quantity !== lines[index].quantity) throw invalid();
+    if (line.offerId !== lines[index].offerId || line.quantity !== lines[index].quantity)
+      throw invalid();
     if (
       line.available &&
       (line.productSlug === null ||
@@ -90,7 +97,8 @@ export function parseQuote(value: unknown, lines: readonly CartLine[]): CartQuot
         line.sellerRatingPercent === null ||
         line.unitPriceCents === null ||
         line.lineTotalCents !== line.unitPriceCents)
-    ) throw invalid();
+    )
+      throw invalid();
     if (!line.available && line.lineTotalCents !== null) throw invalid();
     if (line.available) {
       sum += line.unitPriceCents!;
@@ -101,7 +109,10 @@ export function parseQuote(value: unknown, lines: readonly CartLine[]): CartQuot
   if (allAvailable ? value.totalCents !== sum : value.totalCents !== null) throw invalid();
   return { lines: quoted, totalCents: value.totalCents, currency: "EUR" };
 }
-export async function fetchCartQuote(lines: readonly CartLine[], signal: AbortSignal): Promise<CartQuote> {
+export async function fetchCartQuote(
+  lines: readonly CartLine[],
+  signal: AbortSignal,
+): Promise<CartQuote> {
   let response: Response;
   try {
     response = await fetch("/api/v1/cart/quote", {
@@ -110,7 +121,9 @@ export async function fetchCartQuote(lines: readonly CartLine[], signal: AbortSi
       cache: "no-store",
       signal,
       headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify({ lines: lines.map(({ offerId, quantity }) => ({ offerId, quantity })) }),
+      body: JSON.stringify({
+        lines: lines.map(({ offerId, quantity }) => ({ offerId, quantity })),
+      }),
     });
   } catch (error) {
     if (signal.aborted) throw error;
@@ -118,9 +131,13 @@ export async function fetchCartQuote(lines: readonly CartLine[], signal: AbortSi
   }
   if (!response.ok) {
     throw new QuoteRequestError(
-      response.status === 400 ? "invalid" :
-      [408, 504].includes(response.status) ? "timeout" :
-      [502, 503].includes(response.status) ? "unavailable" : "unexpected"
+      response.status === 400
+        ? "invalid"
+        : [408, 504].includes(response.status)
+          ? "timeout"
+          : [502, 503].includes(response.status)
+            ? "unavailable"
+            : "unexpected",
     );
   }
   let body: unknown;

@@ -37,21 +37,25 @@ The client holds one idempotency UUID for an in-flight checkout attempt, includi
 ## 4. Implementation checkpoints
 
 ### 6A — Read-only cart quote
+
 - Own the contract in the purchase domain; keep HTTP handler thin, service rules explicit and SQL in a feature repository.
 - Add focused quote validation and real PostgreSQL read integration tests.
 - Wire a typed frontend quote reader into existing cart/checkout presentation, with loading, retry, stale and sold-out states.
 
 ### 6B — Atomic purchase transaction
+
 - Add purchase service/repository, explicit HTTP route and wiring in `api/cmd/server/main.go`.
 - Write and execute concurrency/idempotency/rollback/constraint tests on an isolated PostgreSQL test database, never Neon production.
 - Avoid a generic repository, payment service abstraction, side-effecting provider or placeholder order total.
 
 ### 6C — Buyer checkout and confirmation
+
 - Build `web/src/features/checkout/` only when the backend contract is verified.
 - Preserve cart and return destination through sign-in, refresh server quote and show correct seller identity.
 - Provide one clear **Place order** action, simulated-payment notice, progress/recovery, and order reference on success.
 
 ### 6D — Independent weakness review and hosted acceptance
+
 - Run pinned Prettier, ESLint, TypeScript/Vite, Go format/vet/build/test, database integration and race tests outside the exhausted GitHub Actions quota.
 - Browser tests: desktop/mobile/keyboard, guest login, quote refresh, canceled/stale reads, successful purchase, 409 recovery, timeout retry, no double submission, no key leakage, cart preserved on failure.
 - Test concurrent buyers for the final key, same buyer simultaneous identical retries, same UUID with changed cart, per-line price changes, mid-transaction rollback, wrong-offer composite FK and duplicate-key rejection.

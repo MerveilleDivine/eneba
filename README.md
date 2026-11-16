@@ -1,22 +1,39 @@
-# Eneba marketplace demo
+# Eneba marketplace
 
-An independent marketplace internship project built with React/TypeScript, a Go REST API and PostgreSQL. The interface demonstrates browsing, seller comparison, persistent carts and account sessions using original game artwork and controlled demo data.
+An independent internship project: discover games, compare sellers, purchase with simulated payments and retrieve nonredeemable keys from your account.
 
-**Current milestone — 16 November 2026:** Slices 1–5 and Slice 6A cart quotes, 6B atomic purchasing and 6C buyer checkout are implemented and have passed isolated Go/PostgreSQL and browser integration verification. Slice 6D hosted release acceptance is documented separately. Slice 7 order history/key delivery and Slice 8 final submission remain. No real payments or redeemable game codes are involved.
+**[Open the application](https://eneba-marketplace-demo.vercel.app)** | **[Completed feature branch](https://github.com/MerveilleDivine/eneba/tree/feature/slice-2-catalog)**
 
-**Live site:** https://eneba-marketplace-demo.vercel.app — Vercel frontend, Render Go API and Neon PostgreSQL. The production site deploys from the private `feature/slice-2-catalog` branch; `main` remains unchanged.
+## Features
 
-**Evidence:** [Slice 6C/6D verification](docs/verification/slice-6c-6d-2026-11-16.md) · [Slice 6A quote verification](docs/verification/slice-6a-2026-11-16.md) · [Quote API contract](docs/api/cart-quote.md) · [Independent hosted auth checks](docs/verification/hosted-slice5-2026-11-16.md) · [Off-Actions engineering verification](docs/verification/off-actions-2026-11-16.md) · [Checkout implementation plan](docs/plans/slice-6-checkout.md). Hosted browser checks and the frontend production build have passed for the recent releases, but the full exact-head CI matrix and physical-device/screen-reader acceptance are still pending.
+- Independently loaded featured banners, best sellers and seller-specific deals.
+- Typo-tolerant search, platform/region/price filters, sorting and stable pagination.
+- Product details, activation guidance, competing offers and persistent seller selections.
+- Persistent cart, registration, sign-in and secure server-side sessions.
+- Server-priced checkout with atomic inventory allocation and safe idempotent retries.
+- Buyer-only order history, historical receipts and key delivery with accessible copy controls.
+- Responsive layouts, keyboard navigation and recoverable loading/error states.
 
-## Verify before committing
+All game artwork is original; see [asset provenance](docs/assets/README.md). Payments are simulated and keys cannot be redeemed. The project is not affiliated with Eneba.
 
-Run `npm run hooks:install` once in a local Git checkout to enable the versioned pre-commit hook. Every subsequent local commit runs `npm run verify` first: Prettier, gofmt, tooling checks, Go vet/tests/build and frontend type/lint/tests/build. The hook refuses unstaged tracked edits and nonignored untracked files, preventing checks on a different source snapshot from what Git will commit. Fix failures before committing rather than generating CI-only correction commits. The hook does not replace the PostgreSQL integration, Chromium, vulnerability and race checks in CI. Commits created remotely through an API do not execute local Git hooks, so final exact-head CI evidence is still mandatory.
+## Technology and structure
+
+React, TypeScript and Vite provide the frontend. A Go REST API uses pgx and direct SQL against PostgreSQL. Vercel hosts the frontend, Render hosts the API, and Neon hosts the database. Same-origin rewrites carry browser requests and authentication cookies to Go.
+
+| Directory        | Responsibility                                                                |
+| ---------------- | ----------------------------------------------------------------------------- |
+| api              | Server entry points and feature-owned handlers, services and SQL repositories |
+| web/src/features | Colocated screens, requests, state and tests for each feature                 |
+| web/src/shared   | Shared product identity, HTTP read lifecycle, formatting and layout           |
+| db               | Goose migrations and immutable, checksum-verified seeds                       |
+| scripts          | Reproducible tooling and explicit database maintenance                        |
+| docs             | API contracts, consequential decisions, verification and source references    |
+
+The server constructs concrete dependencies. Business code does not import maintenance tooling. [Architecture decisions](docs/decisions.md) explain these boundaries and their costs.
 
 ## Run locally on Windows
 
-Prerequisites: Git and PowerShell 5.1+. The bootstrap installs project-local PostgreSQL binaries as well as Go and Node. The setup uses an isolated checkout-owned PostgreSQL cluster on loopback port 5433. An existing PostgreSQL service on port 5432 can keep running independently.
-
-From the repository root:
+Prerequisites: Git and PowerShell 5.1+. Run from the repository root:
 
 ```powershell
 .\scripts\bootstrap.ps1
@@ -30,111 +47,50 @@ npm run doctor
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173/** for the database-backed promotional homepage, or **http://127.0.0.1:5173/catalog** to browse games. The API listens on port 8080. Vite proxies /api, /healthz, and /readyz to Go. Search, filters and page selection are reflected in the catalog URL.
+Open **http://127.0.0.1:5173**. Vite proxies API requests to Go on port 8080.
 
-The bootstrap downloads Go 1.27.4, Node 22.23.5 and PostgreSQL 18.7 into ignored .tools directories and verifies the archives against release checksums. It does not replace system installations. npm 10.9.9 is bundled with this Node release. Load scripts/environment.ps1 in each new terminal to select these tools and checkout-local caches.
+Bootstrap downloads and checksum-verifies Go 1.27.4, Node 22.23.5 (npm 10.9.9) and PostgreSQL 18.7 into ignored project directories. Load the environment helper in every new terminal. The project-owned database cluster listens on loopback port 5433; an existing system PostgreSQL service on port 5432 remains independent.
 
-The first toolchain extraction can take several minutes on Windows. Native Go dependencies use the Windows DNS resolver through the environment helper.
+Provisioning runs **once**. It creates eneba_dev and eneba_test with separate migration/application credentials, saving private configuration in ignored .env files. Later sessions only need the cluster start and development commands. Use npm run db:local:status or npm run db:local:stop to manage this cluster.
 
-### Local database lifecycle
+Provisioning refuses existing resource names or configuration instead of adopting them. If it fails, preserve the ignored .env.provisioning.local recovery file, inspect the named resources and complete only missing resources before publishing .env. Never drop a database or guess a replacement password to retry.
+
+For an existing native PostgreSQL installation, provide administrator PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE and PGSSLMODE in ignored .env.bootstrap.local, then run provisioning without starting the project cluster. The [environment example](.env.example) documents application settings; never put database credentials in browser variables.
+
+## Verification
 
 ```powershell
-npm run db:local:status
-npm run db:local:stop
-npm run db:local:start
+npm run hooks:install
+npm run verify
+npm run test:integration
+npm run test:browser
+npm run audit
 ```
 
-The first start initializes .local/postgres with generated administrator credentials saved in ignored .env.bootstrap.local. Provisioning inspects names, creates eneba_dev and eneba_test with separate owner/application logins, and saves their generated connection URLs in ignored .env. Neither command prints passwords.
+verify checks Prettier, Go formatting/vet/tests/build, tooling boundaries and frontend types/lint/tests/build. Integration tests require the isolated eneba_test database and run packages serially. Browser tests start fresh applications and wait for proxied readiness; install Chrome if it is unavailable. Network access is needed for dependency audits.
 
-Provisioning is a one-time step. It refuses existing database/role names and refuses to overwrite .env or .env.provisioning.local. Generated credentials are synced to the ignored recovery file before creating any roles. Only a successful provision publishes .env and removes the redundant recovery file. On later runs, start the cluster and run migrations and seeds as needed. No command resets inventory or drops databases.
+Run transaction race checks on Linux with a C compiler:
 
-If provisioning fails, keep .env.provisioning.local private. Inspect pg_database and pg_roles for the six named project resources using local administrator access. Complete only missing resources and database grants, then copy the preserved configuration to .env after confirming both owner/application connections work. Never rerun by adopting unrelated resources, guessing passwords or dropping existing databases. A failure to publish .env retains recovery credentials and preserves an existing .env.
+```sh
+node scripts/run-go.mjs test -race -tags=integration -p 1 ./... -count=1
+```
 
-The existing PostgreSQL service can also be used: skip db:local:start and configure the PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE, and PGSSLMODE variables in .env.bootstrap.local for an administrator on a loopback address. The same provisioning command creates only the named Eneba databases and roles. ENEBA_POSTGRES_BIN can explicitly select alternate binaries; normal project startup requires the version in .postgres-version. For a patch update, back up both project databases first, stop the project cluster, bootstrap the verified new binaries and restart. Preserve data and credentials; do not initialize a replacement cluster.
+The pre-commit hook verifies the complete staged snapshot. [Final verification](docs/verification/final-submission.md) distinguishes local, Linux, browser and hosted results, exact revisions and pending checks. GitHub Actions remains pending because account capacity is unavailable; workflow configuration alone is not a passing run.
 
-### Commands and underlying tools
+## Data and security
 
-| Command                  | What it runs                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| npm run doctor           | Version, dependency, private configuration, and PostgreSQL availability checks |
-| npm run dev              | Both development processes, with coordinated shutdown                          |
-| npm run dev:api          | go run ./cmd/server from api                                                   |
-| npm run dev:web          | Vite from web                                                                  |
-| npm run db:migrate       | go run ./cmd/db migrate; Goose applies pending SQL versions                    |
-| npm run db:status        | Goose migration status                                                         |
-| npm run db:seed          | Transactional, checksum-verified fixture versions                              |
-| npm run verify           | Formatting, Go vet/test/build, frontend typecheck/lint/test/build              |
-| npm run test:integration | Real-PostgreSQL integration checks using eneba_test                            |
-| npm run format           | Prettier for supported source/document files; run gofmt -w api for Go          |
+Application tables live in the marketplace schema. Only Go accesses them; schema-owner credentials stay out of the running API. Startup never migrates or seeds. Run npm run db:migrate and npm run db:seed explicitly. Applied versions are immutable, and repeated seeds never replenish allocated inventory.
 
-The Go wrapper loads the appropriate ignored environment file and invokes Go directly. Configuration is otherwise supplied by process environment. CI runs the same database and verification commands.
+Amounts use integer EUR cents. Checkout locks the buyer before sorted offers, resolves idempotent replays before stock checks, validates current server prices and commits every order item together. Unique key allocation and the composite offer/key foreign key protect inventory independently of application code.
 
-## Browser checks
+Order queries scope ownership in SQL and use purchased name/price snapshots. Keys are returned only to the purchasing session with no-store responses. The browser keeps keys in memory and clears protected views on account changes or when a tab returns. Logs contain request IDs and generic failures, never keys or credentials.
 
-Run npm run test:browser for isolated Chrome checks at 1280px, 768px, and 360px, including keyboard access and real API responses. Chrome uses a temporary profile.
+[API contracts](docs/api/) cover catalog, home, authentication, quotes, checkout and orders.
 
-For a manual outage check, keep the catalog open, run npm run db:local:stop, and change a filter or reload. The catalog should show a recoverable error while /readyz returns 503. Run npm run db:local:start externally and select Try again. Keep other database checks idle during this maintenance check.
+## Deployment and limitations
 
-Slice 2's full frontend–Go–PostgreSQL integration acceptance, evidence boundaries, and outstanding public-deployment checks are recorded in [Slice 2 integration verification](docs/verification/slice-2-integration.md).
+Vercel serves the SPA and forwards API requests through web/vercel.json. Render builds and runs the Go API from the same feature branch. Production requires APP_ENV=production, APP_ORIGIN set to the canonical HTTPS frontend, DATABASE_URL for the restricted application role and PORT supplied by the host. Run approved database maintenance separately using owner credentials.
 
-Earlier foundation verification evidence and reviewed screenshots are recorded in docs/verification/foundation.md. The subsequent safety fixes, security update and fresh-install checks are recorded in docs/verification/foundation-repairs.md.
+This is a bounded internship marketplace: one key per offer per order, at most ten cart lines, EUR only and no real payment processing. Free hosting can have cold starts. Authentication rate limits are process-local; a larger deployment would need shared ingress limits. Automated accessibility checks complement keyboard/responsive inspection and do not certify screen-reader or physical-device coverage.
 
-## Repository boundaries
-
-- api/cmd/server constructs dependencies and owns HTTP startup/shutdown.
-- api/cmd/db runs explicit provisioning, migration, status, and seed commands.
-- api/internal/config validates configuration without exposing values.
-- api/internal/database contains connection and readiness operations.
-- api/internal/database/maintenance isolates provisioning, Goose, and fixture operations from the server's runtime dependency graph.
-- api/internal/httpapi owns routing, health responses, and transport logging.
-- api/internal/catalog owns catalog handlers, query policy and SQL reads; dependencies are wired explicitly in the server entry point.
-- web/src/app owns route composition; web/src/shared/layout owns the global header and navigation.
-- web/src/features/catalog owns typed catalog reads, URL query policy, browsing state and presentation. Catalog requests run directly; backend /readyz remains an infrastructure health endpoint, not a frontend prerequisite.
-- web/src/styles contains shared visual foundations; component styles remain colocated.
-- db contains application migrations and immutable fixture versions.
-- docs/reference contains unchanged supplied material; docs/decisions.md records adopted choices.
-
-Feature packages are added when used: catalog, home, auth, purchase in Go, and corresponding user-facing features in React. Handlers translate requests, services enforce rules, repositories own SQL. A feature does not need an interface merely to fit a pattern.
-
-## Database rules
-
-Application tables live in the private marketplace schema. The app login has data privileges and no schema-creation privileges. Owner credentials are used only by explicit maintenance commands.
-
-Goose is the only schema history. Do not use a second Supabase migration ledger or edit an applied migration. Add the next available version; future feature notes do not reserve version 002.
-
-Seed versions are also immutable. Repeated seeding skips applied versions, verifies their SHA-256, and never recreates deleted/allocated inventory. Add a new seed file for intentional additions. Fixtures include 16 active products, an inactive product, competing sellers, sold-out offers, and 58 nonredeemable keys.
-
-The original integrity constraints remain: one key per order item, unique key allocation, and a composite foreign key tying the purchased key to its actual offer. Inventory has no sold flag.
-
-## HTTP contract
-
-| Endpoint             | Response                                                                                            |
-| -------------------- | --------------------------------------------------------------------------------------------------- |
-| GET /healthz         | 200 with status: ok; independent of PostgreSQL                                                      |
-| GET /readyz          | 200 with status: ready when required schema/data access works; otherwise 503 with status: not_ready |
-| GET /api/v1/products | Public catalog with query/filter/sort/pagination; see docs/api/catalog.md                           |
-| Unknown route        | 404 with error.code: not_found                                                                      |
-
-Responses are JSON and not cached. Request IDs appear in response headers and structured logs. Readiness failures expose no database details. The browser shows a generic recovery message and supports retry.
-
-The complete catalog parameters, safe numeric bounds, JSON projection and error contract are documented in [Catalog API](docs/api/catalog.md). For example, request /api/v1/products?q=solr or /api/v1/products?sort=price_desc&pageSize=1 through the local Vite server. Product detail, home blocks and purchase endpoints belong to their later slices.
-
-Slice 1's local tests, browser/proxy results, design costs and pending external checks are recorded in [Catalog verification](docs/verification/catalog.md).
-
-Development binds to loopback. APP_ENV=production binds Go to all interfaces using PORT, as required by Render. Application startup never migrates or seeds a database.
-
-## Verification and delivery
-
-Run npm run verify and npm run test:integration before advancing. Integration checks refuse any target database other than eneba_test. Test fixture changes roll back.
-
-GitHub Actions repeats verification against PostgreSQL 17.12 and 18.7 and runs Go race checks on Linux. Workflow existence is not evidence of a successful remote run. npm run audit separately runs the full npm advisory check and pinned govulncheck 1.9.0; these checks require network access. npm run verify stays usable with restored dependencies offline.
-
-npm run test:tooling verifies lint file discovery, ignore rules and actual TypeScript rule execution. The integration command discovers all Go packages serially; the browser command discovers all tests and waits for proxied readiness before starting them. Unsupported methods on known endpoints return 405 with Allow: GET, HEAD. Unexpected HTTP failures use a generic JSON error envelope; a panic after headers aborts the incomplete response.
-
-Public deployment is still deferred. The current user-selected target is Vercel for the frontend, Render for the Go API and Neon for PostgreSQL; no cloud deployment or provider connection has been verified. Keep the marketplace schema accessible only through Go, and keep migration credentials outside the deployed application. Check provider-specific database SSL/pooling, the same-origin API proxy, public HTTPS sessions and Render cold starts in the release checkpoint. Older Supabase notes in archived blueprints describe superseded planning rather than provisioned infrastructure.
-
-A production Dockerfile will pin the Go build environment during the early-deployment slice; local development stays native. Public same-origin API routing and real HTTPS cookie behavior must be verified before authentication is accepted.
-
-Conversation exports are intentionally deferred until the final submission checkpoint; do not add partial transcripts during implementation. See docs/decisions.md for the reasons behind these choices.
-
-Next work: locally verify product-to-cart, all security/database/browser tests and visual acceptance; only then review authentication, followed by quote/checkout → orders/key delivery → release verification. The [Phase 3 engineering handoff](docs/verification/slice-3-design.md) and [Home API contract](docs/api/home.md) document implemented banner, Best Sellers and Deals behavior and the pending 3E checkpoint.
+The [AI assistance record](docs/ai-history/README.md) includes authentic available conversations, source coverage and documented redactions. Original assignment documents remain unchanged under docs/reference/.

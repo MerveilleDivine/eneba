@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  CheckoutRequestError,
-  parsePurchaseResult,
-  placeCheckoutOrder,
-} from "./checkout-api";
+import { CheckoutRequestError, parsePurchaseResult, placeCheckoutOrder } from "./checkout-api";
 import type { CheckoutAttempt } from "./checkout-attempt";
 
 const attempt: CheckoutAttempt = {
@@ -26,9 +22,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("simulated purchase API", () => {
   it("posts only exact server-quoted cents with same-origin credentials and the stable key", async () => {
-    const mocked = vi
-      .fn()
-      .mockResolvedValue(new Response(JSON.stringify(order), { status: 200 }));
+    const mocked = vi.fn().mockResolvedValue(new Response(JSON.stringify(order), { status: 200 }));
     vi.stubGlobal("fetch", mocked);
     expect(await placeCheckoutOrder(attempt)).toEqual(order);
     const [path, config] = mocked.mock.calls[0];
@@ -62,14 +56,11 @@ describe("simulated purchase API", () => {
   ] as const)("maps %i %s safely to %s", async (status, code, kind) => {
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn()
-        .mockResolvedValue(
-          new Response(
-            JSON.stringify({ error: { code, message: "private diagnostics" } }),
-            { status },
-          ),
-        ),
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: { code, message: "private diagnostics" } }), {
+          status,
+        }),
+      ),
     );
     await expect(placeCheckoutOrder(attempt)).rejects.toMatchObject({ kind });
   });

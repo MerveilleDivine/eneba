@@ -6,7 +6,7 @@ import { productHref } from "../navigation/product-links";
 import styles from "./ProductCard.module.css";
 import { platformLabels, regionLabels } from "./identity";
 
-type Props = { product: ProductSummary };
+type Props = { product: ProductSummary; compact?: boolean };
 
 // Use stable product identity rather than list order to choose a cover gradient.
 function coverVariation(id: string): number {
@@ -17,11 +17,11 @@ function coverVariation(id: string): number {
   return variation;
 }
 
-export function ProductCard({ product }: Props) {
+export function ProductCard({ product, compact = false }: Props) {
   const location = useLocation();
   const [failedCoverUrl, setFailedCoverUrl] = useState<string>();
   return (
-    <article className={styles.productCard}>
+    <article className={`${styles.productCard} ${compact ? styles.compact : ""}`}>
       <Link
         className={styles.link}
         to={productHref(product.slug)}

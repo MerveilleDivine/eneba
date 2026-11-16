@@ -5,7 +5,7 @@
   height: 100%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 0.8rem;
+  border-radius: 0.25rem;
   overflow: hidden;
   transition:
     border-color 150ms ease,
@@ -32,7 +32,7 @@
 
 .productCard:hover {
   border-color: #b89aff7a;
-  transform: translateY(-2px);
+  transform: none;
 }
 
 .cover {
@@ -110,7 +110,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 0.9rem 0.8rem 1.1rem;
+  padding: 0.8rem 0.75rem 1rem;
 }
 
 .productInfo h3 {
@@ -135,7 +135,7 @@
 .productBadges span {
   border: 1px solid #d7c0f43d;
   border-radius: 0.3rem;
-  padding: 0.3rem 0.38rem;
+  padding: 0.25rem 0.35rem;
   color: #ddd1ee;
   font-size: 0.69rem;
   line-height: 1.2;
@@ -154,7 +154,7 @@
 }
 
 .productPrice strong {
-  font-size: 1.32rem;
+  font-size: 1.4rem;
   line-height: 1.2;
   letter-spacing: -0.035em;
 }
@@ -195,4 +195,8 @@
   .productCard:hover {
     transform: none;
   }
+}
+
+.compact .cover {
+  aspect-ratio: 4 / 3;
 }

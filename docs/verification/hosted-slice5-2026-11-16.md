@@ -7,7 +7,7 @@
 - Database: dedicated `eneba_demo` PostgreSQL 18 on Neon, with separate API and owner roles.
 - **Application source commit:** `ea1b51eed0c5b20be317c28c305a126936d3172f`, branch `feature/slice-2-catalog`. Both production deploys matched this commit.
 - GitHub repository remained private. `main` was not changed.
-- Verification environment: isolated ephemeral Vercel Sandbox (Frankfurt), Chrome 157, Playwright 1.58.2. Testing scripts were *not* committed.
+- Verification environment: isolated ephemeral Vercel Sandbox (Frankfurt), Chrome 157, Playwright 1.58.2. Testing scripts were _not_ committed.
 
 ## Actual hosted tests
 
@@ -43,7 +43,7 @@ The latest 100 inspected Render log entries contained no unexpected warning/erro
 
 ## Implementation review and remaining limits
 
-- Production `APP_ORIGIN` matches the *canonical* Vercel domain above. Other deployment aliases are not designated as authentication origins.
+- Production `APP_ORIGIN` matches the _canonical_ Vercel domain above. Other deployment aliases are not designated as authentication origins.
 - Source review confirms logout invokes `DeleteSession` using the hash of the token. Existing Go integration tests explicitly check that a logged-out cookie cannot be reused, that a concurrent separate session remains valid, and that logout checks the Origin. **A standalone replay of an old token against the public production URL was not independently executed**: the automated tool blocked that attempt. Do not claim a hosted replay pass.
 - The first hosted browser attempt was interrupted by a **test-harness mistake**, reading the response's `headers()` instead of Playwright's `allHeaders()` for `Set-Cookie`. The harness was corrected and the full nine-check live browser run passed. This did not require an application fix.
 - Two clearly labeled, synthetic `@example.test` accounts and two associated active session records remain in the dedicated demo database. The test passwords were randomly generated and not retained. **Cleanup requires explicit approval for destructive database changes.** No genuine user information was submitted.

@@ -69,7 +69,7 @@ func prepareProductDetails(details *ProductDetails) error {
 		!validProductCover(p.CoverURL) || len(details.Offers) > maxProductOffers {
 		return errInvalidProductData
 	}
-	if _, err := normalizeFilter(Filter{Platform: p.Platform, Region: p.Region, Page: 1, PageSize: 1}); err != nil {
+	if !supportedPlatform(p.Platform) || !supportedRegion(p.Region) {
 		return errInvalidProductData
 	}
 	if err := PrepareProduct(&p.Product); err != nil {

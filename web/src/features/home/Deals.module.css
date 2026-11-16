@@ -1,5 +1,5 @@
 .section {
-  padding: clamp(2rem, 4vw, 4rem) 0 1rem;
+  padding: 2rem 0 0.5rem;
   min-width: 0;
 }
 
@@ -8,19 +8,19 @@
   align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .heading h2 {
   margin: 0;
-  font-size: clamp(1.8rem, 3.2vw, 2.9rem);
+  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
   line-height: 1.12;
   overflow-wrap: anywhere;
 }
 
 .heading p:last-child {
-  margin: 0.75rem 0 0;
+  margin: 0.4rem 0 0;
   color: var(--color-muted);
   line-height: 1.5;
 }
@@ -72,7 +72,7 @@
 .grid {
   display: grid;
   /* Rem-sized minimum grows with user text scaling, avoiding cramped 200% cards. */
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
   gap: clamp(0.75rem, 1.5vw, 1.5rem);
   list-style: none;
   margin: 0;
@@ -88,7 +88,7 @@
   height: 100%;
   color: inherit;
   text-decoration: none;
-  border-radius: 0.85rem;
+  border-radius: 0.3rem;
 }
 
 .card {
@@ -97,7 +97,7 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: 0.85rem;
+  border-radius: 0.3rem;
   background: var(--color-surface);
   transition: border-color 150ms ease;
 }
@@ -191,7 +191,7 @@
 .feedback {
   padding: 1.5rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.85rem;
+  border-radius: 0.3rem;
   background: var(--color-surface);
 }
 
@@ -207,7 +207,7 @@
 
 .skeleton {
   min-height: 13rem;
-  border-radius: 0.85rem;
+  border-radius: 0.3rem;
   background: linear-gradient(135deg, #35234f, #483368, #291a48);
 }
 

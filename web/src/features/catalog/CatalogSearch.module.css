@@ -15,8 +15,8 @@
   min-width: 0;
   min-height: 48px;
   border: 1px solid var(--color-control-border);
-  border-radius: 0.65rem;
-  background: #311e50;
+  border-radius: 0.2rem;
+  background: #351078;
   overflow: hidden;
 }
 
@@ -58,7 +58,7 @@
 }
 
 .search button:hover {
-  background: #f1ffb5;
+  background: #fff36b;
 }
 
 .search button:focus-visible {

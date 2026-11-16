@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const bannerRegion = "Featured games";
-const bestSellerRegion = "Best sellers";
+const bestSellerRegion = "Best sellers in this demo";
 const dealRegion = "Deals worth discovering";
 
 test("the complete homepage reads three real Go/PostgreSQL sources", async ({ page, request }) => {
@@ -201,6 +201,22 @@ for (const width of [320, 360, 768, 1280]) {
       expect(headingWordLines, "ordinary heading words must remain readable at enlarged text").toBe(
         1,
       );
+      const widerFontLines = await deals
+        .getByRole("heading", { name: "Deals worth discovering" })
+        .evaluate((heading) => {
+          const previous = heading.style.fontFamily;
+          heading.style.fontFamily = "monospace";
+          const text = heading.firstChild!;
+          const word = "discovering";
+          const start = text.textContent!.indexOf(word);
+          const range = document.createRange();
+          range.setStart(text, start);
+          range.setEnd(text, start + word.length);
+          const lines = range.getClientRects().length;
+          heading.style.fontFamily = previous;
+          return lines;
+        });
+      expect(widerFontLines, "a wider fallback font must fit without splitting the word").toBe(1);
       const scan = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
         .analyze();

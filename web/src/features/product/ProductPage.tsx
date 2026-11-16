@@ -97,6 +97,7 @@ function ProductContent({ slug }: { slug: string }) {
   const navigation = useNavigationType();
   const [focusOnArrival] = useState(navigation === "PUSH");
   const heading = useRef<HTMLHeadingElement>(null);
+  const sellerHeading = useRef<HTMLHeadingElement>(null);
   const [cartResult, setCartResult] = useState<AddCartResult | null>(null);
   const { state, retry } = useReadRequest({
     read: (signal) => fetchProduct(slug, signal),
@@ -118,6 +119,7 @@ function ProductContent({ slug }: { slug: string }) {
 
   function choose(offerId?: string) {
     setCartResult(null);
+    if (!offerId) sellerHeading.current?.focus();
     navigate(productHref(slug, offerId), { state: location.state, preventScrollReset: true });
   }
   function addSelectedOffer() {
@@ -173,7 +175,7 @@ function ProductContent({ slug }: { slug: string }) {
               <p className={styles.eyebrow}>Your next world</p>
               <h2 id="about-game">About this game</h2>
               <p className={styles.description}>
-                {details.product.description || "Game details are currently unavailable."}
+                {details.product.description.trim() || "Game details are currently unavailable."}
               </p>
               <dl className={styles.facts}>
                 <div>
@@ -216,7 +218,9 @@ function ProductContent({ slug }: { slug: string }) {
             <div className={styles.sellerHeading}>
               <div>
                 <p className={styles.eyebrow}>Available sellers</p>
-                <h2 id="seller-title">Compare seller offers</h2>
+                <h2 ref={sellerHeading} tabIndex={-1} id="seller-title">
+                  Compare seller offers
+                </h2>
               </div>
               <span>
                 {details.offers.length} {details.offers.length === 1 ? "offer" : "offers"}
@@ -279,7 +283,13 @@ function ProductContent({ slug }: { slug: string }) {
                 ))}
               </fieldset>
             )}
-            <div className={styles.selection} role="status" aria-live="polite" aria-atomic="true">
+            <div
+              className={styles.selection}
+              aria-label="Your seller choice"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               <h3>Your seller choice</h3>
               {selected?.available ? (
                 <>
@@ -299,7 +309,11 @@ function ProductContent({ slug }: { slug: string }) {
                   </button>
                 </>
               ) : (
-                <p>Choose a seller to add this game to your cart.</p>
+                <p>
+                  {details.offers.some((offer) => offer.available)
+                    ? "Choose a seller to add this game to your cart."
+                    : "No seller offers are available right now."}
+                </p>
               )}
             </div>
           </section>

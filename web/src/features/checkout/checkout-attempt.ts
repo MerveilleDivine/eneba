@@ -29,8 +29,7 @@ const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 function validLines(value: unknown): value is PurchaseLine[] {
-  if (!Array.isArray(value) || value.length < 1 || value.length > 10)
-    return false;
+  if (!Array.isArray(value) || value.length < 1 || value.length > 10) return false;
   const ids = new Set<string>();
   for (const line of value) {
     if (
@@ -49,12 +48,7 @@ function validLines(value: unknown): value is PurchaseLine[] {
 }
 
 function parseAttempt(value: unknown): CheckoutAttempt | null {
-  if (
-    !record(value) ||
-    !uuid(value.key) ||
-    !uuid(value.buyerId) ||
-    !validLines(value.lines)
-  ) {
+  if (!record(value) || !uuid(value.key) || !uuid(value.buyerId) || !validLines(value.lines)) {
     return null;
   }
   return {
@@ -134,10 +128,7 @@ export function clearCheckoutAttempt(buyerId: string): boolean {
   }
 }
 
-export function attemptMatchesCart(
-  attempt: CheckoutAttempt,
-  cart: readonly CartLine[],
-): boolean {
+export function attemptMatchesCart(attempt: CheckoutAttempt, cart: readonly CartLine[]): boolean {
   return (
     attempt.lines.length === cart.length &&
     attempt.lines.every((line) =>
@@ -146,9 +137,7 @@ export function attemptMatchesCart(
   );
 }
 
-export function parseCheckoutConfirmation(
-  value: unknown,
-): CheckoutConfirmation | null {
+export function parseCheckoutConfirmation(value: unknown): CheckoutConfirmation | null {
   if (
     !record(value) ||
     !uuid(value.buyerId) ||
@@ -166,9 +155,7 @@ export function parseCheckoutConfirmation(
   };
 }
 
-export function saveCheckoutConfirmation(
-  result: CheckoutConfirmation,
-): boolean {
+export function saveCheckoutConfirmation(result: CheckoutConfirmation): boolean {
   if (!parseCheckoutConfirmation(result)) return false;
   try {
     sessionStorage.setItem(confirmationKey, JSON.stringify(result));

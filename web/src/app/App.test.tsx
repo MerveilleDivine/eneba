@@ -48,17 +48,11 @@ function renderApp(path = "/catalog") {
 
 describe("catalog browsing application", () => {
   it("renders real catalog products including the sold-out state", async () => {
-    const mock = vi
-      .fn()
-      .mockResolvedValue(new Response(JSON.stringify(payload)));
+    const mock = vi.fn().mockResolvedValue(new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);
     renderApp();
-    expect(
-      await screen.findByRole("heading", { name: "Solar Drift" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Lunar Legacy" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
     expect(screen.getByText("€11.36")).toBeInTheDocument();
     expect(screen.getByText("Currently unavailable")).toBeInTheDocument();
     expect(screen.getByText(/Discover your next game/)).toBeInTheDocument();
@@ -71,29 +65,21 @@ describe("catalog browsing application", () => {
   it("recovers from a service outage using Retry", async () => {
     const mock = vi
       .fn()
-      .mockResolvedValueOnce(
-        new Response("sensitive response", { status: 503 }),
-      )
+      .mockResolvedValueOnce(new Response("sensitive response", { status: 503 }))
       .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);
     renderApp();
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "temporarily unavailable",
-    );
+    expect(await screen.findByRole("alert")).toHaveTextContent("temporarily unavailable");
     expect(screen.queryByText("sensitive response")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Try again" }));
-    expect(
-      await screen.findByRole("heading", { name: "Solar Drift" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
   });
 
   it("offers a filter reset when the API rejects the selection", async () => {
     const mock = vi
       .fn()
-      .mockResolvedValueOnce(
-        new Response("private server detail", { status: 400 }),
-      )
+      .mockResolvedValueOnce(new Response("private server detail", { status: 400 }))
       .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);
     renderApp("/catalog?platform=steam");
@@ -105,15 +91,9 @@ describe("catalog browsing application", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText("private server detail")).not.toBeInTheDocument();
-    expect(
-      within(alert).getByRole("button", { name: "Try again" }),
-    ).toBeInTheDocument();
-    await userEvent.click(
-      within(alert).getByRole("link", { name: "Reset filters" }),
-    );
-    expect(
-      await screen.findByRole("heading", { name: "Solar Drift" }),
-    ).toBeInTheDocument();
+    expect(within(alert).getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    await userEvent.click(within(alert).getByRole("link", { name: "Reset filters" }));
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
     expect(mock.mock.calls[1][0]).not.toContain("platform=steam");
   });
@@ -121,24 +101,16 @@ describe("catalog browsing application", () => {
   it("recovers from a gateway timeout without changing the catalog query", async () => {
     const mock = vi
       .fn()
-      .mockResolvedValueOnce(
-        new Response("private gateway detail", { status: 504 }),
-      )
+      .mockResolvedValueOnce(new Response("private gateway detail", { status: 504 }))
       .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);
     renderApp("/catalog?platform=steam");
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent("took too long");
-    expect(
-      screen.queryByText("private gateway detail"),
-    ).not.toBeInTheDocument();
-    await userEvent.click(
-      within(alert).getByRole("button", { name: "Try again" }),
-    );
-    expect(
-      await screen.findByRole("heading", { name: "Solar Drift" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByText("private gateway detail")).not.toBeInTheDocument();
+    await userEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
     expect(mock.mock.calls[0][0]).toBe(mock.mock.calls[1][0]);
   });
@@ -146,27 +118,17 @@ describe("catalog browsing application", () => {
   it("offers an honest retry for a rejected default catalog request", async () => {
     const mock = vi
       .fn()
-      .mockResolvedValueOnce(
-        new Response("private rejection detail", { status: 400 }),
-      )
+      .mockResolvedValueOnce(new Response("private rejection detail", { status: 400 }))
       .mockResolvedValueOnce(new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);
     renderApp();
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent("choose a platform or search");
-    expect(
-      within(alert).queryByRole("link", { name: "Reset filters" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("private rejection detail"),
-    ).not.toBeInTheDocument();
-    await userEvent.click(
-      within(alert).getByRole("button", { name: "Try again" }),
-    );
-    expect(
-      await screen.findByRole("heading", { name: "Solar Drift" }),
-    ).toBeInTheDocument();
+    expect(within(alert).queryByRole("link", { name: "Reset filters" })).not.toBeInTheDocument();
+    expect(screen.queryByText("private rejection detail")).not.toBeInTheDocument();
+    await userEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
   });
 
@@ -197,9 +159,7 @@ describe("catalog browsing application", () => {
         resolveRequest(new Response(JSON.stringify(payload)));
         await Promise.resolve();
       });
-      expect(
-        screen.queryByRole("heading", { name: "Solar Drift" }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
       expect(screen.getByRole("alert")).toHaveTextContent("took too long");
     } finally {
       vi.useRealTimers();
@@ -230,9 +190,7 @@ describe("catalog browsing application", () => {
       await act(async () => {
         await Promise.resolve();
       });
-      expect(
-        screen.getByRole("heading", { name: "Solar Drift" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
       expect(mock).toHaveBeenCalledTimes(2);
     } finally {
       vi.useRealTimers();
@@ -253,9 +211,7 @@ describe("catalog browsing application", () => {
     ).toBeInTheDocument();
     expect(alert).not.toHaveTextContent("temporarily unavailable");
     expect(screen.queryByText("private stack")).not.toBeInTheDocument();
-    expect(
-      within(alert).getByRole("button", { name: "Try again" }),
-    ).toBeInTheDocument();
+    expect(within(alert).getByRole("button", { name: "Try again" })).toBeInTheDocument();
   });
 
   it("explains network failures and allows retry without leaking details", async () => {
@@ -266,27 +222,16 @@ describe("catalog browsing application", () => {
     vi.stubGlobal("fetch", mock);
     renderApp();
     const alert = await screen.findByRole("alert");
-    expect(
-      within(alert).getByRole("heading", { name: "Connection problem" }),
-    ).toBeInTheDocument();
+    expect(within(alert).getByRole("heading", { name: "Connection problem" })).toBeInTheDocument();
     expect(alert).toHaveTextContent("Check your connection");
-    expect(
-      screen.queryByText("private network address"),
-    ).not.toBeInTheDocument();
-    await userEvent.click(
-      within(alert).getByRole("button", { name: "Try again" }),
-    );
-    expect(
-      await screen.findByRole("heading", { name: "Solar Drift" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByText("private network address")).not.toBeInTheDocument();
+    await userEvent.click(within(alert).getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
   });
 
   it("treats a malformed success response as an unexpected failure", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(new Response("{private", { status: 200 })),
-    );
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{private", { status: 200 })));
     renderApp();
     const alert = await screen.findByRole("alert");
     expect(
@@ -299,16 +244,12 @@ describe("catalog browsing application", () => {
 
   it("classifies a failed response body read as a connection problem", async () => {
     const response = new Response(JSON.stringify(payload));
-    vi.spyOn(response, "json").mockRejectedValue(
-      new TypeError("private stream address"),
-    );
+    vi.spyOn(response, "json").mockRejectedValue(new TypeError("private stream address"));
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
     renderApp();
 
     const alert = await screen.findByRole("alert");
-    expect(
-      within(alert).getByRole("heading", { name: "Connection problem" }),
-    ).toBeInTheDocument();
+    expect(within(alert).getByRole("heading", { name: "Connection problem" })).toBeInTheDocument();
     expect(alert).not.toHaveTextContent("private stream address");
   });
 
@@ -333,9 +274,7 @@ describe("catalog browsing application", () => {
     renderApp();
 
     await userEvent.selectOptions(screen.getByLabelText("Platform"), "xbox");
-    expect(
-      await screen.findByRole("heading", { name: "Lunar Legacy" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
     expect(oldSignal?.aborted).toBe(true);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
@@ -350,42 +289,26 @@ describe("catalog browsing application", () => {
   });
 
   it("submits a header search to the actual API", async () => {
-    const mock = vi
-      .fn()
-      .mockImplementation(async () => new Response(JSON.stringify(payload)));
+    const mock = vi.fn().mockImplementation(async () => new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);
     renderApp();
     const search = screen.getByRole("searchbox", { name: "Search games" });
     await userEvent.type(search, "solar{enter}");
-    expect(
-      await screen.findByRole("heading", { name: "Solar Drift" }),
-    ).toBeInTheDocument();
-    expect(
-      mock.mock.calls.some((call) => String(call[0]).includes("q=solar")),
-    ).toBe(true);
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(mock.mock.calls.some((call) => String(call[0]).includes("q=solar"))).toBe(true);
   });
   it("searches from another page through the shared header", async () => {
-    const mock = vi
-      .fn()
-      .mockImplementation(async () => new Response(JSON.stringify(payload)));
+    const mock = vi.fn().mockImplementation(async () => new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);
     renderApp("/not-a-page");
-    expect(
-      screen.getByRole("heading", { name: "That page doesn't exist." }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "That page doesn't exist." })).toBeInTheDocument();
     const search = screen.getByRole("searchbox", { name: "Search games" });
     await userEvent.type(search, "solar{enter}");
-    expect(
-      await screen.findByRole("heading", { name: "Solar Drift" }),
-    ).toBeInTheDocument();
-    expect(
-      mock.mock.calls.some((call) => String(call[0]).includes("q=solar")),
-    ).toBe(true);
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+    expect(mock.mock.calls.some((call) => String(call[0]).includes("q=solar"))).toBe(true);
   });
   it("keeps shared navigation functional on unknown routes", async () => {
-    const mock = vi
-      .fn()
-      .mockImplementation(async () => new Response(JSON.stringify(payload)));
+    const mock = vi.fn().mockImplementation(async () => new Response(JSON.stringify(payload)));
     vi.stubGlobal("fetch", mock);
     renderApp("/missing");
     const navigation = screen.getByRole("navigation", {
@@ -396,9 +319,7 @@ describe("catalog browsing application", () => {
     });
     expect(catalogLink).not.toHaveAttribute("aria-current");
     await userEvent.click(catalogLink);
-    expect(
-      await screen.findByRole("heading", { name: "Explore games" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Explore games" })).toBeInTheDocument();
     expect(catalogLink).toHaveAttribute("aria-current", "page");
   });
   it("ignores an obsolete response after navigation to a newer search", async () => {
@@ -420,15 +341,11 @@ describe("catalog browsing application", () => {
     const search = screen.getByRole("searchbox", { name: "Search games" });
     await userEvent.clear(search);
     await userEvent.type(search, "lunra{enter}");
-    expect(
-      await screen.findByRole("heading", { name: "Lunar Legacy" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
     expect(firstSignal?.aborted).toBe(true);
     finishFirst(new Response(JSON.stringify(payload)));
     await Promise.resolve();
-    expect(
-      screen.queryByRole("heading", { name: "Solar Drift" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
   });
   it("aborts an obsolete catalog request when a filter changes", async () => {
     let resolveOld!: (response: Response) => void;
@@ -448,17 +365,13 @@ describe("catalog browsing application", () => {
     renderApp();
 
     await userEvent.selectOptions(screen.getByLabelText("Platform"), "xbox");
-    expect(
-      await screen.findByRole("heading", { name: "Lunar Legacy" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
     expect(oldSignal?.aborted).toBe(true);
     expect(mock).toHaveBeenCalledTimes(2);
 
     resolveOld(new Response(JSON.stringify(payload)));
     await Promise.resolve();
-    expect(
-      screen.queryByRole("heading", { name: "Solar Drift" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
   });
 
   it("shows loading instead of previous results while a new filter is pending", async () => {
@@ -473,24 +386,14 @@ describe("catalog browsing application", () => {
     );
     vi.stubGlobal("fetch", mock);
     renderApp();
-    expect(
-      await screen.findByRole("heading", { name: "Solar Drift" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
 
     await userEvent.selectOptions(screen.getByLabelText("Platform"), "xbox");
     expect(screen.getByRole("status")).toHaveTextContent("Loading games");
-    expect(
-      screen.queryByRole("heading", { name: "Solar Drift" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Solar Drift" })).not.toBeInTheDocument();
 
-    resolveNext(
-      new Response(
-        JSON.stringify({ ...payload, items: [products[1]], total: 1 }),
-      ),
-    );
-    expect(
-      await screen.findByRole("heading", { name: "Lunar Legacy" }),
-    ).toBeInTheDocument();
+    resolveNext(new Response(JSON.stringify({ ...payload, items: [products[1]], total: 1 })));
+    expect(await screen.findByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
   });
 });

@@ -8,6 +8,29 @@ const buyer = {
   email: "buyer@example.test",
   displayName: "Sample Buyer",
 };
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/v1/orders/*", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: orderId,
+        createdAt: "2026-11-16T12:00:00Z",
+        totalCents: 1250,
+        currency: "EUR",
+        items: [
+          {
+            id: orderId,
+            productName: "Solar Drift",
+            sellerName: "Orbit Games",
+            unitPriceCents: 1250,
+            keyCode: "DEMO-NOT-REDEEMABLE",
+          },
+        ],
+      }),
+    }),
+  );
+});
 function quoted(price = 1250, available = true) {
   return {
     currency: "EUR",
@@ -63,9 +86,7 @@ test("guest signs in, returns to checkout, and places one order without losing t
     route.fulfill({
       status: signedIn ? 200 : 401,
       contentType: "application/json",
-      body: JSON.stringify(
-        signedIn ? { user: buyer } : { error: { code: "unauthorized" } },
-      ),
+      body: JSON.stringify(signedIn ? { user: buyer } : { error: { code: "unauthorized" } }),
     }),
   );
   await page.route("**/api/v1/auth/login", (route) => {
@@ -97,28 +118,20 @@ test("guest signs in, returns to checkout, and places one order without losing t
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/checkout$/);
   await expect(page.getByText("€12.50").first()).toBeVisible();
-  await expect(
-    page.getByText("Simulated purchase — no payment is taken."),
-  ).toBeVisible();
+  await expect(page.getByText("Simulated purchase — no payment is taken.")).toBeVisible();
   await page.getByRole("button", { name: "Place order" }).click();
-  await expect(page).toHaveURL(/\/checkout\/confirmation$/);
-  await expect(
-    page.getByRole("heading", { name: "Thank you for your order!" }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/orders\/[0-9a-f-]+$/);
+  await expect(page.getByRole("heading", { name: "Your order & keys" })).toBeVisible();
   await expect(page.getByText(orderId)).toBeVisible();
   expect(submitted).toHaveLength(1);
   await page.reload();
   await expect(page.getByText(orderId)).toBeVisible();
   expect(
-    await page.evaluate(() =>
-      JSON.parse(localStorage.getItem("eneba:cart:v1") || "[]"),
-    ),
+    await page.evaluate(() => JSON.parse(localStorage.getItem("eneba:cart:v1") || "[]")),
   ).toEqual([]);
 });
 
-test("uncertain response keeps the original idempotency key after reload", async ({
-  page,
-}) => {
+test("uncertain response keeps the original idempotency key after reload", async ({ page }) => {
   await saveCart(page);
   await quoteRoute(page, () => quoted());
   await page.route("**/api/v1/auth/me", (route) =>
@@ -149,16 +162,10 @@ test("uncertain response keeps the original idempotency key after reload", async
   });
   await page.goto("/checkout");
   await page.getByRole("button", { name: "Place order" }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    "temporarily unavailable",
-  );
-  expect(
-    await page.evaluate(() => localStorage.getItem("eneba:cart:v1")),
-  ).toContain(offerId);
+  await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
+  expect(await page.evaluate(() => localStorage.getItem("eneba:cart:v1"))).toContain(offerId);
   await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Retry previous order" }),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Retry previous order" })).toBeVisible();
   await page.getByRole("button", { name: "Retry previous order" }).click();
   await expect(page.getByText(orderId)).toBeVisible();
   expect(keys).toHaveLength(2);
@@ -166,9 +173,7 @@ test("uncertain response keeps the original idempotency key after reload", async
   await expect(page.getByText("database details")).toHaveCount(0);
 });
 
-test("price change forces a new quote before allowing purchase", async ({
-  page,
-}) => {
+test("price change forces a new quote before allowing purchase", async ({ page }) => {
   await saveCart(page);
   let price = 1250;
   await quoteRoute(page, () => quoted(price));
@@ -190,9 +195,7 @@ test("price change forces a new quote before allowing purchase", async ({
         body: JSON.stringify({ error: { code: "PRICE_CHANGED" } }),
       });
     } else {
-      expect(
-        route.request().postDataJSON().lines[0].expectedUnitPriceCents,
-      ).toBe(1400);
+      expect(route.request().postDataJSON().lines[0].expectedUnitPriceCents).toBe(1400);
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -226,14 +229,10 @@ test("sold-out items cannot enter checkout and the page fits 320px with enlarged
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
   });
-  await expect(
-    page.getByRole("button", { name: "Place order" }),
-  ).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Place order" })).toBeDisabled();
   await expect(page.getByRole("link", { name: "Edit cart" })).toBeVisible();
   const overflow = await page.evaluate(
-    () =>
-      document.documentElement.scrollWidth >
-      document.documentElement.clientWidth,
+    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
   expect(overflow).toBe(false);
 });

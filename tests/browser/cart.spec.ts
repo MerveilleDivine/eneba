@@ -57,7 +57,7 @@ test("cart and account navigation remain usable at enlarged text size", async ({
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
   });
-  await expect(page.getByRole("link", { name: "Cart (0)" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Cart 0" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Account" })).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -81,20 +81,22 @@ test("saved offer remains visible but is not priced as purchasable after stock r
       contentType: "application/json",
       body: JSON.stringify({
         currency: "EUR",
-        lines: [{
-          offerId: savedOffer,
-          quantity: 1,
-          productSlug: "solar-drift",
-          productName: "Solar Drift",
-          edition: "Standard",
-          platform: "steam",
-          region: "global",
-          sellerName: "Orbit Games",
-          sellerRatingPercent: 96,
-          unitPriceCents: 1136,
-          lineTotalCents: null,
-          available: false,
-        }],
+        lines: [
+          {
+            offerId: savedOffer,
+            quantity: 1,
+            productSlug: "solar-drift",
+            productName: "Solar Drift",
+            edition: "Standard",
+            platform: "steam",
+            region: "global",
+            sellerName: "Orbit Games",
+            sellerRatingPercent: 96,
+            unitPriceCents: 1136,
+            lineTotalCents: null,
+            available: false,
+          },
+        ],
         totalCents: null,
       }),
     });

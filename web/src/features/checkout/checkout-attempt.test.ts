@@ -12,9 +12,7 @@ import type { CartQuote } from "../cart/quote-api";
 
 const offerId = "30000000-0000-4000-8000-000000000001";
 const buyerId = "10000000-0000-4000-8000-000000000001";
-const cart: readonly CartLine[] = [
-  { offerId, slug: "solar-drift", quantity: 1 },
-];
+const cart: readonly CartLine[] = [{ offerId, slug: "solar-drift", quantity: 1 }];
 const quote: CartQuote = {
   currency: "EUR",
   totalCents: 1250,
@@ -43,13 +41,9 @@ describe("checkout attempts", () => {
   it("persists an idempotency key, exact expected line price and buyer across a reload", () => {
     const attempt = createCheckoutAttempt(buyerId, cart, quote);
     expect(attempt).not.toBeNull();
-    expect(attempt?.lines).toEqual([
-      { offerId, quantity: 1, expectedUnitPriceCents: 1250 },
-    ]);
+    expect(attempt?.lines).toEqual([{ offerId, quantity: 1, expectedUnitPriceCents: 1250 }]);
     expect(readCheckoutAttempt(buyerId)).toEqual(attempt);
-    expect(
-      createCheckoutAttempt(buyerId, cart, { ...quote, totalCents: 9999 }),
-    ).toEqual(attempt);
+    expect(createCheckoutAttempt(buyerId, cart, { ...quote, totalCents: 9999 })).toEqual(attempt);
     expect(attemptMatchesCart(attempt!, cart)).toBe(true);
     expect(attemptMatchesCart(attempt!, [])).toBe(false);
     expect(clearCheckoutAttempt(buyerId)).toBe(true);
@@ -58,9 +52,7 @@ describe("checkout attempts", () => {
 
   it("does not create a purchase for sold out, missing, or corrupt cart lines", () => {
     expect(createCheckoutAttempt(buyerId, [], quote)).toBeNull();
-    expect(
-      createCheckoutAttempt(buyerId, cart, { ...quote, totalCents: null }),
-    ).toBeNull();
+    expect(createCheckoutAttempt(buyerId, cart, { ...quote, totalCents: null })).toBeNull();
     expect(
       createCheckoutAttempt(buyerId, cart, {
         ...quote,
@@ -90,10 +82,7 @@ describe("checkout attempts", () => {
       key,
       JSON.stringify({
         ...valid,
-        lines: [
-          ...valid.lines,
-          { ...valid.lines[0], expectedUnitPriceCents: 1 },
-        ],
+        lines: [...valid.lines, { ...valid.lines[0], expectedUnitPriceCents: 1 }],
       }),
     );
     expect(readCheckoutAttempt(buyerId)).toBeNull();
@@ -108,10 +97,7 @@ describe("checkout attempts", () => {
     };
     expect(saveCheckoutConfirmation(receipt)).toBe(true);
     expect(readCheckoutConfirmation()).toEqual(receipt);
-    sessionStorage.setItem(
-      "eneba:checkout:confirmation:v1",
-      '{"orderId":"fake","totalCents":0}',
-    );
+    sessionStorage.setItem("eneba:checkout:confirmation:v1", '{"orderId":"fake","totalCents":0}');
     expect(readCheckoutConfirmation()).toBeNull();
   });
 });

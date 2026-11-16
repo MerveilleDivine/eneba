@@ -182,3 +182,41 @@ it("renders real activation guidance and adds only the selected seller offer to 
   expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
   expect(screen.getAllByText("€13.86").length).toBeGreaterThan(0);
 });
+
+it("clearing a seller choice preserves keyboard focus on the comparison heading", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockImplementation(() => Promise.resolve(response(solar))),
+  );
+  open("/products/solar-drift?offerId=" + solar.offers[1].offerId);
+  const clear = await screen.findByRole("button", { name: "Clear offer selection" });
+  clear.focus();
+  fireEvent.click(clear);
+  expect(screen.getByRole("heading", { name: "Compare seller offers" })).toHaveFocus();
+  expect(screen.queryByRole("radio", { checked: true })).not.toBeInTheDocument();
+});
+
+it("sold-out products do not ask the buyer to choose an unavailable seller", async () => {
+  const soldOut = {
+    ...solar,
+    product: { ...solar.product, available: false, lowestPriceCents: null },
+    offers: solar.offers.map((offer) => ({ ...offer, available: false })),
+  };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockImplementation(() => Promise.resolve(response(soldOut))),
+  );
+  open("/products/solar-drift");
+  await screen.findByText("Currently sold out");
+  expect(screen.getByRole("status")).toHaveTextContent("No seller offers are available right now.");
+});
+
+it("blank optional descriptions have a useful fallback", async () => {
+  const blankDescription = { ...solar, product: { ...solar.product, description: " \n " } };
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockImplementation(() => Promise.resolve(response(blankDescription))),
+  );
+  open("/products/solar-drift");
+  expect(await screen.findByText("Game details are currently unavailable.")).toBeInTheDocument();
+});

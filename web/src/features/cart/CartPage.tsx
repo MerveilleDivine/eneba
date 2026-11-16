@@ -5,16 +5,11 @@ import { displayEuro } from "../../shared/format/money";
 import { productHref } from "../../shared/navigation/product-links";
 import { platformLabels, regionLabels } from "../../shared/product/identity";
 import { removeCartLine, useCart, type CartLine } from "./cart-store";
-import {
-  fetchCartQuote,
-  QuoteRequestError,
-  type QuoteFailure,
-} from "./quote-api";
+import { fetchCartQuote, QuoteRequestError, type QuoteFailure } from "./quote-api";
 import styles from "./CartPage.module.css";
 
 const quoteMessages: Record<QuoteFailure, string> = {
-  invalid:
-    "Some cart items need attention. Remove the unavailable item and try again.",
+  invalid: "Some cart items need attention. Remove the unavailable item and try again.",
   unavailable: "Current prices aren't available right now. Please try again.",
   timeout: "Checking prices is taking longer than usual. Please try again.",
   network: "We couldn't reach the store. Check your connection and try again.",
@@ -48,13 +43,10 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
       </div>
       {storageError && (
         <p role="alert" className={styles.warning}>
-          We couldn't update your cart. Check your browser's storage settings
-          and try again.
+          We couldn't update your cart. Check your browser's storage settings and try again.
         </p>
       )}
-      {state.status === "loading" && (
-        <p role="status">Checking prices and availability…</p>
-      )}
+      {state.status === "loading" && <p role="status">Checking prices and availability…</p>}
       {state.status === "failed" && (
         <p role="alert" className={styles.warning}>
           {quoteMessages[state.kind]}
@@ -79,11 +71,7 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
                 </p>
               )}
               {quote && (
-                <p
-                  className={
-                    quote.available ? styles.available : styles.warning
-                  }
-                >
+                <p className={quote.available ? styles.available : styles.warning}>
                   {quote.available
                     ? "Available"
                     : quote.productName === null
@@ -92,9 +80,7 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
                 </p>
               )}
               <p>Quantity: 1</p>
-              <Link
-                to={productHref(quote?.productSlug ?? line.slug, line.offerId)}
-              >
+              <Link to={productHref(quote?.productSlug ?? line.slug, line.offerId)}>
                 View seller offer
               </Link>
             </div>
@@ -139,9 +125,7 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
 
 export function CartPage() {
   const lines = useCart();
-  const identity = lines
-    .map((line) => line.slug + ":" + line.offerId)
-    .join("|");
+  const identity = lines.map((line) => line.slug + ":" + line.offerId).join("|");
   return (
     <div className={styles.page}>
       <header>

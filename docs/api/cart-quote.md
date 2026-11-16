@@ -7,7 +7,7 @@ Retrieves current EUR prices and stock from PostgreSQL without allocating keys, 
 ## Request
 
 ```json
-{"lines":[{"offerId":"30000000-0000-4000-8000-000000000001","quantity":1}]}
+{ "lines": [{ "offerId": "30000000-0000-4000-8000-000000000001", "quantity": 1 }] }
 ```
 
 Requires 1–10 distinct offer UUIDs (case-insensitive) with quantity exactly 1. Rejects malformed UUIDs, duplicate IDs, unknown input fields, non-unit quantities, empty requests and bodies larger than 4 KiB.
@@ -16,22 +16,24 @@ Requires 1–10 distinct offer UUIDs (case-insensitive) with quantity exactly 1.
 
 ```json
 {
-  "currency":"EUR",
-  "lines":[{
-    "offerId":"30000000-0000-4000-8000-000000000001",
-    "quantity":1,
-    "productSlug":"solar-drift",
-    "productName":"Solar Drift",
-    "edition":"Standard",
-    "platform":"steam",
-    "region":"global",
-    "sellerName":"Northern Pixel",
-    "sellerRatingPercent":98,
-    "unitPriceCents":1136,
-    "lineTotalCents":1136,
-    "available":true
-  }],
-  "totalCents":1136
+  "currency": "EUR",
+  "lines": [
+    {
+      "offerId": "30000000-0000-4000-8000-000000000001",
+      "quantity": 1,
+      "productSlug": "solar-drift",
+      "productName": "Solar Drift",
+      "edition": "Standard",
+      "platform": "steam",
+      "region": "global",
+      "sellerName": "Northern Pixel",
+      "sellerRatingPercent": 98,
+      "unitPriceCents": 1136,
+      "lineTotalCents": 1136,
+      "available": true
+    }
+  ],
+  "totalCents": 1136
 }
 ```
 

@@ -42,19 +42,14 @@ export function parsePurchaseResult(value: unknown): PurchaseResult {
 
 async function checkoutFailure(response: Response): Promise<CheckoutFailure> {
   if (response.status === 401) return "unauthorized";
-  if (
-    response.status === 400 ||
-    response.status === 403 ||
-    response.status === 415
-  )
+  if (response.status === 400 || response.status === 403 || response.status === 415)
     return "invalid";
   if (response.status === 408 || response.status === 504) return "timeout";
   if (response.status === 502 || response.status === 503) return "unavailable";
   if (response.status !== 409) return "unexpected";
   try {
     const payload: unknown = await response.json();
-    const code =
-      record(payload) && record(payload.error) ? payload.error.code : null;
+    const code = record(payload) && record(payload.error) ? payload.error.code : null;
     if (code === "PRICE_CHANGED") return "price-changed";
     if (code === "OUT_OF_STOCK") return "sold-out";
     if (code === "IDEMPOTENCY_CONFLICT") return "idempotency-conflict";
@@ -66,9 +61,7 @@ async function checkoutFailure(response: Response): Promise<CheckoutFailure> {
 
 // A transport timeout is an unknown result, not proof of a failed transaction.
 // The caller must preserve the attempt and reuse its key on retry.
-export async function placeCheckoutOrder(
-  attempt: CheckoutAttempt,
-): Promise<PurchaseResult> {
+export async function placeCheckoutOrder(attempt: CheckoutAttempt): Promise<PurchaseResult> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 12000);
   try {
@@ -84,8 +77,7 @@ export async function placeCheckoutOrder(
       },
       body: JSON.stringify({ lines: attempt.lines }),
     });
-    if (!response.ok)
-      throw new CheckoutRequestError(await checkoutFailure(response));
+    if (!response.ok) throw new CheckoutRequestError(await checkoutFailure(response));
     let result: unknown;
     try {
       result = await response.json();
@@ -95,9 +87,7 @@ export async function placeCheckoutOrder(
     return parsePurchaseResult(result);
   } catch (error) {
     if (error instanceof CheckoutRequestError) throw error;
-    throw new CheckoutRequestError(
-      controller.signal.aborted ? "timeout" : "network",
-    );
+    throw new CheckoutRequestError(controller.signal.aborted ? "timeout" : "network");
   } finally {
     window.clearTimeout(timeout);
   }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { displayEuro } from "../../shared/format/money";
 import { platformLabels, regionLabels } from "../../shared/product/identity";
 import { productHref } from "../../shared/navigation/product-links";
@@ -9,11 +9,16 @@ import styles from "./Deals.module.css";
 type Props = { deal: Deal };
 
 export function DealCard({ deal }: Props) {
+  const location = useLocation();
   const [failedCoverUrl, setFailedCoverUrl] = useState<string>();
   const destination = productHref(deal.slug, deal.offerId);
   return (
     <li className={styles.item}>
-      <Link className={styles.offerLink} to={destination}>
+      <Link
+        className={styles.offerLink}
+        to={destination}
+        state={{ from: location.pathname + location.search }}
+      >
         <div className={styles.card}>
           <div className={styles.cover}>
             {failedCoverUrl !== deal.coverUrl && (

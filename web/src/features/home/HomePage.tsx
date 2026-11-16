@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { platforms, platformLabels } from "../../shared/product/identity";
 import { fetchBanners, type BannerFailure } from "./banner-api";
 import { BestSellers } from "./BestSellers";
 import { Deals } from "./Deals";
@@ -132,7 +133,48 @@ function FeaturedBanners() {
 export function HomePage() {
   return (
     <div className={styles.home}>
-      <FeaturedBanners />
+      <div className={styles.heroLayout}>
+        <FeaturedBanners />
+        <aside className={styles.collections} aria-label="Explore collections">
+          <Link to="/catalog?platform=steam" className={styles.collection}>
+            <img src="/images/covers/solar-drift.webp" alt="" width="432" height="576" />
+            <div>
+              <span>Made for your PC</span>
+              <h2>Find your next adventure</h2>
+              <strong>Explore Steam →</strong>
+            </div>
+          </Link>
+          <Link to="/catalog?platform=playstation" className={styles.collection}>
+            <img src="/images/covers/deep-signal.webp" alt="" width="432" height="576" />
+            <div>
+              <span>Pick up the controller</span>
+              <h2>Great worlds await</h2>
+              <strong>Explore PlayStation →</strong>
+            </div>
+          </Link>
+        </aside>
+      </div>
+      <nav className={styles.categories} aria-label="Shop by platform">
+        <Link to="/catalog">
+          <span aria-hidden="true">＋</span>All games
+        </Link>
+        {platforms
+          .filter((platform) => platform !== "other")
+          .map((platform) => (
+            <Link key={platform} to={`/catalog?platform=${platform}`}>
+              <span aria-hidden="true">
+                {platform === "steam"
+                  ? "PC"
+                  : platform === "playstation"
+                    ? "PS"
+                    : platform === "xbox"
+                      ? "X"
+                      : "N"}
+              </span>
+              {platformLabels[platform]}
+            </Link>
+          ))}
+      </nav>
       <BestSellers />
       <Deals />
     </div>

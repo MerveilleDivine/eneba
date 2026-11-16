@@ -159,3 +159,28 @@
     flex-basis: 100%;
   }
 }
+
+.mobileToggle {
+  display: none;
+}
+@media (max-width: 860px) {
+  .mobileToggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    color: white;
+    background: none;
+    border: 0;
+    font-weight: 700;
+    min-height: 2.75rem;
+  }
+  .filterPanel {
+    display: none;
+  }
+  .filterPanelOpen {
+    display: block;
+    padding-top: 1rem;
+  }
+}

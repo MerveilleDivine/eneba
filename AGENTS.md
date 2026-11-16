@@ -2,7 +2,7 @@
 
 ## Current scope
 
-The user authorized Slice 6; 6A read-only quotes, 6B atomic buying and 6C buyer checkout were verified with isolated PostgreSQL, Go race tests and browser flows. The next gate is **6D hosted release acceptance**, after which the user has requested a separate independent weakness review. Do not claim production acceptance without exact deployed commit and hosted smoke results. Continue on `feature/slice-2-catalog`; keep the repository private, and do not merge `main`, rewrite history, or commit conversations or secrets. The approved checkout scope lives in `docs/plans/slice-6-checkout.md`. GitHub Actions quota is exhausted; test outside Actions and report any verification limits.
+The user authorized the final submission sprint: owner-only orders and key delivery, a storefront refresh, focused maintenance, complete verification, and deployment to the existing Vercel/Render/Neon services. Continue on `feature/slice-2-catalog`. Preserve transactional guarantees and existing work. Do not merge main, create another branch, rewrite history, use paid infrastructure, send the submission email, or change repository visibility without explicit approval. Commit the reviewed authentic conversation archive only after the application is complete. GitHub Actions remains pending by user choice; report off-Actions, local and hosted evidence separately.
 
 ## Boundaries
 

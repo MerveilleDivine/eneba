@@ -1,15 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
-import {
-  AuthRequestError,
-  currentAccount,
-  type AuthFailure,
-} from "../auth/auth-api";
-import {
-  useCart,
-  removePurchasedCartLines,
-  type CartLine,
-} from "../cart/cart-store";
+import { Link, Navigate, useLocation, useNavigate } from "react-router";
+import { AuthRequestError, currentAccount, type AuthFailure } from "../auth/auth-api";
+import { useCart, removePurchasedCartLines, type CartLine } from "../cart/cart-store";
 import {
   fetchCartQuote,
   QuoteRequestError,
@@ -30,11 +22,7 @@ import {
   saveCheckoutConfirmation,
   type CheckoutConfirmation,
 } from "./checkout-attempt";
-import {
-  CheckoutRequestError,
-  placeCheckoutOrder,
-  type CheckoutFailure,
-} from "./checkout-api";
+import { CheckoutRequestError, placeCheckoutOrder, type CheckoutFailure } from "./checkout-api";
 import styles from "./CheckoutPage.module.css";
 
 const quoteErrors: Record<QuoteFailure, string> = {
@@ -54,8 +42,7 @@ const accountErrors: Record<AuthFailure, string> = {
 };
 const purchaseErrors: Record<CheckoutFailure, string> = {
   unauthorized: "Your session has expired. Sign in and retry the same order.",
-  "price-changed":
-    "One or more prices have changed. Review the refreshed total before ordering.",
+  "price-changed": "One or more prices have changed. Review the refreshed total before ordering.",
   "sold-out": "An item just sold out. Remove unavailable items and try again.",
   "idempotency-conflict":
     "This order attempt doesn't match its original details. Please review it before starting another order.",
@@ -64,10 +51,8 @@ const purchaseErrors: Record<CheckoutFailure, string> = {
     "Checkout is temporarily unavailable. Your order may still have been placed; retry the previous attempt to confirm.",
   timeout:
     "The response took too long. Your order may have completed; retry the same attempt to confirm.",
-  network:
-    "Connection lost. Your order may have completed; retry the same attempt to confirm.",
-  unexpected:
-    "We couldn't confirm the order. Retry the same attempt before starting another.",
+  network: "Connection lost. Your order may have completed; retry the same attempt to confirm.",
+  unexpected: "We couldn't confirm the order. Retry the same attempt before starting another.",
 };
 
 function CheckoutSummary({ quote }: { quote: CartQuote }) {
@@ -81,30 +66,22 @@ function CheckoutSummary({ quote }: { quote: CartQuote }) {
               <h3>{item.productName ?? "Unavailable offer"}</h3>
               {item.edition && item.platform && item.region && (
                 <p>
-                  {item.edition} · {platformLabels[item.platform]} ·{" "}
-                  {regionLabels[item.region]}
+                  {item.edition} · {platformLabels[item.platform]} · {regionLabels[item.region]}
                 </p>
               )}
               {item.sellerName && <p>Sold by {item.sellerName}</p>}
               <p>Quantity: 1</p>
               {!item.available && (
-                <p className={styles.errorText}>
-                  This offer is no longer available.
-                </p>
+                <p className={styles.errorText}>This offer is no longer available.</p>
               )}
               {item.productSlug && (
-                <Link
-                  className={styles.textLink}
-                  to={productHref(item.productSlug, item.offerId)}
-                >
+                <Link className={styles.textLink} to={productHref(item.productSlug, item.offerId)}>
                   View offer
                 </Link>
               )}
             </div>
             <strong className={styles.linePrice}>
-              {item.unitPriceCents === null
-                ? "—"
-                : displayEuro(item.unitPriceCents)}
+              {item.unitPriceCents === null ? "—" : displayEuro(item.unitPriceCents)}
             </strong>
           </li>
         ))}
@@ -151,9 +128,7 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
   const buyer = account.state.status === "ready" ? account.state.data : null;
   const pending = buyer ? readCheckoutAttempt(buyer.id) : null;
   const canPlace =
-    buyer !== null &&
-    quoted.state.status === "ready" &&
-    quoted.state.data.totalCents !== null;
+    buyer !== null && quoted.state.status === "ready" && quoted.state.data.totalCents !== null;
   const canRetry = pending !== null;
   async function submit() {
     if (submittingRef.current || (!canPlace && !canRetry) || !buyer) return;
@@ -174,9 +149,7 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
     refreshAttempt((value) => value + 1);
     try {
       const result = await placeCheckoutOrder(attempt);
-      const cartCleared = removePurchasedCartLines(
-        attempt.lines.map((line) => line.offerId),
-      );
+      const cartCleared = removePurchasedCartLines(attempt.lines.map((line) => line.offerId));
       const confirmation: CheckoutConfirmation = {
         buyerId: buyer.id,
         orderId: result.orderId,
@@ -186,20 +159,16 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
       saveCheckoutConfirmation(confirmation);
       clearCheckoutAttempt(buyer.id);
       if (mounted.current)
-        navigate("/checkout/confirmation", {
+        navigate(`/orders/${result.orderId}`, {
           replace: true,
-          state: confirmation,
+          state: { cartCleared },
         });
     } catch (reason) {
       if (!mounted.current) return;
       const kind: CheckoutFailure =
         reason instanceof CheckoutRequestError ? reason.kind : "unexpected";
       setError(purchaseErrors[kind]);
-      if (
-        kind === "price-changed" ||
-        kind === "sold-out" ||
-        kind === "invalid"
-      ) {
+      if (kind === "price-changed" || kind === "sold-out" || kind === "invalid") {
         clearCheckoutAttempt(buyer.id);
         quoted.retry();
       }
@@ -220,9 +189,7 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
             {quoteErrors[quoted.state.kind]}
           </p>
         )}
-        {quoted.state.status === "ready" && (
-          <CheckoutSummary quote={quoted.state.data} />
-        )}
+        {quoted.state.status === "ready" && <CheckoutSummary quote={quoted.state.data} />}
         <div className={styles.actions}>
           <button
             type="button"
@@ -242,27 +209,18 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
       </div>
       <aside className={styles.card} aria-labelledby="checkout-payment-title">
         <h2 id="checkout-payment-title">Complete your order</h2>
-        {account.state.status === "loading" && (
-          <p role="status">Checking your account…</p>
-        )}
+        {account.state.status === "loading" && <p role="status">Checking your account…</p>}
         {account.state.status === "failed" && (
           <div role="alert" className={styles.warning}>
             <p>{accountErrors[account.state.kind]}</p>
-            <button
-              type="button"
-              className={styles.secondary}
-              onClick={account.retry}
-            >
+            <button type="button" className={styles.secondary} onClick={account.retry}>
               Try again
             </button>
           </div>
         )}
         {account.state.status === "ready" && buyer === null && (
           <div className={styles.signIn}>
-            <p>
-              Sign in to place your order. Your cart will be here when you
-              return.
-            </p>
+            <p>Sign in to place your order. Your cart will be here when you return.</p>
             <Link className={styles.primary} to="/sign-in?next=%2Fcheckout">
               Sign in
             </Link>
@@ -279,14 +237,12 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
             {pending && (
               <div className={styles.warning} role="status">
                 <p>
-                  An earlier order attempt is awaiting confirmation. Retrying it
-                  will use the original items and prices, without placing a
-                  duplicate order.
+                  An earlier order attempt is awaiting confirmation. Retrying it will use the
+                  original items and prices, without placing a duplicate order.
                 </p>
                 {!attemptMatchesCart(pending, lines) && (
                   <p>
-                    Your cart has changed since that attempt. Resolve it before
-                    placing a new order.
+                    Your cart has changed since that attempt. Resolve it before placing a new order.
                   </p>
                 )}
               </div>
@@ -296,9 +252,7 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
               quoted.state.data.totalCents === null && (
                 <p>Check your unavailable items before continuing.</p>
               )}
-            <p className={styles.notice}>
-              Simulated purchase — no payment is taken.
-            </p>
+            <p className={styles.notice}>Simulated purchase — no payment is taken.</p>
             {error && (
               <p role="alert" className={styles.warning}>
                 {error}
@@ -317,8 +271,7 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
                   : "Place order"}
             </button>
             <p className={styles.footnote}>
-              You will receive your order reference once the purchase is
-              confirmed.
+              You will receive your order reference once the purchase is confirmed.
             </p>
           </>
         )}
@@ -329,9 +282,7 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
 
 export function CheckoutPage() {
   const lines = useCart();
-  const identity = lines
-    .map((line) => line.offerId + ":" + line.slug)
-    .join("|");
+  const identity = lines.map((line) => line.offerId + ":" + line.slug).join("|");
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -355,92 +306,9 @@ export function CheckoutPage() {
 }
 
 export function CheckoutConfirmationPage() {
-  const navigate = useNavigate();
   const location = useLocation();
-  const [result] = useState(
-    () =>
-      readCheckoutConfirmation() ?? parseCheckoutConfirmation(location.state),
-  );
-  const [copyMessage, setCopyMessage] = useState("");
-  const owner = useReadRequest({
-    read: currentAccount,
-    failure: (reason): AuthFailure =>
-      reason instanceof AuthRequestError ? reason.kind : "unexpected",
-    timeout: "unavailable" as AuthFailure,
-  });
-  if (owner.state.status === "loading")
-    return (
-      <section className={styles.confirmation}>
-        <p role="status">Checking your order…</p>
-      </section>
-    );
-  if (owner.state.status === "failed")
-    return (
-      <section className={styles.confirmation}>
-        <h1>Order temporarily unavailable</h1>
-        <button
-          type="button"
-          className={styles.secondary}
-          onClick={owner.retry}
-        >
-          Try again
-        </button>
-      </section>
-    );
-  if (!owner.state.data || !result || owner.state.data.id !== result.buyerId)
-    return (
-      <section className={styles.confirmation}>
-        <h1>Order unavailable</h1>
-        <p>Sign in with the purchasing account to view your confirmation.</p>
-        <Link className={styles.primary} to="/sign-in">
-          Sign in
-        </Link>
-      </section>
-    );
-  return (
-    <section className={styles.confirmation}>
-      <p className={styles.kicker}>Order confirmed</p>
-      <h1>Thank you for your order!</h1>
-      <p>Your order was placed successfully.</p>
-      <div className={styles.receipt}>
-        <div>
-          <span>Order reference</span>
-          <strong className={styles.reference}>{result.orderId}</strong>
-        </div>
-        <div>
-          <span>Order total</span>
-          <strong>{displayEuro(result.totalCents)}</strong>
-        </div>
-      </div>
-      {!result.cartCleared && (
-        <p className={styles.warning} role="alert">
-          Your order was placed, but we couldn't update your cart. You can
-          remove the purchased items from your cart.
-        </p>
-      )}
-      <button
-        type="button"
-        className={styles.secondary}
-        onClick={() => {
-          void navigator.clipboard
-            ?.writeText(result.orderId)
-            .then(() => setCopyMessage("Copied to clipboard."))
-            .catch(() =>
-              setCopyMessage("Select the order reference above to copy it."),
-            );
-        }}
-      >
-        Copy order reference
-      </button>
-      {copyMessage && <p role="status">{copyMessage}</p>}
-      <p>Keep this reference for your records.</p>
-      <button
-        type="button"
-        className={styles.primary}
-        onClick={() => navigate("/catalog")}
-      >
-        Continue shopping
-      </button>
-    </section>
-  );
+  const result = readCheckoutConfirmation() ?? parseCheckoutConfirmation(location.state);
+  // Legacy receipts only supply a destination. Ownership and every displayed
+  // receipt field are resolved again by the authenticated order API.
+  return <Navigate replace to={result ? "/orders/" + result.orderId : "/orders"} />;
 }

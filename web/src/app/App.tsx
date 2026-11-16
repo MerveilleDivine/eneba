@@ -4,17 +4,11 @@ import { CatalogPage } from "../features/catalog/CatalogPage";
 import { CatalogSearch } from "../features/catalog/CatalogSearch";
 import { HomePage } from "../features/home/HomePage";
 import { ProductPage } from "../features/product/ProductPage";
-import {
-  AccountPage,
-  RegisterPage,
-  SignInPage,
-} from "../features/auth/AuthPages";
+import { AccountPage, RegisterPage, SignInPage } from "../features/auth/AuthPages";
 import { CartPage } from "../features/cart/CartPage";
-import {
-  CheckoutPage,
-  CheckoutConfirmationPage,
-} from "../features/checkout/CheckoutPage";
+import { CheckoutPage, CheckoutConfirmationPage } from "../features/checkout/CheckoutPage";
 import { useCart } from "../features/cart/cart-store";
+import { OrdersPage, OrderDetailPage } from "../features/orders/OrdersPage";
 import styles from "./App.module.css";
 
 function NotFound() {
@@ -46,17 +40,17 @@ export function App() {
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:orderId" element={<OrderDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route
-            path="/checkout/confirmation"
-            element={<CheckoutConfirmationPage />}
-          />
+          <Route path="/checkout/confirmation" element={<CheckoutConfirmationPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <footer className={styles.footer}>
         <span>Discover your next game</span>
+        <span>Unofficial internship project. Not affiliated with Eneba.</span>
       </footer>
     </div>
   );

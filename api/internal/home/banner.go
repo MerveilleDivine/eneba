@@ -100,8 +100,8 @@ func validBannerImage(value string) bool {
 }
 
 func validBannerLink(value string) bool {
-	// Until product detail exists, every promotional CTA must lead somewhere
-	// useful: the existing catalog, optionally with valid filters.
+	// Discovery banners target the catalog, optionally with valid filters.
+	// SKU-specific cards and Deals own product/offer destinations.
 	if value == "/catalog" {
 		return true
 	}

@@ -36,14 +36,10 @@ func normalizeFilter(filter Filter) (Filter, error) {
 	if utf8.RuneCountInString(filter.Query) > 100 {
 		return invalid("q must contain at most 100 characters")
 	}
-	switch filter.Platform {
-	case "", "steam", "xbox", "playstation", "nintendo", "other":
-	default:
+	if filter.Platform != "" && !supportedPlatform(filter.Platform) {
 		return invalid("platform is not supported")
 	}
-	switch filter.Region {
-	case "", "global", "europe", "united-states":
-	default:
+	if filter.Region != "" && !supportedRegion(filter.Region) {
 		return invalid("region is not supported")
 	}
 	if filter.Sort == "" {
@@ -84,8 +80,8 @@ func prepareProducts(products []Product) error {
 	return nil
 }
 
-// PrepareProduct keeps homepage projections consistent with catalog's
-// existing safe-price and inventory-availability semantics.
+// PrepareProduct keeps public SKU reads and homepage projections consistent
+// with catalog's safe-price and inventory-availability semantics.
 func PrepareProduct(product *Product) error {
 	price := product.LowestPriceCents
 	if price != nil && (*price <= 0 || *price > maxSafeInteger) {
@@ -93,4 +89,22 @@ func PrepareProduct(product *Product) error {
 	}
 	product.Available = price != nil
 	return nil
+}
+
+func supportedPlatform(value string) bool {
+	switch value {
+	case "steam", "xbox", "playstation", "nintendo", "other":
+		return true
+	default:
+		return false
+	}
+}
+
+func supportedRegion(value string) bool {
+	switch value {
+	case "global", "europe", "united-states":
+		return true
+	default:
+		return false
+	}
 }

@@ -1,3 +1,5 @@
+import { announceSessionChange } from "./session-events";
+
 export type Account = { id: string; email: string; displayName: string };
 export type AuthFailure =
   "invalid" | "taken" | "limited" | "unavailable" | "network" | "unexpected";
@@ -94,7 +96,9 @@ async function postAccount(path: "register" | "login", body: unknown): Promise<A
       body: JSON.stringify(body),
     });
     if (!response.ok) throw new AuthRequestError(failure(response.status));
-    return readAccount(response);
+    const account = await readAccount(response);
+    announceSessionChange();
+    return account;
   });
 }
 
@@ -106,14 +110,19 @@ export function signIn(email: string, password: string) {
 }
 
 export async function signOut(): Promise<void> {
-  await withPostTimeout(async (signal) => {
-    const response = await fetch("/api/v1/auth/logout", {
-      method: "POST",
-      credentials: "same-origin",
-      cache: "no-store",
-      signal,
-      headers: { Accept: "application/json" },
+  try {
+    await withPostTimeout(async (signal) => {
+      const response = await fetch("/api/v1/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        signal,
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) throw new AuthRequestError(failure(response.status));
     });
-    if (!response.ok) throw new AuthRequestError(failure(response.status));
-  });
+  } finally {
+    // A lost logout response can still mean the session was revoked.
+    announceSessionChange();
+  }
 }
