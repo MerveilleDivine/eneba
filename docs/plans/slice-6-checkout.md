@@ -1,6 +1,6 @@
 # Slice 6 — Simulated checkout and atomic purchase plan
 
-**Status:** Slice 6A quoting and Slice 6B atomic-purchasing logic are independently verified. The public purchase endpoint is intentionally disabled pending the Slice 6C checkout UI; Slice 6D is the release audit. See [6A evidence](../verification/slice-6a-2026-11-16.md) and [6B evidence](../verification/slice-6b-2026-11-16.md).
+**Status:** Slice 6A quotes, 6B atomic purchasing, and 6C buyer checkout UI are implemented and verified against isolated PostgreSQL and Chromium. Slice 6D full release tests are recorded in [Slice 6 verification](../verification/slice-6c-6d-2026-11-16.md); hosted acceptance is tracked separately. See [6A evidence](../verification/slice-6a-2026-11-16.md) and [6B evidence](../verification/slice-6b-2026-11-16.md).
 **Branch:** `feature/slice-2-catalog`. No new branch, merge, schema rewrite or paid service.
 **Buyer experience:** Authentic marketplace checkout with exactly one discreet, checkout-specific "Simulated purchase — no payment is taken" notice. Avoid implementation notes and repeated "fictional/demo/slice" language on store pages.
 

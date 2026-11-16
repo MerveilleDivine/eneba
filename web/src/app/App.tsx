@@ -4,8 +4,16 @@ import { CatalogPage } from "../features/catalog/CatalogPage";
 import { CatalogSearch } from "../features/catalog/CatalogSearch";
 import { HomePage } from "../features/home/HomePage";
 import { ProductPage } from "../features/product/ProductPage";
-import { AccountPage, RegisterPage, SignInPage } from "../features/auth/AuthPages";
+import {
+  AccountPage,
+  RegisterPage,
+  SignInPage,
+} from "../features/auth/AuthPages";
 import { CartPage } from "../features/cart/CartPage";
+import {
+  CheckoutPage,
+  CheckoutConfirmationPage,
+} from "../features/checkout/CheckoutPage";
 import { useCart } from "../features/cart/cart-store";
 import styles from "./App.module.css";
 
@@ -39,11 +47,16 @@ export function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route
+            path="/checkout/confirmation"
+            element={<CheckoutConfirmationPage />}
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <footer className={styles.footer}>
-        <span>Independent marketplace project · No real transactions or redeemable codes</span>
+        <span>Discover your next game</span>
       </footer>
     </div>
   );

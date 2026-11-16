@@ -64,6 +64,7 @@ func run(logger *slog.Logger) error {
 	quoteRepository := purchase.NewRepository(pool)
 	quoteService := purchase.NewService(quoteRepository)
 	purchase.NewHandler(quoteService, logger).RegisterRoutes(mux)
+	purchase.NewCheckoutHandler(purchase.NewCheckoutService(quoteRepository), authService, logger, cfg.Origin, cfg.Environment == "production").RegisterRoutes(mux)
 	mux.HandleFunc("/", httpapi.NotFound)
 	server := &http.Server{
 		Addr:              net.JoinHostPort(host, cfg.Port),

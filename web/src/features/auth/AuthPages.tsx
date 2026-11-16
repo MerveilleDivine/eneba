@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useReadRequest } from "../../shared/api/use-read-request";
 import {
   AuthRequestError,
@@ -15,15 +15,24 @@ const errors: Record<AuthFailure, string> = {
   invalid: "Check your account details and try again.",
   taken: "That email already has an account. Try signing in.",
   limited: "Too many requests. Please try again shortly.",
-  unavailable: "The account service is temporarily unavailable. Please try again.",
+  unavailable:
+    "The account service is temporarily unavailable. Please try again.",
   network: "We couldn't reach the server. Check your connection and try again.",
   unexpected: "Something went wrong. Please try again.",
 };
 function message(error: unknown): string {
-  return error instanceof AuthRequestError ? errors[error.kind] : errors.unexpected;
+  return error instanceof AuthRequestError
+    ? errors[error.kind]
+    : errors.unexpected;
 }
 function AuthForm({ mode }: { mode: "register" | "login" }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo =
+    new URLSearchParams(location.search).get("next") === "/checkout"
+      ? "/checkout"
+      : "/account";
+  const nextQuery = returnTo === "/checkout" ? "?next=%2Fcheckout" : "";
   const mounted = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -49,7 +58,7 @@ function AuthForm({ mode }: { mode: "register" | "login" }) {
     try {
       if (isRegister) await registerAccount(displayName, email, password);
       else await signIn(email, password);
-      if (mounted.current) navigate("/account", { replace: true });
+      if (mounted.current) navigate(returnTo, { replace: true });
     } catch (reason) {
       if (mounted.current) setError(message(reason));
     } finally {
@@ -100,7 +109,9 @@ function AuthForm({ mode }: { mode: "register" | "login" }) {
             />
           </label>
           {isRegister && (
-            <p className={styles.hint}>Use a unique password of at least 12 characters.</p>
+            <p className={styles.hint}>
+              Use a unique password of at least 12 characters.
+            </p>
           )}
           {error && (
             <p className={styles.error} role="alert">
@@ -113,12 +124,15 @@ function AuthForm({ mode }: { mode: "register" | "login" }) {
         </form>
         <p className={styles.alternate}>
           {isRegister ? "Already have an account?" : "New here?"}{" "}
-          <Link to={isRegister ? "/sign-in" : "/register"}>
+          <Link to={(isRegister ? "/sign-in" : "/register") + nextQuery}>
             {isRegister ? "Sign in" : "Create an account"}
           </Link>
         </p>
-        <Link className={styles.back} to="/catalog">
-          Back to games
+        <Link
+          className={styles.back}
+          to={returnTo === "/checkout" ? "/checkout" : "/catalog"}
+        >
+          {returnTo === "/checkout" ? "Back to checkout" : "Back to games"}
         </Link>
       </div>
     </section>
@@ -145,7 +159,8 @@ export function AccountPage() {
   const heading = useRef<HTMLHeadingElement>(null);
   const { state, retry } = useReadRequest({
     read: currentAccount,
-    failure: (error) => (error instanceof AuthRequestError ? error.kind : "unexpected"),
+    failure: (error) =>
+      error instanceof AuthRequestError ? error.kind : "unexpected",
     timeout: "unavailable" as AuthFailure,
   });
   async function logout() {
@@ -168,7 +183,9 @@ export function AccountPage() {
         <h1 ref={heading} tabIndex={-1}>
           Buyer account
         </h1>
-        {state.status === "loading" && <p role="status">Checking your session…</p>}
+        {state.status === "loading" && (
+          <p role="status">Checking your session…</p>
+        )}
         {state.status === "failed" && (
           <div role="alert">
             <p>{errors[state.kind]}</p>

@@ -1,5 +1,8 @@
 import { useSyncExternalStore } from "react";
-import { offerIdPattern, validProductSlug } from "../../shared/product/identity";
+import {
+  offerIdPattern,
+  validProductSlug,
+} from "../../shared/product/identity";
 
 const STORAGE_KEY = "eneba:cart:v1";
 export const MAX_CART_LINES = 10;
@@ -9,14 +12,16 @@ export type CartLine = {
   quantity: 1;
   slug: string;
 };
-export type AddCartResult = "added" | "already-added" | "full" | "storage-error" | "invalid";
+export type AddCartResult =
+  "added" | "already-added" | "full" | "storage-error" | "invalid";
 
 const empty: readonly CartLine[] = Object.freeze([]);
 let cached: readonly CartLine[] | null = null;
 const subscribers = new Set<() => void>();
 
 function validLine(value: unknown): value is CartLine {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return false;
   const entry = value as Record<string, unknown>;
   return (
     Object.keys(entry).length === 3 &&
@@ -29,9 +34,15 @@ function validLine(value: unknown): value is CartLine {
 }
 
 export function parseCart(value: unknown): readonly CartLine[] {
-  if (!Array.isArray(value) || value.length > MAX_CART_LINES || !value.every(validLine))
+  if (
+    !Array.isArray(value) ||
+    value.length > MAX_CART_LINES ||
+    !value.every(validLine)
+  )
     return empty;
-  const unique = new Set(value.map((line: CartLine) => line.offerId.toLowerCase()));
+  const unique = new Set(
+    value.map((line: CartLine) => line.offerId.toLowerCase()),
+  );
   if (unique.size !== value.length) return empty;
   return value.map((line: CartLine) => ({
     offerId: line.offerId.toLowerCase(),
@@ -69,7 +80,8 @@ function syncStorage(event: StorageEvent) {
 function subscribe(notify: () => void) {
   const first = subscribers.size === 0;
   subscribers.add(notify);
-  if (first && typeof window !== "undefined") window.addEventListener("storage", syncStorage);
+  if (first && typeof window !== "undefined")
+    window.addEventListener("storage", syncStorage);
   // Reconcile storage changed while no cart listener was mounted. Storage events
   // are not replayed to new subscribers when users return from another tab.
   const latest = fromStorage();
@@ -97,12 +109,16 @@ function persist(lines: readonly CartLine[]): boolean {
 }
 
 export function addCartLine(slug: string, offerId: string): AddCartResult {
-  if (!validProductSlug(slug) || !offerIdPattern.test(offerId)) return "invalid";
+  if (!validProductSlug(slug) || !offerIdPattern.test(offerId))
+    return "invalid";
   const id = offerId.toLowerCase();
   const current = fromStorage();
   if (current.some((line) => line.offerId === id)) return "already-added";
   if (current.length >= MAX_CART_LINES) return "full";
-  const next: readonly CartLine[] = [...current, { slug, offerId: id, quantity: 1 }];
+  const next: readonly CartLine[] = [
+    ...current,
+    { slug, offerId: id, quantity: 1 },
+  ];
   return persist(next) ? "added" : "storage-error";
 }
 
@@ -112,4 +128,15 @@ export function removeCartLine(offerId: string): boolean {
   const next = current.filter((line) => line.offerId !== offerId.toLowerCase());
   if (next.length === current.length) return true;
   return persist(next);
+}
+
+// Remove only the offers confirmed purchased in the server response. Any newer
+// selections remain in the cart, even if another tab changed storage mid-order.
+export function removePurchasedCartLines(offerIds: readonly string[]): boolean {
+  if (offerIds.length === 0 || offerIds.some((id) => !offerIdPattern.test(id)))
+    return false;
+  const purchased = new Set(offerIds.map((id) => id.toLowerCase()));
+  const current = fromStorage();
+  const remaining = current.filter((line) => !purchased.has(line.offerId));
+  return remaining.length === current.length ? true : persist(remaining);
 }

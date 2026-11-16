@@ -1,27 +1,52 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { MAX_CART_LINES, addCartLine, parseCart, removeCartLine, useCart } from "./cart-store";
+import {
+  MAX_CART_LINES,
+  addCartLine,
+  parseCart,
+  removeCartLine,
+  removePurchasedCartLines,
+  useCart,
+} from "./cart-store";
 
 const offer = "30000000-0000-4000-8000-000000000001";
-const offerAt = (n: number) => "30000000-0000-4000-8000-" + n.toString().padStart(12, "0");
+const offerAt = (n: number) =>
+  "30000000-0000-4000-8000-" + n.toString().padStart(12, "0");
 
 beforeEach(() => window.localStorage.clear());
 
 describe("browser-owned client cart", () => {
   it("persists only offer identity, slug and fixed quantity", () => {
     expect(addCartLine("solar-drift", offer)).toBe("added");
-    expect(JSON.parse(localStorage.getItem("eneba:cart:v1") || "null")).toEqual([
-      { offerId: offer, slug: "solar-drift", quantity: 1 },
-    ]);
-    expect(addCartLine("solar-drift", offer.toUpperCase())).toBe("already-added");
+    expect(JSON.parse(localStorage.getItem("eneba:cart:v1") || "null")).toEqual(
+      [{ offerId: offer, slug: "solar-drift", quantity: 1 }],
+    );
+    expect(addCartLine("solar-drift", offer.toUpperCase())).toBe(
+      "already-added",
+    );
     expect(removeCartLine(offer)).toBe(true);
-    expect(JSON.parse(localStorage.getItem("eneba:cart:v1") || "null")).toEqual([]);
+    expect(JSON.parse(localStorage.getItem("eneba:cart:v1") || "null")).toEqual(
+      [],
+    );
+  });
+
+  it("removes only purchased lines and preserves selections added later", () => {
+    expect(addCartLine("solar-drift", offer)).toBe("added");
+    expect(addCartLine("solar-drift", offerAt(2))).toBe("added");
+    expect(removePurchasedCartLines([offer])).toBe(true);
+    expect(JSON.parse(localStorage.getItem("eneba:cart:v1") || "[]")).toEqual([
+      { offerId: offerAt(2), slug: "solar-drift", quantity: 1 },
+    ]);
   });
 
   it("rejects corrupt, duplicate and tampered storage without trusting prices", () => {
-    expect(parseCart([{ offerId: offer, slug: "solar-drift", quantity: 2 }])).toEqual([]);
     expect(
-      parseCart([{ offerId: offer, slug: "solar-drift", quantity: 1, priceCents: 1 }]),
+      parseCart([{ offerId: offer, slug: "solar-drift", quantity: 2 }]),
+    ).toEqual([]);
+    expect(
+      parseCart([
+        { offerId: offer, slug: "solar-drift", quantity: 1, priceCents: 1 },
+      ]),
     ).toEqual([]);
     expect(
       parseCart([
@@ -39,7 +64,9 @@ describe("browser-owned client cart", () => {
       expect(addCartLine("solar-drift", offerAt(i))).toBe("added");
     }
     expect(addCartLine("solar-drift", offerAt(11))).toBe("full");
-    expect(JSON.parse(localStorage.getItem("eneba:cart:v1") || "null")).toHaveLength(10);
+    expect(
+      JSON.parse(localStorage.getItem("eneba:cart:v1") || "null"),
+    ).toHaveLength(10);
   });
 
   it("does not invent saved state if browser persistence throws", () => {
@@ -67,7 +94,9 @@ describe("mounted cart synchronization", () => {
     );
     const resumed = renderHook(() => useCart());
     await waitFor(() =>
-      expect(resumed.result.current.map((line) => line.offerId)).toEqual([offer]),
+      expect(resumed.result.current.map((line) => line.offerId)).toEqual([
+        offer,
+      ]),
     );
     resumed.unmount();
   });
@@ -80,12 +109,16 @@ describe("mounted cart synchronization", () => {
         "eneba:cart:v1",
         JSON.stringify([{ offerId: offer, slug: "solar-drift", quantity: 1 }]),
       );
-      window.dispatchEvent(new StorageEvent("storage", { key: "eneba:cart:v1" }));
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "eneba:cart:v1" }),
+      );
     });
     await waitFor(() => expect(mounted.result.current).toHaveLength(1));
     act(() => {
       window.localStorage.removeItem("eneba:cart:v1");
-      window.dispatchEvent(new StorageEvent("storage", { key: "eneba:cart:v1" }));
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "eneba:cart:v1" }),
+      );
     });
     await waitFor(() => expect(mounted.result.current).toHaveLength(0));
     mounted.unmount();

@@ -2,11 +2,11 @@
 
 An independent marketplace internship project built with React/TypeScript, a Go REST API and PostgreSQL. The interface demonstrates browsing, seller comparison, persistent carts and account sessions using original game artwork and controlled demo data.
 
-**Current milestone — 16 November 2026:** Slices 1–5 and Slice 6A cart quotes are running; Slice 6B's atomic-purchase backend is implemented and independently tested, but its HTTP route is deliberately not registered in the live server until Slice 6C. Checkout UI (6C), final review (6D), order/key delivery (7) and employer submission (8) remain. No real payments or redeemable game codes are involved.
+**Current milestone — 16 November 2026:** Slices 1–5 and Slice 6A cart quotes, 6B atomic purchasing and 6C buyer checkout are implemented and have passed isolated Go/PostgreSQL and browser integration verification. Slice 6D hosted release acceptance is documented separately. Slice 7 order history/key delivery and Slice 8 final submission remain. No real payments or redeemable game codes are involved.
 
 **Live site:** https://eneba-marketplace-demo.vercel.app — Vercel frontend, Render Go API and Neon PostgreSQL. The production site deploys from the private `feature/slice-2-catalog` branch; `main` remains unchanged.
 
-**Evidence:** [Slice 6A quote verification](docs/verification/slice-6a-2026-11-16.md) · [Quote API contract](docs/api/cart-quote.md) · [Independent hosted auth checks](docs/verification/hosted-slice5-2026-11-16.md) · [Off-Actions engineering verification](docs/verification/off-actions-2026-11-16.md) · [Checkout implementation plan](docs/plans/slice-6-checkout.md). Hosted browser checks and the frontend production build have passed for the recent releases, but the full exact-head CI matrix and physical-device/screen-reader acceptance are still pending.
+**Evidence:** [Slice 6C/6D verification](docs/verification/slice-6c-6d-2026-11-16.md) · [Slice 6A quote verification](docs/verification/slice-6a-2026-11-16.md) · [Quote API contract](docs/api/cart-quote.md) · [Independent hosted auth checks](docs/verification/hosted-slice5-2026-11-16.md) · [Off-Actions engineering verification](docs/verification/off-actions-2026-11-16.md) · [Checkout implementation plan](docs/plans/slice-6-checkout.md). Hosted browser checks and the frontend production build have passed for the recent releases, but the full exact-head CI matrix and physical-device/screen-reader acceptance are still pending.
 
 ## Verify before committing
 
