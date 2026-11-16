@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router";
 import styles from "./SiteHeader.module.css";
 
-export function SiteHeader({ search }: { search: ReactNode }) {
+export function SiteHeader({ search, cartCount = 0 }: { search: ReactNode; cartCount?: number }) {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
@@ -21,6 +21,9 @@ export function SiteHeader({ search }: { search: ReactNode }) {
           </NavLink>
           <NavLink to="/catalog" end>
             Browse games
+          </NavLink>
+          <NavLink to="/cart" end>
+            Cart ({cartCount})
           </NavLink>
           <NavLink to="/account" end>
             Account

@@ -28,7 +28,7 @@ func (r *Repository) GetProduct(ctx context.Context, slug string) (ProductDetail
 const productInfoSQL = "WITH " + marketplace.AvailablePricesCTE + `
 SELECT p.id::text, left(p.slug,161), left(p.name,141), left(p.edition,81),
   p.platform, p.region, left(p.cover_url,401), prices.lowest_price_cents,
-  left(p.description,5001)
+  left(p.description,5001), left(p.activation_instructions,1001)
 FROM marketplace.products p
 LEFT JOIN available_prices prices ON prices.product_id=p.id
 WHERE p.active AND p.slug=$1`
@@ -48,7 +48,7 @@ func readProduct(ctx context.Context, tx pgx.Tx, slug string) (ProductDetails, e
 	details := ProductDetails{Offers: []SellerOffer{}}
 	p := &details.Product
 	err := tx.QueryRow(ctx, productInfoSQL, slug).Scan(&p.ID, &p.Slug, &p.Name, &p.Edition,
-		&p.Platform, &p.Region, &p.CoverURL, &p.LowestPriceCents, &p.Description)
+		&p.Platform, &p.Region, &p.CoverURL, &p.LowestPriceCents, &p.Description, &p.ActivationInstructions)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return ProductDetails{}, ErrProductNotFound
 	}

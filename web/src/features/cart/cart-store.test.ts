@@ -1,0 +1,55 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import {
+  MAX_CART_LINES,
+  addCartLine,
+  parseCart,
+  removeCartLine,
+} from "./cart-store";
+
+const offer = "30000000-0000-4000-8000-000000000001";
+const offerAt = (n: number) => "30000000-0000-4000-8000-" + n.toString().padStart(12, "0");
+
+beforeEach(() => window.localStorage.clear());
+
+describe("browser-owned client cart", () => {
+  it("persists only offer identity, slug and fixed quantity", () => {
+    expect(addCartLine("solar-drift", offer)).toBe("added");
+    expect(JSON.parse(localStorage.getItem("eneba:cart:v1") || "null")).toEqual([
+      { offerId: offer, slug: "solar-drift", quantity: 1 },
+    ]);
+    expect(addCartLine("solar-drift", offer.toUpperCase())).toBe("already-added");
+    expect(removeCartLine(offer)).toBe(true);
+    expect(JSON.parse(localStorage.getItem("eneba:cart:v1") || "null")).toEqual([]);
+  });
+
+  it("rejects corrupt, duplicate and tampered storage without trusting prices", () => {
+    expect(parseCart([{ offerId: offer, slug: "solar-drift", quantity: 2 }])).toEqual([]);
+    expect(parseCart([{ offerId: offer, slug: "solar-drift", quantity: 1, priceCents: 1 }])).toEqual([]);
+    expect(parseCart([
+      { offerId: offer, slug: "solar-drift", quantity: 1 },
+      { offerId: offer.toUpperCase(), slug: "solar-drift", quantity: 1 },
+    ])).toEqual([]);
+    expect(parseCart({ offerId: offer })).toEqual([]);
+    expect(addCartLine("../invalid", offer)).toBe("invalid");
+    expect(addCartLine("solar-drift", "not-an-offer")).toBe("invalid");
+  });
+
+  it("enforces a maximum of ten distinct one-unit offers", () => {
+    for (let i = 1; i <= MAX_CART_LINES; i++) {
+      expect(addCartLine("solar-drift", offerAt(i))).toBe("added");
+    }
+    expect(addCartLine("solar-drift", offerAt(11))).toBe("full");
+    expect(JSON.parse(localStorage.getItem("eneba:cart:v1") || "null")).toHaveLength(10);
+  });
+
+  it("does not invent saved state if browser persistence throws", () => {
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => { throw new Error("storage disabled"); };
+    try {
+      expect(addCartLine("solar-drift", offer)).toBe("storage-error");
+      expect(localStorage.getItem("eneba:cart:v1")).toBeNull();
+    } finally {
+      Storage.prototype.setItem = original;
+    }
+  });
+});

@@ -118,3 +118,12 @@
     font-size: 0.8rem;
   }
 }
+
+@media (max-width: 640px) {
+  .navigation {
+    order: 0;
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}

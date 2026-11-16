@@ -15,6 +15,7 @@ const solar: ProductDetails = {
     region: "global",
     coverUrl: "/images/covers/solar-drift.webp",
     description: "Fictional demo game.",
+    activationInstructions: "Redeem on the listed platform.",
     available: true,
     lowestPriceCents: 1136,
   },
@@ -132,4 +133,23 @@ it("a client-owned deadline wins over a late product success", async () => {
   });
   expect(screen.getByRole("alert")).toHaveTextContent("took too long");
   expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+});
+
+it("renders real activation guidance and adds only the selected seller offer to the cart", async () => {
+  window.localStorage.clear();
+  window.dispatchEvent(new StorageEvent("storage", { key: null }));
+  const read = vi.fn().mockResolvedValue(response(solar));
+  vi.stubGlobal("fetch", read);
+  open("/products/solar-drift?offerId=" + solar.offers[1].offerId);
+  expect(await screen.findByRole("heading", { name: "Activation instructions" })).toBeInTheDocument();
+  expect(screen.getByText("Redeem on the listed platform.")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Add this seller offer to cart" }));
+  expect(screen.getByText("This seller offer has been added to your cart.")).toBeInTheDocument();
+  expect(JSON.parse(window.localStorage.getItem("eneba:cart:v1") || "null")).toEqual([
+    { offerId: solar.offers[1].offerId, quantity: 1, slug: "solar-drift" },
+  ]);
+  fireEvent.click(screen.getByRole("link", { name: "View cart" }));
+  expect(await screen.findByRole("heading", { name: "Shopping cart" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Solar Drift" })).toBeInTheDocument();
+  expect(screen.getAllByText("€13.86").length).toBeGreaterThan(0);
 });

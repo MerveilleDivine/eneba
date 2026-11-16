@@ -21,7 +21,8 @@ var (
 
 type ProductInfo struct {
 	Product
-	Description string `json:"description"`
+	Description            string `json:"description"`
+	ActivationInstructions string `json:"activationInstructions"`
 }
 
 // Offer identity is distinct from its SKU and seller. Availability is a read,
@@ -64,6 +65,7 @@ func prepareProductDetails(details *ProductDetails) error {
 	p := &details.Product
 	if !validProductSlug(p.Slug) || !validProductText(p.Name, 140, false) ||
 		!validProductText(p.Edition, 80, false) || !validProductText(p.Description, 5000, true) ||
+		!validProductText(p.ActivationInstructions, 1000, true) || strings.TrimFunc(p.ActivationInstructions, func(r rune) bool { return unicode.IsSpace(r) || r == '\uFEFF' }) == "" ||
 		!validProductCover(p.CoverURL) || len(details.Offers) > maxProductOffers {
 		return errInvalidProductData
 	}

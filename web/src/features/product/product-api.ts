@@ -1,4 +1,6 @@
 import { isProductSummary, type ProductSummary } from "../../shared/api/product-summary";
+import { offerIdPattern, validProductSlug } from "../../shared/product/identity";
+export { offerIdPattern, validProductSlug } from "../../shared/product/identity";
 
 export type SellerOffer = {
   offerId: string;
@@ -10,7 +12,7 @@ export type SellerOffer = {
   available: boolean;
 };
 export type ProductDetails = {
-  product: ProductSummary & { description: string };
+  product: ProductSummary & { description: string; activationInstructions: string };
   offers: SellerOffer[];
   currency: "EUR";
 };
@@ -21,10 +23,6 @@ export class ProductRequestError extends Error {
     super(kind);
     this.name = "ProductRequestError";
   }
-}
-export const offerIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export function validProductSlug(slug: string): boolean {
-  return slug.length <= 160 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 }
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -67,6 +65,7 @@ export function parseProductResponse(value: unknown, slug: string): ProductDetai
   const invalid = () => new ProductRequestError("unexpected");
   if (!record(value) || !record(value.product)) throw invalid();
   const description = value.product.description;
+  const activationInstructions = value.product.activationInstructions;
   if (
     value.currency !== "EUR" ||
     !isProductSummary(value.product) ||
@@ -76,6 +75,8 @@ export function parseProductResponse(value: unknown, slug: string): ProductDetai
     !publicText(value.product.name, 140) ||
     !publicText(value.product.edition, 80) ||
     !publicText(description, 5000, true) ||
+    !publicText(activationInstructions, 1000, true) ||
+    (typeof activationInstructions === "string" && activationInstructions.trim() === "") ||
     value.product.coverUrl.length > 400 ||
     !Array.isArray(value.offers) ||
     value.offers.length > 50 ||
@@ -91,7 +92,7 @@ export function parseProductResponse(value: unknown, slug: string): ProductDetai
   const available = offers.filter((o) => o.available);
   const lowest = available.length ? Math.min(...available.map((o) => o.priceCents)) : null;
   if (lowest !== value.product.lowestPriceCents) throw invalid();
-  return { product: { ...value.product, description }, offers, currency: "EUR" };
+  return { product: { ...value.product, description, activationInstructions }, offers, currency: "EUR" };
 }
 export function productFailure(error: unknown): ProductFailure {
   return error instanceof ProductRequestError ? error.kind : "unexpected";

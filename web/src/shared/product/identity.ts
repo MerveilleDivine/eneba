@@ -15,3 +15,9 @@ export const regionLabels: Record<Region, string> = {
   europe: "Europe",
   "united-states": "United States",
 };
+
+// The product and cart features share only stable public identifiers.
+export const offerIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function validProductSlug(slug: string): boolean {
+  return slug.length <= 160 && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+}

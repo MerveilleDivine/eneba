@@ -5,6 +5,7 @@ import { displayEuro } from "../../shared/format/money";
 import { productHref } from "../../shared/navigation/product-links";
 import { platformLabels, regionLabels } from "../../shared/product/identity";
 import { parseCatalogSearch } from "../catalog/catalog-query";
+import { addCartLine, type AddCartResult } from "../cart/cart-store";
 import {
   fetchProduct,
   productFailure,
@@ -14,6 +15,14 @@ import {
 } from "./product-api";
 import { parseOfferSelection } from "./product-selection";
 import styles from "./ProductPage.module.css";
+
+const cartMessages: Record<AddCartResult, string> = {
+  added: "This seller offer has been added to your cart.",
+  "already-added": "This seller offer is already in your cart.",
+  full: "Your cart is full. Remove an offer before adding another.",
+  "storage-error": "The cart could not be saved. Enable browser storage and try again.",
+  invalid: "This seller offer could not be saved. Refresh the product and try again.",
+};
 
 const failures: Record<ProductFailure, { title: string; message: string }> = {
   invalid: {
@@ -89,6 +98,7 @@ function ProductContent({ slug }: { slug: string }) {
   const navigation = useNavigationType();
   const [focusOnArrival] = useState(navigation === "PUSH");
   const heading = useRef<HTMLHeadingElement>(null);
+  const [cartResult, setCartResult] = useState<AddCartResult | null>(null);
   const { state, retry } = useReadRequest({
     read: (signal) => fetchProduct(slug, signal),
     failure: productFailure,
@@ -108,7 +118,13 @@ function ProductContent({ slug }: { slug: string }) {
   const failure = state.status === "failed" ? failures[state.kind] : null;
 
   function choose(offerId?: string) {
+    setCartResult(null);
     navigate(productHref(slug, offerId), { state: location.state, preventScrollReset: true });
+  }
+  function addSelectedOffer() {
+    if (!details || !selected?.available) return;
+    const result = addCartLine(details.product.slug, selected.offerId);
+    setCartResult(result);
   }
   return (
     <div className={styles.page}>
@@ -179,6 +195,10 @@ function ProductContent({ slug }: { slug: string }) {
                   <dd>Nonredeemable demo key</dd>
                 </div>
               </dl>
+              <section className={styles.activation} aria-labelledby="activation-title">
+                <h3 id="activation-title">Activation instructions</h3>
+                <p>{details.product.activationInstructions}</p>
+              </section>
               <div className={styles.fromPrice}>
                 {details.product.lowestPriceCents !== null ? (
                   <>
@@ -273,6 +293,13 @@ function ProductContent({ slug }: { slug: string }) {
                   </p>
                   <p className={styles.selectedPrice}>{displayEuro(selected.priceCents)}</p>
                   <p>Offer selected for comparison. No purchase or reservation has been made.</p>
+                  <button type="button" className={styles.addToCart} onClick={addSelectedOffer}>
+                    Add this seller offer to cart
+                  </button>
+                  {cartResult && <p role="status">{cartMessages[cartResult]}</p>}
+                  {(cartResult === "added" || cartResult === "already-added") && (
+                    <Link to="/cart">View cart</Link>
+                  )}
                   <button type="button" onClick={() => choose()}>
                     Clear offer selection
                   </button>

@@ -146,3 +146,37 @@ Solar Drift seller assumption, corrected from the immutable seed. The subsequent
 keyboard focus, unavailable/invalid links, retry, axe and viewport/200%-text home
 checks. All eight Best Sellers checks also passed. Deals-specific entry and final
 visual/full-pipeline acceptance remain in the next checkpoint.
+
+## Client cart and activation completion — 16 November
+
+The initial product checkpoint intentionally stopped at seller selection; the
+original Slice 4 blueprint also requires a client cart and activation notes.
+This corrective follow-up implements both before declaring Slice 4 accepted.
+
+- The same Go product endpoint now reads and validates the SKU's stored activation
+  instructions (1,000-character bound, no blank/BOM-only or bidi-spoofed copy).
+  React renders those instructions alongside edition, region and platform.
+- The selected **available** seller offer has a real Add to cart action. The
+  browser persists at most ten unique lines with one unit each and a product-slug
+  navigation hint. No browser-persisted prices, keys, stock or seller data.
+- /cart independently reloads Go-backed prices/availability on every visit,
+  presents selected offer identity, lets buyers remove missing or sold-out
+  lines, and shows an estimated subtotal only if every line is valid and
+  available. No automatic cheapest-offer replacement or fake checkout CTA.
+- Added storage parser/mutation unit tests and product→cart→refresh→remove
+  Chromium acceptance checks, including a sold-out refusal and corrupt storage
+  fallback. These are test *cases*, not a claim that they passed.
+- The prior Slice 5 authentication checkpoint is preserved on the feature branch
+  but remains **verification-pending**; this cart checkpoint is a scope-order
+  correction, not authorization for simulated purchasing.
+
+### Verification status
+
+Exact-head GitHub Actions cannot currently run because the user reported an
+exhausted quota. The assistant's execution container does not contain this
+project's private local checkout, pinned Go/Node installations, npm packages or
+PostgreSQL test cluster. Do not call Slice 4 acceptance verified solely from
+remote source inspection. Finish with local `npm run format`, `npm run verify`,
+`npm run test:integration`, `npm run test:browser`, `npm run audit`, Go
+race tests and screenshot review at all agreed viewport/text-size combinations.
+After verification, audit Slice 5 separately; no production deployment or merge.

@@ -5,6 +5,8 @@ import { CatalogSearch } from "../features/catalog/CatalogSearch";
 import { HomePage } from "../features/home/HomePage";
 import { ProductPage } from "../features/product/ProductPage";
 import { AccountPage, RegisterPage, SignInPage } from "../features/auth/AuthPages";
+import { CartPage } from "../features/cart/CartPage";
+import { useCart } from "../features/cart/cart-store";
 import styles from "./App.module.css";
 
 function NotFound() {
@@ -21,12 +23,13 @@ function NotFound() {
 }
 
 export function App() {
+  const cart = useCart();
   return (
     <div className={styles.app}>
       <a href="#main" className={styles.skipLink}>
         Skip to content
       </a>
-      <SiteHeader search={<CatalogSearch />} />
+      <SiteHeader search={<CatalogSearch />} cartCount={cart.length} />
       <main id="main" tabIndex={-1} className={styles.main}>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -35,6 +38,7 @@ export function App() {
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

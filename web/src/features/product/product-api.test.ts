@@ -27,6 +27,7 @@ const fixture: ProductDetails = {
     region: "united-states",
     coverUrl: "/images/covers/neon-circuit.webp",
     description: "Fictional game.\nNo real license.",
+    activationInstructions: "Follow your platform redemption instructions.",
     lowestPriceCents: 1410,
     available: true,
   },
@@ -62,6 +63,10 @@ describe("product contract", () => {
     { ...fixture, offers: [{ ...offer, available: false }] },
     { ...fixture, product: { ...fixture.product, coverUrl: "/\n/other.example/cover.webp" } },
     { ...fixture, product: { ...fixture.product, description: "x".repeat(5001) } },
+    { ...fixture, product: { ...fixture.product, activationInstructions: "" } },
+    { ...fixture, product: { ...fixture.product, activationInstructions: "\uFEFF" } },
+    { ...fixture, product: { ...fixture.product, activationInstructions: "Codes\u202e" } },
+    { ...fixture, product: { ...fixture.product, activationInstructions: "x".repeat(1001) } },
     { ...fixture, offers: Array.from({ length: 51 }, () => offer) },
   ])("rejects inconsistent or unsafe public data %#", (value) => {
     expect(() => parseProductResponse(value, "neon-circuit")).toThrow(ProductRequestError);

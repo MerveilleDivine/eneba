@@ -278,3 +278,33 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.activation {
+  border-left: 3px solid var(--color-accent);
+  padding: 0.2rem 0 0.2rem 1rem;
+  margin: 1.2rem 0;
+}
+.activation h3 {
+  font-size: 1.05rem;
+  margin: 0 0 0.5rem;
+}
+.activation p {
+  margin: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+  color: var(--color-muted);
+}
+.page button.addToCart {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-background);
+  margin-right: 0.9rem;
+}
+.selection a {
+  display: inline-block;
+  color: var(--color-accent);
+  margin-right: 1rem;
+  font-weight: 700;
+  text-underline-offset: 0.25rem;
+}

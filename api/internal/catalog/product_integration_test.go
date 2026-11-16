@@ -45,7 +45,7 @@ func TestProductHTTP(t *testing.T) {
 		if err := json.Unmarshal(wire["product"], &product); err != nil {
 			t.Fatal(err)
 		}
-		assertPublicFields(t, product, "available,coverUrl,description,edition,id,lowestPriceCents,name,platform,region,slug")
+		assertPublicFields(t, product, "activationInstructions,available,coverUrl,description,edition,id,lowestPriceCents,name,platform,region,slug")
 		var offers []map[string]json.RawMessage
 		if err := json.Unmarshal(wire["offers"], &offers); err != nil {
 			t.Fatal(err)
@@ -61,7 +61,7 @@ func TestProductHTTP(t *testing.T) {
 	t.Run("two reads return SKU and exact seller offers", func(t *testing.T) {
 		counter.queries.Store(0)
 		d := read("neon-circuit")
-		if counter.queries.Load() != 2 || d.Currency != "EUR" || d.Product.Edition != "Deluxe" || d.Product.Platform != "playstation" || d.Product.Region != "united-states" || d.Product.Description == "" || len(d.Offers) != 2 {
+		if counter.queries.Load() != 2 || d.Currency != "EUR" || d.Product.Edition != "Deluxe" || d.Product.Platform != "playstation" || d.Product.Region != "united-states" || d.Product.Description == "" || d.Product.ActivationInstructions == "" || len(d.Offers) != 2 {
 			t.Fatalf("incomplete detail: %+v", d)
 		}
 		if *d.Product.LowestPriceCents != 1410 || d.Offers[0].PriceCents != 1410 || d.Offers[1].PriceCents != 1660 || d.Offers[1].OfferID != "30000000-0000-4000-8000-000000000006" || d.Offers[1].SellerName != "Orbit Games" {
@@ -173,6 +173,32 @@ func TestProductSQLFixtures(t *testing.T) {
 		}
 		if len(d.Offers) != 0 || d.Product.Available {
 			t.Fatal("empty offers fabricated")
+		}
+	})
+	t.Run("activation instructions come from PostgreSQL", func(t *testing.T) {
+		ctx, tx := catalogTestTx(t, pool)
+		id := insertProduct(t, ctx, tx, "Activation details fixture")
+		var slug string
+		if err := tx.QueryRow(ctx, "SELECT slug FROM marketplace.products WHERE id=$1", id).Scan(&slug); err != nil {
+			t.Fatal(err)
+		}
+		note := "Demo activation: use the matching platform account. No genuine key is provided."
+		if _, err := tx.Exec(ctx, "UPDATE marketplace.products SET activation_instructions=$2 WHERE id=$1", id, note); err != nil {
+			t.Fatal(err)
+		}
+		details, err := readProduct(ctx, tx, slug)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := prepareProductDetails(&details); err != nil || details.Product.ActivationInstructions != note {
+			t.Fatalf("product activation not read from database: %v", err)
+		}
+		if _, err := tx.Exec(ctx, "UPDATE marketplace.products SET activation_instructions=repeat('x',1001) WHERE id=$1", id); err != nil {
+			t.Fatal(err)
+		}
+		details, err = readProduct(ctx, tx, slug)
+		if err != nil || !errors.Is(prepareProductDetails(&details), errInvalidProductData) {
+			t.Fatal("oversized activation instructions accepted or read failed")
 		}
 	})
 	t.Run("offer guard fails closed and text reads are bounded", func(t *testing.T) {
