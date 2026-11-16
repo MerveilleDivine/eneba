@@ -97,8 +97,7 @@ func normalizeName(input string) (string, error) {
 		return "", ErrInvalidInput
 	}
 	for _, r := range name {
-		if unicode.IsControl(r) || r == '\uFEFF' || (r >= '\u200e' && r <= '\u200f') ||
-			(r >= '\u202a' && r <= '\u202e') || (r >= '\u2066' && r <= '\u2069') {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) {
 			return "", ErrInvalidInput
 		}
 	}

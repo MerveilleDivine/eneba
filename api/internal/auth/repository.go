@@ -66,11 +66,30 @@ func (r *Repository) FindPassword(ctx context.Context, email string) (User, stri
 	return user, passwordHash, nil
 }
 
+// Serializing session creation on the buyer row bounds active sessions even
+// when several login requests arrive concurrently. It also prunes stale sessions.
 func (r *Repository) CreateSession(ctx context.Context, userID string, digest []byte, expiry time.Time) error {
-	_, err := r.pool.Exec(ctx,
+	tx, err := r.pool.Begin(ctx)
+	if err != nil { return database.ClassifyReadError(err) }
+	defer tx.Rollback(ctx)
+	var lockedID string
+	err = tx.QueryRow(ctx, "SELECT id::text FROM marketplace.users WHERE id=$1 FOR UPDATE", userID).Scan(&lockedID)
+	if errors.Is(err, pgx.ErrNoRows) { return ErrUnauthorized }
+	if err != nil { return database.ClassifyReadError(err) }
+	_, err = tx.Exec(ctx, "DELETE FROM marketplace.sessions WHERE user_id=$1 AND expires_at<=now()", userID)
+	if err != nil { return database.ClassifyReadError(err) }
+	// Retain at most four existing sessions; adding the new one brings the cap to five.
+	_, err = tx.Exec(ctx, `DELETE FROM marketplace.sessions
+		WHERE id IN (
+			SELECT id FROM marketplace.sessions WHERE user_id=$1
+			ORDER BY created_at DESC, id DESC OFFSET 4
+		)`, userID)
+	if err != nil { return database.ClassifyReadError(err) }
+	_, err = tx.Exec(ctx,
 		"INSERT INTO marketplace.sessions(user_id, token_hash, expires_at) VALUES ($1, $2, $3)",
 		userID, digest, expiry)
-	return database.ClassifyReadError(err)
+	if err != nil { return database.ClassifyReadError(err) }
+	return database.ClassifyReadError(tx.Commit(ctx))
 }
 
 func (r *Repository) FindSession(ctx context.Context, digest []byte) (User, error) {

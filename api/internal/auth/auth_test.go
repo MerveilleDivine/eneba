@@ -50,7 +50,7 @@ func TestCredentialRulesAndSessions(t *testing.T) {
 	}
 	if normalized,err := normalizeEmail(" Test@Example.COM "); err != nil || normalized!="test@example.com" { t.Fatal("email normalization") }
 	if _,err := normalizeName("\u202e"); !errors.Is(err,ErrInvalidInput) { t.Fatal("bidi name accepted") }
-	for _, name := range []string{"\uFEFF", "\u200e", "Valid\uFEFFName", "Name\u202e"} {
+	for _, name := range []string{"\uFEFF", "\u200e", "\u200b", "\u2060", "Valid\uFEFFName", "Name\u202e"} {
 		if _, err := normalizeName(name); !errors.Is(err, ErrInvalidInput) { t.Fatalf("accepted unsafe name %q", name) }
 	}
 	if validPassword("short") || !validPassword("very secure password 123") { t.Fatal("password bounds") }

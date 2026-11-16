@@ -15,6 +15,7 @@ describe("authentication transport", () => {
     expect(() => parseAccount({ user: { ...user, displayName: "" } })).toThrow(AuthRequestError);
     expect(() => parseAccount({ user: { ...user, displayName: "\uFEFF" } })).toThrow(AuthRequestError);
     expect(() => parseAccount({ user: { ...user, displayName: "Buyer\u202e" } })).toThrow(AuthRequestError);
+    expect(() => parseAccount({ user: { ...user, displayName: "\u200b" } })).toThrow(AuthRequestError);
   });
   it("treats an anonymous session as a guest without exposing server response details", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("private diagnostic", { status: 401 })));

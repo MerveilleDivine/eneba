@@ -44,3 +44,13 @@ could not execute the project-pinned local toolchain, PostgreSQL or Chromium
 from its current container. GitHub Actions quota was exhausted, so no CI pass
 is claimed. The authenticated order/checkout routes are still intentionally
 unimplemented. Do not treat this checkpoint as production security approval.
+
+## Production preflight — independent follow-up (16 November)
+
+A separate static audit before hosting found public-demo operational risks:
+- Registration originally had no server-side request quota; a direct client could create arbitrary accounts and force expensive password hashing. The service now enforces a bounded 30-registration/minute process-local allowance before PBKDF2 work, with an explicit HTTP 429/60-second Retry-After. A distributed, ingress-level limiter remains a required public-deployment improvement.
+- Login originally accumulated unlimited session rows for one account. New session creation now runs in a transaction locking the buyer row, prunes that buyer's expired sessions and retains only the five most recent active sessions. The integration suite now checks an eight-login sequence removes the oldest session. This does not globally prune expired sessions belonging to dormant accounts; retention maintenance remains a release consideration.
+- The new auth UI previously displayed a fifteen-minute wait for every HTTP 429 even when the registration throttle lasts one minute. That message is now generic and accurate. The sign-out component now avoids state updates on unmounted pages.
+- Added malformed JSON, oversized JSON, and unsupported-method response checks against the auth HTTP handler.
+
+**Acceptance remains withheld:** these are source changes and added assertions, not executed-test evidence. No full exact-head local run or hosted HTTPS session/proxy verification has occurred. Do not merge or mark production ready solely because these fixes are committed.

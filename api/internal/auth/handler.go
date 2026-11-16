@@ -116,6 +116,10 @@ func (h *Handler) writeFailure(w http.ResponseWriter, r *http.Request, err error
 	case errors.Is(err, ErrEmailTaken):
 		httpapi.WriteError(w, http.StatusConflict, "email_taken",
 			"This email address already has an account.")
+	case errors.Is(err, ErrRegistrationLimited):
+		w.Header().Set("Retry-After", "60")
+		httpapi.WriteError(w, http.StatusTooManyRequests, "registration_limited",
+			"Too many registrations. Try again shortly.")
 	case errors.Is(err, ErrRateLimited):
 		w.Header().Set("Retry-After", "900")
 		httpapi.WriteError(w, http.StatusTooManyRequests, "rate_limited",

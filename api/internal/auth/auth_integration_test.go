@@ -66,6 +66,15 @@ func TestAuthHTTPAndDatabase(t *testing.T) {
 			t.Fatalf("%s accepted missing Origin", path)
 		}
 	}
+	if status,_,_:=request("GET","/api/v1/auth/login","",nil,"");status!=405 {
+		t.Fatalf("login wrong-method response=%d",status)
+	}
+	if status,_,_:=request("POST","/api/v1/auth/login","{",nil,"http://127.0.0.1:5173");status!=400 {
+		t.Fatalf("malformed JSON accepted, status=%d",status)
+	}
+	if status,_,_:=request("POST","/api/v1/auth/register",strings.Repeat("x",5000),nil,"http://127.0.0.1:5173");status!=400 {
+		t.Fatalf("oversized JSON accepted, status=%d",status)
+	}
 	payload,_:=json.Marshal(map[string]string{"displayName":"Demo Buyer","email":email,"password":"correct password 123"})
 	status,data,cookie:=request("POST","/api/v1/auth/register",string(payload),nil,"http://127.0.0.1:5173")
 	if status!=201 || cookie==nil || !cookie.HttpOnly || cookie.Secure || cookie.SameSite!=http.SameSiteLaxMode || cookie.Path!="/" {

@@ -7,7 +7,7 @@ import styles from "./AuthPages.module.css";
 const errors: Record<AuthFailure, string> = {
   invalid: "Check your account details and try again.",
   taken: "That email already has an account. Try signing in.",
-  limited: "Too many attempts. Please try again in 15 minutes.",
+  limited: "Too many requests. Please try again shortly.",
   unavailable: "The account service is temporarily unavailable. Please try again.",
   network: "We couldn't reach the server. Check your connection and try again.",
   unexpected: "Something went wrong. Please try again.",
@@ -119,7 +119,7 @@ export function AccountPage() {
     } catch (reason) {
       if (mounted.current) setSignOutError(message(reason));
     } finally {
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
   return (

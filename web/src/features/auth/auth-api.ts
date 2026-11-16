@@ -16,7 +16,7 @@ export function parseAccount(value: unknown): Account {
   if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ||
     typeof email !== "string" || email.length < 5 || email.length > 254 || !email.includes("@") ||
     typeof displayName !== "string" || displayName.trim().length === 0 || Array.from(displayName).length > 80 ||
-    /[\u200e\u200f\u202a-\u202e\u2066-\u2069\uFEFF]/u.test(displayName)) {
+    /\p{Cf}/u.test(displayName)) {
     throw new AuthRequestError("unexpected");
   }
   return { id, email, displayName };
