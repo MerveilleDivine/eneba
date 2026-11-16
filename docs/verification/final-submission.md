@@ -37,7 +37,7 @@ The browser suite includes automated responsive screenshots and accessibility sc
 | GitHub Actions exact-head | Runs [#43926801580](https://github.com/MerveilleDivine/eneba/actions/runs/43926801580) and [#43926789114](https://github.com/MerveilleDivine/eneba/actions/runs/43926789114) report failure with no executed job steps in the connector | **Not passing**; account Actions capacity has been reported exhausted, but the exact cause of these runs is not independently confirmed |
 | Local exact-head verify | Earlier Windows `gofmt` PATH issue was addressed by the developer; no complete `npm run verify` result for the latest feature head is recorded here | **Unverified** |
 | Hosted Go API / database | Previous Slice 5 acceptance exists in `hosted-slice5-2026-11-16.md` | Latest order/checkout API deployment and migration state **unverified** |
-| AI chat archive | `docs/ai-history/` does not exist in this branch's current tree | **Missing: blocking submission evidence** |
+| AI chat archive | One original, manifest-backed Codex transcript snapshot restored from old `main`: 89 entries, 12–13 November | **Partial only**; later local Codex sessions and planning history remain missing |
 | Public repository | Repository remains private and older `main` history contains previously committed conversation artifacts | **Privacy review required** before visibility change |
 
 A READY Vercel deployment, committed tests, or a prior passing revision must not be presented as proof of the complete **currently deployed** buyer flow.
