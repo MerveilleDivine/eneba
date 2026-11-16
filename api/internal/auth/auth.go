@@ -60,6 +60,7 @@ type Service struct {
 	store               Store
 	mu                  sync.Mutex
 	failed              map[[32]byte]attempts
+	loginLocks          [64]sync.Mutex
 	registrationStarted time.Time
 	registrationCount   int
 	now                 func() time.Time
@@ -267,6 +268,16 @@ func (s *Service) Login(ctx context.Context, email, password string) (User, stri
 	email, err = normalizeEmail(email)
 	if err != nil || !validPassword(password) {
 		return User{}, "", ErrUnauthorized
+	}
+	// Serialize checks and failure accounting for the same email. A bounded
+	// set of striped locks prevents parallel wrong passwords from bypassing
+	// the six-failure threshold without retaining an unbounded mutex map.
+	key := sha256.Sum256([]byte(email))
+	lock := &s.loginLocks[int(key[0])%len(s.loginLocks)]
+	lock.Lock()
+	defer lock.Unlock()
+	if err := ctx.Err(); err != nil {
+		return User{}, "", err
 	}
 	if s.isBlocked(email) {
 		return User{}, "", ErrRateLimited
