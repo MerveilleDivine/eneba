@@ -2,7 +2,7 @@
 
 An independent marketplace internship project built with React/TypeScript, a Go REST API and PostgreSQL. The interface demonstrates browsing, seller comparison, persistent carts and account sessions using original game artwork and controlled demo data.
 
-**Current milestone — 16 November 2026:** Slices 1–5 and Slice 6A (read-only server cart quotes) are implemented. Slice 6B atomic purchase, Slice 6C buyer checkout confirmation, Slice 6D review, Slice 7 order history/key delivery, and Slice 8 final audit remain. No real payments or redeemable game codes are involved.
+**Current milestone — 16 November 2026:** Slices 1–5 and Slice 6A cart quotes are running; Slice 6B's atomic-purchase backend is implemented and independently tested, but its HTTP route is deliberately not registered in the live server until Slice 6C. Checkout UI (6C), final review (6D), order/key delivery (7) and employer submission (8) remain. No real payments or redeemable game codes are involved.
 
 **Live site:** https://eneba-marketplace-demo.vercel.app — Vercel frontend, Render Go API and Neon PostgreSQL. The production site deploys from the private `feature/slice-2-catalog` branch; `main` remains unchanged.
 

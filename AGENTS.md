@@ -2,7 +2,7 @@
 
 ## Current scope
 
-The user authorized Slice 6 after hosted Slice 5 acceptance. The current vertical checkpoint is **6A: read-only server cart quotes and independent verification**. Build Slices 6B (atomic purchasing), 6C (buyer checkout UI) and 6D (release audit) as separately reviewed checkpoints. Continue on `feature/slice-2-catalog`; keep the repository private, and do not merge `main`, rewrite history, or commit conversations or secrets. The approved checkout scope lives in `docs/plans/slice-6-checkout.md`. GitHub Actions quota is exhausted; test outside Actions and report any verification limits.
+The user authorized Slice 6 after hosted Slice 5 acceptance. Slices 6A (read-only quotes) and 6B (atomic purchasing, isolated database acceptance) are now implemented. The next vertical checkpoint is **6C: buyer checkout UI and deliberate server-route activation**, followed by 6D (release audit). Do not register the purchase route publicly before 6C acceptance. Continue on `feature/slice-2-catalog`; keep the repository private, and do not merge `main`, rewrite history, or commit conversations or secrets. The approved checkout scope lives in `docs/plans/slice-6-checkout.md`. GitHub Actions quota is exhausted; test outside Actions and report any verification limits.
 
 ## Boundaries
 
