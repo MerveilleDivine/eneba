@@ -73,16 +73,17 @@ test("sold out, missing and invalid products have useful recovery", async ({ pag
   await expect(page.getByRole("link", { name: "Browse games", exact: true })).toHaveCount(2);
 });
 
-test("product failures retry safely and retain the exact offer link", async ({ page }) => {
+test("product transient failures keep the skeleton and selected offer", async ({ page }) => {
+  let attempts = 0;
   await page.route("**/api/v1/products/neon-circuit", (route) =>
-    route.fulfill({ status: 503, body: "postgres://private-password" }),
+    attempts++ === 0
+      ? route.fulfill({ status: 503, body: "postgres://private-password" })
+      : route.continue(),
   );
   await page.goto("/products/neon-circuit?offerId=30000000-0000-4000-8000-000000000006");
-  await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
-  await expect(page.locator("body")).not.toContainText("private-password");
-  await page.unroute("**/api/v1/products/neon-circuit");
-  await page.getByRole("button", { name: "Try product again" }).press("Enter");
   await expect(page.getByRole("radio", { name: /Orbit Games/ })).toBeChecked();
-  await expect(page.getByRole("heading", { name: "Neon Circuit", exact: true })).toBeFocused();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText("private-password");
+  expect(attempts).toBeGreaterThanOrEqual(2);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

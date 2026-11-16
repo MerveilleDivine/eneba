@@ -40,20 +40,21 @@ test("reads seller-specific deals and navigates through the catalog", async ({ p
   await expect(page.getByRole("radio", { name: /Purple Lantern/ })).toBeChecked();
 });
 
-test("a Deals failure does not hide the other homepage blocks", async ({ page }) => {
-  await page.route("**/api/v1/home/deals", async (route) => {
-    await route.fulfill({ status: 503, body: "private database hostname" });
-  });
+test("a transient Deals failure does not interrupt the other homepage blocks", async ({ page }) => {
+  let attempts = 0;
+  await page.route("**/api/v1/home/deals", (route) =>
+    attempts++ === 0
+      ? route.fulfill({ status: 503, body: "private database hostname" })
+      : route.continue(),
+  );
   await page.goto("/");
   const shelf = page.getByRole("region", { name: "Deals worth discovering" });
-  await expect(shelf.getByRole("alert")).toContainText("Deals are temporarily unavailable");
+  await expect(shelf.getByRole("listitem")).toHaveCount(3);
+  await expect(shelf.getByRole("alert")).toHaveCount(0);
   await expect(shelf).not.toContainText("private database hostname");
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
-  await page.unroute("**/api/v1/home/deals");
-  await shelf.getByRole("button", { name: "Try deals again" }).click();
-  await expect(shelf.getByRole("listitem")).toHaveCount(3);
-  await expect(shelf.getByRole("heading", { name: "Deals worth discovering" })).toBeFocused();
+  expect(attempts).toBeGreaterThanOrEqual(2);
 });
 
 test("empty and malformed Deals never invent a discounted price", async ({ page }) => {

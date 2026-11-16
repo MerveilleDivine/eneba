@@ -60,17 +60,19 @@ test("filters, prices, sorting, pagination and history use URL state", async ({ 
   await expect(page.getByRole("heading", { name: "Deep Signal" })).toBeVisible();
 });
 
-test("service errors recover without clearing filters", async ({ page }) => {
-  await page.route("**/api/v1/products?*", async (route) => {
-    await route.fulfill({ status: 503, body: "internal-only-data" });
-  });
+test("service errors quietly recover without clearing filters", async ({ page }) => {
+  let count = 0;
+  await page.route("**/api/v1/products?*", (route) =>
+    count++ === 0
+      ? route.fulfill({ status: 503, body: "internal-only-data" })
+      : route.continue(),
+  );
   await page.goto("/catalog?platform=steam");
-  await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
-  await expect(page.getByText("internal-only-data")).toHaveCount(0);
-  await page.unroute("**/api/v1/products?*");
-  await page.getByRole("button", { name: "Try again" }).click();
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByText("internal-only-data")).toHaveCount(0);
   await expect(page).toHaveURL(/platform=steam/);
+  expect(count).toBeGreaterThanOrEqual(2);
 });
 
 test("API-rejected filters offer reset without showing server details", async ({ page }) => {
@@ -120,19 +122,19 @@ test("a rejected default catalog request keeps retry and alternate search availa
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
 });
 
-for (const { status, heading } of [
-  { status: 502, heading: "Games are temporarily unavailable" },
-  { status: 504, heading: "The catalog took too long to respond" },
-]) {
-  test(`gateway response ${status} has an accurate recovery message`, async ({ page }) => {
-    await page.route("**/api/v1/products?*", async (route) => {
-      await route.fulfill({ status, body: "private proxy detail" });
-    });
+for (const status of [502, 504]) {
+  test(`gateway ${status} recovers silently without a false error screen`, async ({ page }) => {
+    let count = 0;
+    await page.route("**/api/v1/products?*", (route) =>
+      count++ === 0
+        ? route.fulfill({ status, body: "private proxy detail" })
+        : route.continue(),
+    );
     await page.goto("/catalog");
-    const alert = page.getByRole("alert");
-    await expect(alert.getByRole("heading", { name: heading })).toBeVisible();
-    await expect(alert).not.toContainText("private proxy detail");
-    await expect(alert.getByRole("button", { name: "Try again" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    await expect(page.getByText("private proxy detail")).toHaveCount(0);
+    expect(count).toBeGreaterThanOrEqual(2);
   });
 }
 

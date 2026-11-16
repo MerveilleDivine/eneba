@@ -124,7 +124,7 @@ it("a client-owned deadline wins over a late product success", async () => {
   );
   open("/products/solar-drift?offerId=" + solar.offers[1].offerId);
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(6000);
+    await vi.advanceTimersByTimeAsync(90_000);
   });
   expect(screen.getByRole("alert")).toHaveTextContent("took too long");
   await act(async () => {

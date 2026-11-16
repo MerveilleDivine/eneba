@@ -28,23 +28,20 @@ test("guest account prompts sign-in and does not invent a user", async ({ page }
   await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
 });
 
-test("account service outage offers a retry without showing private content", async ({ page }) => {
-  // Development StrictMode can issue more than one initial account read.
-  // Keep the outage active until the user explicitly retries.
-  let unavailable = true;
-  await page.route("**/api/v1/auth/me", async (route) => {
-    await route.fulfill({
-      status: unavailable ? 503 : 401,
+test("account service outage retries silently without showing private content", async ({ page }) => {
+  let attempts = 0;
+  await page.route("**/api/v1/auth/me", (route) =>
+    route.fulfill({
+      status: attempts++ === 0 ? 503 : 401,
       contentType: "application/json",
-      body: unavailable ? "private database diagnostic" : "{}",
-    });
-  });
+      body: attempts === 1 ? "private database diagnostic" : "{}",
+    }),
+  );
   await page.goto("/account");
-  await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
-  await expect(page.getByText("private database diagnostic")).toHaveCount(0);
-  unavailable = false;
-  await page.getByRole("button", { name: "Try again" }).click();
   await expect(page.getByText("Sign in to view your buyer account.")).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByText("private database diagnostic")).toHaveCount(0);
+  expect(attempts).toBeGreaterThanOrEqual(2);
 });
 
 test("buyer can register, retain a session after reload, sign out and sign back in", async ({

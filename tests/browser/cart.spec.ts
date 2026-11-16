@@ -109,7 +109,7 @@ test("saved offer remains visible but is not priced as purchasable after stock r
   await expect(page.getByRole("heading", { name: "Your cart is empty" })).toBeVisible();
 });
 
-test("an unavailable quote API never produces a made-up subtotal", async ({ page }) => {
+test("a rejected quote never produces a made-up subtotal", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem(
       "eneba:cart:v1",
@@ -118,11 +118,11 @@ test("an unavailable quote API never produces a made-up subtotal", async ({ page
       ]),
     );
   });
-  await page.route("**/api/v1/cart/quote", async (route) => {
-    await route.fulfill({ status: 503, contentType: "application/json", body: "private error" });
-  });
+  await page.route("**/api/v1/cart/quote", (route) =>
+    route.fulfill({ status: 500, contentType: "application/json", body: "private error" }),
+  );
   await page.goto("/cart");
-  await expect(page.getByRole("alert")).toContainText("Current prices aren't available");
+  await expect(page.getByRole("alert")).toContainText("We couldn't check your cart");
   await expect(page.getByText("Current subtotal")).toHaveCount(0);
   await expect(page.getByText("private error")).toHaveCount(0);
 });

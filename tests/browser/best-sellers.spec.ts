@@ -22,19 +22,20 @@ test("loads ranked Go products and opens their exact product pages", async ({ pa
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
 });
 
-test("isolates best-seller failure and restores retry focus", async ({ page }) => {
-  await page.route("**/api/v1/home/best-sellers", async (route) => {
-    await route.fulfill({ status: 503, body: "private database hostname" });
-  });
+test("isolates a transient best-seller failure until it quietly recovers", async ({ page }) => {
+  let attempts = 0;
+  await page.route("**/api/v1/home/best-sellers", (route) =>
+    attempts++ === 0
+      ? route.fulfill({ status: 503, body: "private database hostname" })
+      : route.continue(),
+  );
   await page.goto("/");
   const shelf = page.getByRole("region", { name: "Best sellers" });
-  await expect(shelf.getByRole("alert")).toContainText("Best sellers are temporarily unavailable");
+  await expect(shelf.getByRole("listitem")).toHaveCount(4);
+  await expect(shelf.getByRole("alert")).toHaveCount(0);
   await expect(shelf).not.toContainText("private database hostname");
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
-  await page.unroute("**/api/v1/home/best-sellers");
-  await shelf.getByRole("button", { name: "Try best sellers again" }).click();
-  await expect(shelf.getByRole("listitem")).toHaveCount(4);
-  await expect(shelf.getByRole("heading", { name: "Best sellers" })).toBeFocused();
+  expect(attempts).toBeGreaterThanOrEqual(2);
 });
 
 test("empty and unsafe best sellers never invent cards", async ({ page }) => {

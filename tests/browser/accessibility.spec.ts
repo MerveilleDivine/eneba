@@ -33,7 +33,7 @@ for (const state of ["loading", "empty", "error", "invalid", "not-found"] as con
       await page.route("**/api/v1/products?*", () => {});
     }
     if (state === "error") {
-      await page.route("**/api/v1/products?*", (route) => route.fulfill({ status: 503, body: "" }));
+      await page.route("**/api/v1/products?*", (route) => route.fulfill({ status: 500, body: "" }));
     }
     const path =
       state === "empty"
@@ -71,7 +71,7 @@ test("the skip link moves keyboard focus into the catalog", async ({ page }) => 
 test("keyboard retry preserves a useful focus target after the button disappears", async ({
   page,
 }) => {
-  await page.route("**/api/v1/products?*", (route) => route.fulfill({ status: 503, body: "" }));
+  await page.route("**/api/v1/products?*", (route) => route.fulfill({ status: 500, body: "" }));
   await page.goto("/catalog?platform=steam");
   const retry = page.getByRole("button", { name: "Try again" });
   await retry.focus();

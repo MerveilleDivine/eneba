@@ -8,6 +8,7 @@ This is an evidence ledger for Eneba's internship assignment, **not** a declarat
 - **Slice 6:** Read-only live quote, buyer-locked idempotent purchase, transaction-protected key allocation, simulated checkout and retry handling. [`e3b5155`](https://github.com/MerveilleDivine/eneba/commit/e3b5155ac1d88fc34e466ae53dd552aaf43afc05) records prior local/unit/integration/browser verification, **not verification of the present head**.
 - **Slice 7:** Owner-scoped order list/detail endpoints, historical receipt snapshots, private demo-key delivery, session invalidation on tab/account changes and related tests. Added in [`f0d16ed`](https://github.com/MerveilleDivine/eneba/commit/f0d16ed5ba464ee7d7d6fab9e1f7b5b7443478fd). At review time this change had not passed an exact-head backend integration/browser run.
 - **Slice 8:** Frontend styling revisions exist. A visual, accessibility, live checkout and final release review is still pending.
+- **Free-host loading recovery:** Read-only API screens now keep their existing skeleton/loading states while transient network, gateway and availability errors are retried silently for a bounded 90-second recovery window. The buyer's purchase mutation is not automatically replayed. Exact-head tests and an actual sleeping-Render smoke check remain pending.
 
 ## Evidence confirmed at review time
 

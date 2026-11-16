@@ -44,64 +44,45 @@ test("the complete homepage reads three real Go/PostgreSQL sources", async ({ pa
   expect(pageErrors).toEqual([]);
 });
 
-test("simultaneous homepage failures recover independently", async ({ page }) => {
+test("simultaneous homepage outages recover quietly and independently", async ({ page }) => {
   const paths = ["banners", "best-sellers", "deals"] as const;
+  const counts: Record<(typeof paths)[number], number> = {
+    banners: 0,
+    "best-sellers": 0,
+    deals: 0,
+  };
   for (const path of paths) {
     await page.route(`**/api/v1/home/${path}`, (route) =>
-      route.fulfill({ status: 503, body: "private database credentials" }),
+      counts[path]++ === 0
+        ? route.fulfill({ status: 503, body: "private database credentials" })
+        : route.continue(),
     );
   }
   await page.goto("/");
-  const banner = page.getByRole("region", { name: bannerRegion });
+  const banners = page.getByRole("region", { name: bannerRegion });
   const ranked = page.getByRole("region", { name: bestSellerRegion });
   const deals = page.getByRole("region", { name: dealRegion });
-  await expect(banner.getByRole("alert")).toContainText("temporarily unavailable");
-  await expect(ranked.getByRole("alert")).toContainText("temporarily unavailable");
-  await expect(deals.getByRole("alert")).toContainText("temporarily unavailable");
   await expect(page.getByRole("searchbox", { name: "Search games" })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
-  await expect(page.locator("main")).not.toContainText("private database credentials");
-
-  await page.unroute("**/api/v1/home/banners");
-  await banner.getByRole("button", { name: "Try again" }).click();
-  await expect(banner.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
-  await expect(ranked.getByRole("alert")).toBeVisible();
-  await expect(deals.getByRole("alert")).toBeVisible();
-
-  await page.unroute("**/api/v1/home/best-sellers");
-  await ranked.getByRole("button", { name: "Try best sellers again" }).click();
+  await expect(banners.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   await expect(ranked.getByRole("listitem")).toHaveCount(4);
-  await expect(deals.getByRole("alert")).toBeVisible();
-  await expect(banner.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
-
-  await page.unroute("**/api/v1/home/deals");
-  await deals.getByRole("button", { name: "Try deals again" }).click();
   await expect(deals.getByRole("listitem")).toHaveCount(3);
-  await expect(ranked.getByRole("listitem")).toHaveCount(4);
-  await expect(banner.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
-  await expect(deals.getByRole("heading", { name: dealRegion })).toBeFocused();
+  await expect(page.locator("main")).not.toContainText("private database credentials");
+  for (const path of paths) expect(counts[path]).toBeGreaterThanOrEqual(2);
 });
 
-test("stalled Deals time out and recover independently", async ({ page }) => {
-  // React StrictMode can initiate more than one request on mount. Hold *all*
-  // initial requests to test the real six-second timeout; only a user retry
-  // may reach the backend after the timeout.
+test("a delayed Deals request keeps its skeleton beyond six seconds", async ({ page }) => {
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
-  let blockRequests = true;
   await page.route("**/api/v1/home/deals", async (route) => {
-    if (blockRequests) {
-      await gate;
-      try {
-        await route.continue();
-      } catch {
-        // The frontend intentionally aborted the first request.
-      }
-      return;
+    await gate;
+    try {
+      await route.continue();
+    } catch {
+      // An abandoned request can be aborted after navigating away.
     }
-    await route.continue();
   });
   await page.goto("/", { waitUntil: "domcontentloaded" });
   const deals = page.getByRole("region", { name: dealRegion });
@@ -109,16 +90,13 @@ test("stalled Deals time out and recover independently", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
   try {
-    await expect(deals.getByRole("alert")).toContainText("took too long to load", {
-      timeout: 10000,
-    });
+    await page.waitForTimeout(6_500);
+    await expect(deals.getByRole("status")).toContainText("Loading deals");
+    await expect(deals.getByRole("alert")).toHaveCount(0);
   } finally {
-    blockRequests = false;
     release();
   }
-  await deals.getByRole("button", { name: "Try deals again" }).click();
   await expect(deals.getByRole("listitem")).toHaveCount(3);
-  await expect(deals.getByRole("heading", { name: dealRegion })).toBeFocused();
 });
 
 for (const width of [320, 360, 768, 1280]) {
