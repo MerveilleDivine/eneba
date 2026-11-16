@@ -2,7 +2,7 @@
 
 An independent internship project: discover games, compare sellers, purchase with simulated payments and retrieve nonredeemable keys from your account.
 
-**[Open the application](https://eneba-marketplace-demo.vercel.app)** | **[Completed feature branch](https://github.com/MerveilleDivine/eneba/tree/feature/slice-2-catalog)**
+**[Open the application](https://eneba-marketplace-demo.vercel.app)** | **[Development branch](https://github.com/MerveilleDivine/eneba/tree/feature/slice-2-catalog)**
 
 ## Features
 
@@ -93,4 +93,4 @@ Vercel serves the SPA and forwards API requests through web/vercel.json. Render 
 
 This is a bounded internship marketplace: one key per offer per order, at most ten cart lines, EUR only and no real payment processing. Free hosting can have cold starts. Authentication rate limits are process-local; a larger deployment would need shared ingress limits. Automated accessibility checks complement keyboard/responsive inspection and do not certify screen-reader or physical-device coverage.
 
-The [AI assistance record](docs/ai-history/README.md) includes authentic available conversations, source coverage and documented redactions. Original assignment documents remain unchanged under docs/reference/.
+The complete AI conversation archive is **not yet included on this development branch**. It must be exported, checked for completeness, and privacy-reviewed before any public submission. See [final submission verification](docs/verification/final-submission.md). Original assignment documents remain unchanged under docs/reference/.
