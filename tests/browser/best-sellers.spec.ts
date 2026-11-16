@@ -13,7 +13,7 @@ test("loads ranked Go products and opens their exact product pages", async ({ pa
     "Midnight Protocol",
   ]);
   await page.goto("/");
-  const shelf = page.getByRole("region", { name: "Best sellers in this demo" });
+  const shelf = page.getByRole("region", { name: "Best sellers" });
   await expect(shelf.getByRole("listitem")).toHaveCount(4);
   await expect(shelf.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
@@ -27,14 +27,14 @@ test("isolates best-seller failure and restores retry focus", async ({ page }) =
     await route.fulfill({ status: 503, body: "private database hostname" });
   });
   await page.goto("/");
-  const shelf = page.getByRole("region", { name: "Best sellers in this demo" });
+  const shelf = page.getByRole("region", { name: "Best sellers" });
   await expect(shelf.getByRole("alert")).toContainText("Best sellers are temporarily unavailable");
   await expect(shelf).not.toContainText("private database hostname");
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   await page.unroute("**/api/v1/home/best-sellers");
   await shelf.getByRole("button", { name: "Try best sellers again" }).click();
   await expect(shelf.getByRole("listitem")).toHaveCount(4);
-  await expect(shelf.getByRole("heading", { name: "Best sellers in this demo" })).toBeFocused();
+  await expect(shelf.getByRole("heading", { name: "Best sellers" })).toBeFocused();
 });
 
 test("empty and unsafe best sellers never invent cards", async ({ page }) => {
@@ -46,7 +46,7 @@ test("empty and unsafe best sellers never invent cards", async ({ page }) => {
     });
   });
   await page.goto("/");
-  const shelf = page.getByRole("region", { name: "Best sellers in this demo" });
+  const shelf = page.getByRole("region", { name: "Best sellers" });
   await expect(shelf).toContainText("No best sellers are featured right now");
   await expect(shelf.getByRole("listitem")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
@@ -90,7 +90,7 @@ test("slow best sellers do not block the hero", async ({ page }) => {
     await route.continue();
   });
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  const shelf = page.getByRole("region", { name: "Best sellers in this demo" });
+  const shelf = page.getByRole("region", { name: "Best sellers" });
   await expect(shelf.getByRole("status")).toContainText("Loading best sellers");
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
   release();
@@ -101,7 +101,7 @@ for (const width of [320, 360, 768, 1280]) {
   test("best-seller cards remain accessible at " + width + "px", async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
-    const shelf = page.getByRole("region", { name: "Best sellers in this demo" });
+    const shelf = page.getByRole("region", { name: "Best sellers" });
     await expect(shelf.getByRole("listitem")).toHaveCount(4);
     const report = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

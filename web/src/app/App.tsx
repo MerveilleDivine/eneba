@@ -43,8 +43,7 @@ export function App() {
         </Routes>
       </main>
       <footer className={styles.footer}>
-        <span>Independent marketplace demonstration.</span>
-        <span>Fictional games · Nonredeemable keys · No real payments</span>
+        <span>Independent marketplace project · No real transactions or redeemable codes</span>
       </footer>
     </div>
   );

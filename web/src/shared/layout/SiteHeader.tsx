@@ -30,11 +30,6 @@ export function SiteHeader({ search, cartCount = 0 }: { search: ReactNode; cartC
           </NavLink>
         </nav>
       </div>
-      <div className={styles.demoStrip}>
-        <span>Unofficial demo</span>
-        <span aria-hidden="true">·</span>
-        <span>Digital games, simulated purchases</span>
-      </div>
     </header>
   );
 }

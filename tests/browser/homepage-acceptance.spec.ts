@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const bannerRegion = "Featured games";
-const bestSellerRegion = "Best sellers in this demo";
+const bestSellerRegion = "Best sellers";
 const dealRegion = "Deals worth discovering";
 
 test("the complete homepage reads three real Go/PostgreSQL sources", async ({ page, request }) => {
@@ -40,7 +40,7 @@ test("the complete homepage reads three real Go/PostgreSQL sources", async ({ pa
   await expect(offers).toContainText(deals.items[0].sellerName);
   await expect(offers).toContainText("€12.73");
   await expect(offers).toContainText("€18.73");
-  await expect(offers).toContainText("offer not selected");
+  await expect(offers).toContainText("View offer");
   expect(pageErrors).toEqual([]);
 });
 

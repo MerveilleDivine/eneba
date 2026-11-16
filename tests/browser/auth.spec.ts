@@ -8,7 +8,7 @@ test("account registration form is usable at phone width", async ({ page }) => {
   await expect(page.getByLabel("Display name")).toBeVisible();
   await expect(page.getByLabel("Email address")).toBeVisible();
   await expect(page.getByLabel("Password")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Create demo account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
@@ -56,7 +56,7 @@ test("buyer can register, retain a session after reload, sign out and sign back 
   await page.getByLabel("Display name").fill("Sample Buyer");
   await page.getByLabel("Email address").fill(email);
   await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Create demo account" }).click();
+  await page.getByRole("button", { name: "Create account" }).click();
   await expect(page).toHaveURL(/\/account$/);
   await expect(page.getByText(email)).toBeVisible();
   await page.reload();
@@ -87,7 +87,7 @@ test("registration stays accessible at 320px with 200% text", async ({ page }) =
   });
   await expect(page.getByRole("heading", { name: "Create your account" })).toBeVisible();
   await expect(page.getByLabel("Password")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Create demo account" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create account" })).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );

@@ -17,11 +17,11 @@ import { parseOfferSelection } from "./product-selection";
 import styles from "./ProductPage.module.css";
 
 const cartMessages: Record<AddCartResult, string> = {
-  added: "This seller offer has been added to your cart.",
-  "already-added": "This seller offer is already in your cart.",
-  full: "Your cart is full. Remove an offer before adding another.",
+  added: "Added to cart.",
+  "already-added": "Already in your cart.",
+  full: "Your cart is full. Remove an item before adding another.",
   "storage-error": "The cart could not be saved. Enable browser storage and try again.",
-  invalid: "This seller offer could not be saved. Refresh the product and try again.",
+  invalid: "Couldn't add this item. Refresh the game and try again.",
 };
 
 const failures: Record<ProductFailure, { title: string; message: string }> = {
@@ -87,7 +87,6 @@ function ProductCover({ product }: { product: ProductDetails["product"] }) {
           <strong>{product.name}</strong>
         </div>
       )}
-      <span className={styles.coverNotice}>Fictional demo title</span>
     </div>
   );
 }
@@ -174,8 +173,7 @@ function ProductContent({ slug }: { slug: string }) {
               <p className={styles.eyebrow}>Your next world</p>
               <h2 id="about-game">About this game</h2>
               <p className={styles.description}>
-                {details.product.description ||
-                  "A fictional title in this marketplace demonstration."}
+                {details.product.description || "Game details are currently unavailable."}
               </p>
               <dl className={styles.facts}>
                 <div>
@@ -192,7 +190,7 @@ function ProductContent({ slug }: { slug: string }) {
                 </div>
                 <div>
                   <dt>Format</dt>
-                  <dd>Nonredeemable demo key</dd>
+                  <dd>Digital code</dd>
                 </div>
               </dl>
               <section className={styles.activation} aria-labelledby="activation-title">
@@ -210,24 +208,21 @@ function ProductContent({ slug }: { slug: string }) {
                 )}
               </div>
               <p className={styles.muted}>
-                Match the platform, region and edition before choosing a seller. All games, seller
-                ratings and offers in this demo are fictional.
+                Check the platform, region and edition before choosing a seller.
               </p>
             </section>
           </div>
           <section className={styles.sellers} aria-labelledby="seller-title">
             <div className={styles.sellerHeading}>
               <div>
-                <p className={styles.eyebrow}>One game · Your choice of seller</p>
+                <p className={styles.eyebrow}>Available sellers</p>
                 <h2 id="seller-title">Compare seller offers</h2>
               </div>
               <span>
                 {details.offers.length} {details.offers.length === 1 ? "offer" : "offers"}
               </span>
             </div>
-            <p className={styles.muted}>
-              Choosing a seller does not reserve a key or price. Availability can change.
-            </p>
+            <p className={styles.muted}>Prices and availability may change until checkout.</p>
             {(!selection.valid || missingSelection || (selected && !selected.available)) && (
               <div role="alert" className={styles.notice}>
                 <p>
@@ -267,7 +262,7 @@ function ProductContent({ slug }: { slug: string }) {
                     />
                     <span className={styles.sellerIdentity}>
                       <strong>{offer.sellerName}</strong>
-                      <span>{offer.sellerRatingPercent}% positive · Demo rating</span>
+                      <span>{offer.sellerRatingPercent}% positive</span>
                       <span className={offer.available ? styles.available : styles.muted}>
                         {offer.available ? "Available" : "Sold out"}
                       </span>
@@ -292,9 +287,8 @@ function ProductContent({ slug }: { slug: string }) {
                     <strong>{selected.sellerName}</strong> · {details.product.edition} edition
                   </p>
                   <p className={styles.selectedPrice}>{displayEuro(selected.priceCents)}</p>
-                  <p>Offer selected for comparison. No purchase or reservation has been made.</p>
                   <button type="button" className={styles.addToCart} onClick={addSelectedOffer}>
-                    Add this seller offer to cart
+                    Add to cart
                   </button>
                   {cartResult && <p role="status">{cartMessages[cartResult]}</p>}
                   {(cartResult === "added" || cartResult === "already-added") && (
@@ -305,7 +299,7 @@ function ProductContent({ slug }: { slug: string }) {
                   </button>
                 </>
               ) : (
-                <p>No available offer selected. Choose a seller above to compare your choice.</p>
+                <p>Choose a seller to add this game to your cart.</p>
               )}
             </div>
           </section>

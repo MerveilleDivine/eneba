@@ -49,7 +49,7 @@ describe("catalog browsing application", () => {
     expect(screen.getByRole("heading", { name: "Lunar Legacy" })).toBeInTheDocument();
     expect(screen.getByText("€11.36")).toBeInTheDocument();
     expect(screen.getByText("Currently unavailable")).toBeInTheDocument();
-    expect(screen.getByText("Unofficial demo")).toBeInTheDocument();
+    expect(screen.getByText(/Independent marketplace project/)).toBeInTheDocument();
     expect(mock).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/products?"),
       expect.objectContaining({ credentials: "same-origin" }),

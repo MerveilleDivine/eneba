@@ -145,7 +145,7 @@ it("renders real activation guidance and adds only the selected seller offer to 
     await screen.findByRole("heading", { name: "Activation instructions" }),
   ).toBeInTheDocument();
   expect(screen.getByText("Redeem on the listed platform.")).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Add this seller offer to cart" }));
+  fireEvent.click(screen.getByRole("button", { name: "Add to cart" }));
   expect(screen.getByText("This seller offer has been added to your cart.")).toBeInTheDocument();
   expect(JSON.parse(window.localStorage.getItem("eneba:cart:v1") || "null")).toEqual([
     { offerId: solar.offers[1].offerId, quantity: 1, slug: "solar-drift" },

@@ -20,7 +20,7 @@ test("reads seller-specific deals and navigates through the catalog", async ({ p
   await expect(shelf).toContainText("Offer by Purple Lantern");
   await expect(shelf).toContainText("€12.73");
   await expect(shelf).toContainText("€18.73");
-  await expect(shelf).toContainText("offer not selected");
+  await expect(shelf).toContainText("View offer");
   const covers = shelf.locator("img");
   await expect(covers).toHaveCount(3);
   for (const cover of await covers.all()) {
@@ -31,13 +31,13 @@ test("reads seller-specific deals and navigates through the catalog", async ({ p
     );
   }
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Best sellers in this demo" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Best sellers" })).toBeVisible();
   await shelf.getByRole("link", { name: /The Last Outpost/ }).click();
-  await expect(page).toHaveURL(/\/catalog\?q=The\+Last\+Outpost&platform=xbox&region=europe$/);
-  const results = page.getByRole("region", { name: "Game results" });
-  await expect(results.getByRole("heading", { name: "The Last Outpost" })).toBeVisible();
-  await expect(page.getByRole("combobox", { name: "Platform" })).toHaveValue("xbox");
-  await expect(page.getByRole("combobox", { name: "Region" })).toHaveValue("europe");
+  await expect(page).toHaveURL(
+    new RegExp(`/products/the-last-outpost\\?offerId=${data.items[0].offerId}$`),
+  );
+  await expect(page.getByRole("heading", { name: "The Last Outpost", level: 1 })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Purple Lantern/ })).toBeChecked();
 });
 
 test("a Deals failure does not hide the other homepage blocks", async ({ page }) => {

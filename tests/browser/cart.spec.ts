@@ -13,7 +13,7 @@ test("selected seller identity survives cart navigation and a hard reload", asyn
   const offerId = new URL(page.url()).searchParams.get("offerId");
   expect(offerId).toMatch(/^[0-9a-f-]{36}$/);
 
-  await page.getByRole("button", { name: "Add this seller offer to cart" }).click();
+  await page.getByRole("button", { name: "Add to cart" }).click();
   await expect(page.getByRole("link", { name: "View cart" })).toBeVisible();
   await page.getByRole("link", { name: "View cart" }).click();
   await expect(page).toHaveURL(/\/cart$/);
@@ -24,11 +24,11 @@ test("selected seller identity survives cart navigation and a hard reload", asyn
     new RegExp("offerId=" + offerId + "$"),
   );
   await expect(page.getByText("Quantity: 1")).toBeVisible();
-  await expect(page.getByText("Current estimated subtotal")).toBeVisible();
+  await expect(page.getByText("Estimated subtotal")).toBeVisible();
 
   await page.reload();
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
-  await expect(page.getByText("Current estimated subtotal")).toBeVisible();
+  await expect(page.getByText("Estimated subtotal")).toBeVisible();
   await page.getByRole("button", { name: "Remove offer" }).click();
   await expect(page.getByRole("heading", { name: "Your cart is empty" })).toBeVisible();
 });
@@ -39,7 +39,7 @@ test("sold-out offer cannot be added and existing unavailable cart data does not
   await page.goto("/products/lunar-legacy");
   const group = page.getByRole("group", { name: "Choose a seller offer" });
   await expect(group.getByRole("radio").first()).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Add this seller offer to cart" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add to cart" })).toHaveCount(0);
 });
 
 test("cart ignores corrupted storage and remains usable at mobile width", async ({ page }) => {
@@ -115,7 +115,7 @@ test("saved offer remains visible but is not priced as purchasable after stock r
   await page.goto("/cart");
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
   await expect(page.getByText("Sold out — cannot be purchased")).toBeVisible();
-  await expect(page.getByText("Current estimated subtotal")).toHaveCount(0);
+  await expect(page.getByText("Estimated subtotal")).toHaveCount(0);
   await page.getByRole("button", { name: "Remove offer" }).click();
   await expect(page.getByRole("heading", { name: "Your cart is empty" })).toBeVisible();
 });
@@ -135,6 +135,6 @@ test("an unavailable product API never produces a made-up subtotal", async ({ pa
   await page.goto("/cart");
   await expect(page.getByText("Current offer details could not be verified.")).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("could not be verified");
-  await expect(page.getByText("Current estimated subtotal")).toHaveCount(0);
+  await expect(page.getByText("Estimated subtotal")).toHaveCount(0);
   await expect(page.getByText("private error")).toHaveCount(0);
 });

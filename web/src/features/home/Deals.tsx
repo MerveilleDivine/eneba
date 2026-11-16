@@ -19,11 +19,11 @@ export function Deals() {
     >
       <div className={styles.heading}>
         <div>
-          <p className={styles.eyebrow}>Fictional marketplace offers</p>
+          <p className={styles.eyebrow}>Featured offers</p>
           <h2 id="deals-title" ref={headingRef} tabIndex={-1}>
             Deals worth discovering
           </h2>
-          <p>Selected offers from our demo sellers. Prices belong to the seller shown.</p>
+          <p>Browse standout prices from different sellers.</p>
         </div>
         <Link className={styles.catalogLink} to="/catalog">
           Browse all games
@@ -64,10 +64,6 @@ export function Deals() {
               <DealCard key={deal.offerId} deal={deal} />
             ))}
           </ul>
-          <p className={styles.disclosure}>
-            These are fictional, nonredeemable offers. Catalog search does not select the seller
-            offer shown here.
-          </p>
         </>
       )}
     </section>

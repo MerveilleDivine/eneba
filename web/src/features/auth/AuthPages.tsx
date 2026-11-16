@@ -59,15 +59,10 @@ function AuthForm({ mode }: { mode: "register" | "login" }) {
   return (
     <section className={styles.shell}>
       <div className={styles.panel}>
-        <p className={styles.kicker}>Unofficial marketplace demo</p>
+        <p className={styles.kicker}>Your account</p>
         <h1 ref={heading} tabIndex={-1}>
           {isRegister ? "Create your account" : "Welcome back"}
         </h1>
-        <p className={styles.description}>
-          {isRegister
-            ? "Create a demo buyer account. No real purchases or payment information are involved."
-            : "Sign in to your demo buyer account. Your session is managed by the server."}
-        </p>
         <form onSubmit={(event) => void submit(event)} className={styles.form}>
           {isRegister && (
             <label className={styles.field}>
@@ -113,11 +108,11 @@ function AuthForm({ mode }: { mode: "register" | "login" }) {
             </p>
           )}
           <button type="submit" className={styles.submit} disabled={busy}>
-            {busy ? "Please wait…" : isRegister ? "Create demo account" : "Sign in"}
+            {busy ? "Please wait…" : isRegister ? "Create account" : "Sign in"}
           </button>
         </form>
         <p className={styles.alternate}>
-          {isRegister ? "Already have an account?" : "New to the demo?"}{" "}
+          {isRegister ? "Already have an account?" : "New here?"}{" "}
           <Link to={isRegister ? "/sign-in" : "/register"}>
             {isRegister ? "Sign in" : "Create an account"}
           </Link>
@@ -201,7 +196,6 @@ export function AccountPage() {
         )}
         {state.status === "ready" && state.data !== null && (
           <>
-            <p className={styles.description}>You're signed in to the marketplace demonstration.</p>
             <dl className={styles.facts}>
               <div>
                 <dt>Name</dt>
@@ -212,9 +206,6 @@ export function AccountPage() {
                 <dd>{state.data.email}</dd>
               </div>
             </dl>
-            <p className={styles.hint}>
-              Purchasing and order history will be enabled in later slices.
-            </p>
             {signOutError && (
               <p className={styles.error} role="alert">
                 {signOutError}

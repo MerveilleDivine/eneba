@@ -195,8 +195,7 @@
   background: var(--color-surface);
 }
 
-.feedback p,
-.disclosure {
+.feedback p {
   color: var(--color-muted);
   line-height: 1.5;
 }
@@ -210,11 +209,6 @@
   min-height: 13rem;
   border-radius: 0.85rem;
   background: linear-gradient(135deg, #35234f, #483368, #291a48);
-}
-
-.disclosure {
-  font-size: 0.8rem;
-  margin: 1rem 0 0;
 }
 
 @media (max-width: 480px) {

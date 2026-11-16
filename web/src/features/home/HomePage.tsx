@@ -9,15 +9,15 @@ import styles from "./HomePage.module.css";
 const messages: Record<BannerFailure, { title: string; description: string }> = {
   unavailable: {
     title: "Featured games are temporarily unavailable",
-    description: "The banner service is unavailable right now. You can still browse the catalog.",
+    description: "Featured games are unavailable right now. You can still browse the catalog.",
   },
   network: {
     title: "Connection problem",
-    description: "We couldn't reach the banner service. Check your connection and try again.",
+    description: "We couldn't load featured games. Check your connection and try again.",
   },
   timeout: {
     title: "Featured games took too long to load",
-    description: "The banner service didn't respond in time. Please try again.",
+    description: "This section didn't load in time. Please try again.",
   },
   unexpected: {
     title: "We couldn't load featured games",
@@ -82,7 +82,7 @@ function FeaturedBanners() {
         <h1 ref={headingRef} tabIndex={-1}>
           Explore a world of games
         </h1>
-        <p>No promotions are featured right now. The catalog is ready to explore.</p>
+        <p>Nothing is featured right now. Explore all games instead.</p>
         <Link className={styles.primaryLink} to="/catalog">
           Browse games
         </Link>

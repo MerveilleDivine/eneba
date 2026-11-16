@@ -68,7 +68,7 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
     <>
       <div className={styles.toolbar}>
         <p>
-          {lines.length} {lines.length === 1 ? "offer" : "offers"} · One key per offer
+          {lines.length} {lines.length === 1 ? "item" : "items"}
         </p>
         <button type="button" onClick={retry}>
           Refresh current offers
@@ -136,19 +136,13 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
         <h2 id="summary-title">Cart summary</h2>
         {subtotal !== null && Number.isSafeInteger(subtotal) ? (
           <p className={styles.subtotal}>
-            <span>Current estimated subtotal</span>
+            <span>Estimated subtotal</span>
             <strong>{displayEuro(subtotal)}</strong>
           </p>
         ) : (
-          <p role="status">
-            A complete subtotal is unavailable until all saved seller offers are available.
-          </p>
+          <p role="status">Estimated subtotal will appear when all saved items are available.</p>
         )}
-        <p>
-          This is a nonbinding display of current prices, not a server quote or stock reservation.
-          The final price and inventory must be checked during checkout.
-        </p>
-        <p>Simulated checkout is part of the upcoming purchasing slice.</p>
+        <p>Final prices and availability are confirmed at checkout.</p>
         <Link className={styles.browse} to="/catalog">
           Continue browsing
         </Link>
@@ -165,7 +159,7 @@ export function CartPage() {
       <header>
         <p className={styles.kicker}>Your selections</p>
         <h1>Shopping cart</h1>
-        <p>Compare saved seller offers before proceeding with a simulated purchase.</p>
+        <p>Review your items and compare seller prices.</p>
       </header>
       {lines.length === 0 ? (
         <section className={styles.empty}>

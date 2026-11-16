@@ -187,10 +187,7 @@ export function CatalogPage() {
       <section className={styles.intro} aria-labelledby="catalog-title">
         <p className={styles.eyebrow}>Find your next adventure</p>
         <h1 id="catalog-title">Explore games</h1>
-        <p>
-          Find a world worth getting lost in. Explore fictional demo titles across your favorite
-          platforms.
-        </p>
+        <p>Explore new worlds, compare editions and find games for your favorite platforms.</p>
       </section>
       {!parsed.ok ? (
         <section className={styles.feedback} role="alert">

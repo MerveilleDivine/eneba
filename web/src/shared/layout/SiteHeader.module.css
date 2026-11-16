@@ -73,22 +73,6 @@
   text-underline-offset: 0.4rem;
 }
 
-.demoStrip {
-  width: min(100% - 3rem, 1440px);
-  margin: auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  color: var(--color-muted);
-  padding-bottom: 0.85rem;
-  font-size: 0.75rem;
-}
-
-.demoStrip span:first-child {
-  font-weight: 800;
-  color: var(--color-purple);
-}
-
 /* Keep global search from collapsing at large user font sizes. */
 @media (max-width: 1000px) {
   .inner {
