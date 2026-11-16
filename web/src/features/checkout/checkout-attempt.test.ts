@@ -101,6 +101,7 @@ describe("checkout attempts", () => {
 
   it("retains only the reference, total and cart state in session confirmation", () => {
     const receipt = {
+      buyerId,
       orderId: "40000000-0000-4000-8000-000000000001",
       totalCents: 1250,
       cartCleared: true,

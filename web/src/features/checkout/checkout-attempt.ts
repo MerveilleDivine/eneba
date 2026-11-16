@@ -13,6 +13,7 @@ export type CheckoutAttempt = {
   lines: PurchaseLine[];
 };
 export type CheckoutConfirmation = {
+  buyerId: string;
   orderId: string;
   totalCents: number;
   cartCleared: boolean;
@@ -150,6 +151,7 @@ export function parseCheckoutConfirmation(
 ): CheckoutConfirmation | null {
   if (
     !record(value) ||
+    !uuid(value.buyerId) ||
     !uuid(value.orderId) ||
     !safeCents(value.totalCents) ||
     typeof value.cartCleared !== "boolean"
@@ -157,6 +159,7 @@ export function parseCheckoutConfirmation(
     return null;
   }
   return {
+    buyerId: value.buyerId,
     orderId: value.orderId,
     totalCents: value.totalCents,
     cartCleared: value.cartCleared,

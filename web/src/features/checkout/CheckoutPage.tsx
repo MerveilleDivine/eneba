@@ -178,6 +178,7 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
         attempt.lines.map((line) => line.offerId),
       );
       const confirmation: CheckoutConfirmation = {
+        buyerId: buyer.id,
         orderId: result.orderId,
         totalCents: result.totalCents,
         cartCleared,
@@ -361,17 +362,41 @@ export function CheckoutConfirmationPage() {
       readCheckoutConfirmation() ?? parseCheckoutConfirmation(location.state),
   );
   const [copyMessage, setCopyMessage] = useState("");
-  if (!result) {
+  const owner = useReadRequest({
+    read: currentAccount,
+    failure: (reason): AuthFailure =>
+      reason instanceof AuthRequestError ? reason.kind : "unexpected",
+    timeout: "unavailable" as AuthFailure,
+  });
+  if (owner.state.status === "loading")
     return (
       <section className={styles.confirmation}>
-        <h1>No recent order to display</h1>
-        <p>You can find more games in the catalog.</p>
-        <Link className={styles.primary} to="/catalog">
-          Browse games
+        <p role="status">Checking your order…</p>
+      </section>
+    );
+  if (owner.state.status === "failed")
+    return (
+      <section className={styles.confirmation}>
+        <h1>Order temporarily unavailable</h1>
+        <button
+          type="button"
+          className={styles.secondary}
+          onClick={owner.retry}
+        >
+          Try again
+        </button>
+      </section>
+    );
+  if (!owner.state.data || !result || owner.state.data.id !== result.buyerId)
+    return (
+      <section className={styles.confirmation}>
+        <h1>Order unavailable</h1>
+        <p>Sign in with the purchasing account to view your confirmation.</p>
+        <Link className={styles.primary} to="/sign-in">
+          Sign in
         </Link>
       </section>
     );
-  }
   return (
     <section className={styles.confirmation}>
       <p className={styles.kicker}>Order confirmed</p>
