@@ -71,7 +71,9 @@ describe("catalog browsing application", () => {
     renderApp();
     expect(screen.queryByText("sensitive response")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Loading games");
-    expect(await screen.findByRole("heading", { name: "Solar Drift" }, { timeout: 4000 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Solar Drift" }, { timeout: 4000 }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
   });
@@ -106,7 +108,9 @@ describe("catalog browsing application", () => {
     vi.stubGlobal("fetch", mock);
     renderApp("/catalog?platform=steam");
     expect(screen.getByRole("status")).toHaveTextContent("Loading games");
-    expect(await screen.findByRole("heading", { name: "Solar Drift" }, { timeout: 4000 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Solar Drift" }, { timeout: 4000 }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("private gateway detail")).not.toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
     expect(mock.mock.calls[0][0]).toBe(mock.mock.calls[1][0]);
@@ -224,7 +228,9 @@ describe("catalog browsing application", () => {
     vi.stubGlobal("fetch", mock);
     renderApp();
     expect(screen.getByRole("status")).toHaveTextContent("Loading games");
-    expect(await screen.findByRole("heading", { name: "Solar Drift" }, { timeout: 4000 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Solar Drift" }, { timeout: 4000 }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("private network address")).not.toBeInTheDocument();
     expect(mock).toHaveBeenCalledTimes(2);
   });

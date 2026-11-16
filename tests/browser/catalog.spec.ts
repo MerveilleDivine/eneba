@@ -63,9 +63,7 @@ test("filters, prices, sorting, pagination and history use URL state", async ({ 
 test("service errors quietly recover without clearing filters", async ({ page }) => {
   let count = 0;
   await page.route("**/api/v1/products?*", (route) =>
-    count++ === 0
-      ? route.fulfill({ status: 503, body: "internal-only-data" })
-      : route.continue(),
+    count++ === 0 ? route.fulfill({ status: 503, body: "internal-only-data" }) : route.continue(),
   );
   await page.goto("/catalog?platform=steam");
   await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
@@ -126,9 +124,7 @@ for (const status of [502, 504]) {
   test(`gateway ${status} recovers silently without a false error screen`, async ({ page }) => {
     let count = 0;
     await page.route("**/api/v1/products?*", (route) =>
-      count++ === 0
-        ? route.fulfill({ status, body: "private proxy detail" })
-        : route.continue(),
+      count++ === 0 ? route.fulfill({ status, body: "private proxy detail" }) : route.continue(),
     );
     await page.goto("/catalog");
     await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();

@@ -70,18 +70,25 @@ describe("order boundaries", () => {
       { ...valid, items: [{ ...summary, itemCount: 11 }] },
       { ...valid, pageSize: 0 },
       { ...valid, page: Number.MAX_SAFE_INTEGER },
-    ]) expect(() => parseOrders(value, 1)).toThrow("unexpected");
+    ])
+      expect(() => parseOrders(value, 1)).toThrow("unexpected");
   });
 
   it("rejects a response belonging to a different order-history page", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      items: [],
-      page: 1,
-      pageSize: 20,
-      total: 0,
-    }))));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            items: [],
+            page: 1,
+            pageSize: 20,
+            total: 0,
+          }),
+        ),
+      ),
+    );
     const { fetchOrders } = await import("./orders-api");
     await expect(fetchOrders(2, new AbortController().signal)).rejects.toThrow("unexpected");
   });
-
 });

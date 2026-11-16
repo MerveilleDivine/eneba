@@ -28,7 +28,9 @@ test("guest account prompts sign-in and does not invent a user", async ({ page }
   await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
 });
 
-test("account service outage retries silently without showing private content", async ({ page }) => {
+test("account service outage retries silently without showing private content", async ({
+  page,
+}) => {
   let attempts = 0;
   await page.route("**/api/v1/auth/me", (route) =>
     route.fulfill({

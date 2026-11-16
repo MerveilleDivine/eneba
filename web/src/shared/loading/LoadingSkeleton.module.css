@@ -39,9 +39,16 @@
 .bar {
   height: 1rem;
 }
-.wide { width: 93%; height: 1.25rem; }
-.medium { width: 67%; }
-.narrow { width: 40%; }
+.wide {
+  width: 93%;
+  height: 1.25rem;
+}
+.medium {
+  width: 67%;
+}
+.narrow {
+  width: 40%;
+}
 .divider {
   display: block;
   height: 1px;
@@ -53,19 +60,41 @@
   aspect-ratio: 3 / 4;
   flex-shrink: 0;
 }
-.orders .body, .receipt .body { min-height: 7.5rem; }
-.product .body { min-height: 17rem; }
-.quote .body { min-height: 8rem; }
-.account .body { min-height: 3rem; }
+.orders .body,
+.receipt .body {
+  min-height: 7.5rem;
+}
+.product .body {
+  min-height: 17rem;
+}
+.quote .body {
+  min-height: 8rem;
+}
+.account .body {
+  min-height: 3rem;
+}
 @keyframes loadingSweep {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 @media (max-width: 36rem) {
-  .product .body { flex-direction: column; }
-  .cover { width: min(65%, 12rem); }
-  .loading { padding: 1rem; }
+  .product .body {
+    flex-direction: column;
+  }
+  .cover {
+    width: min(65%, 12rem);
+  }
+  .loading {
+    padding: 1rem;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .bar, .cover { animation: none; }
+  .bar,
+  .cover {
+    animation: none;
+  }
 }

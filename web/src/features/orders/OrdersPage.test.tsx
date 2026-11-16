@@ -102,9 +102,10 @@ it("shows only an accessible receipt skeleton until the private server response 
   vi.stubGlobal(
     "fetch",
     vi.fn().mockImplementation(
-      () => new Promise<Response>((done) => {
-        release = done;
-      }),
+      () =>
+        new Promise<Response>((done) => {
+          release = done;
+        }),
     ),
   );
   open();

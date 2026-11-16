@@ -91,14 +91,20 @@ test("history contains receipts without keys and opens the selected order", asyn
   await expect(page.getByLabel("Nonredeemable key")).toHaveValue(code);
 });
 
-test("a held order response keeps the receipt skeleton without revealing keys", async ({ page }) => {
+test("a held order response keeps the receipt skeleton without revealing keys", async ({
+  page,
+}) => {
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
   await page.route("**/api/v1/orders/*", async (route) => {
     await gate;
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(order) });
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(order),
+    });
   });
   await page.goto(`/orders/${id}`, { waitUntil: "domcontentloaded" });
   const status = page.getByRole("status");
@@ -123,7 +129,9 @@ for (const width of [360, 1280]) {
     );
     await page.goto(`/orders/${id}`);
     await expect(page.getByLabel("Nonredeemable key")).toHaveValue(code);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      width,
+    );
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await page.screenshot({
       path: testInfo.outputPath(`receipt-${width}.jpg`),

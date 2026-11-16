@@ -21,12 +21,8 @@ export function LoadingSkeleton({ kind, label }: { kind: SkeletonKind; label: st
               <span className={`${styles.bar} ${styles.narrow}`} />
             </>
           )}
-          {(kind === "receipt" || kind === "quote") && (
-            <span className={styles.divider} />
-          )}
-          {kind !== "account" && (
-            <span className={`${styles.bar} ${styles.medium}`} />
-          )}
+          {(kind === "receipt" || kind === "quote") && <span className={styles.divider} />}
+          {kind !== "account" && <span className={`${styles.bar} ${styles.medium}`} />}
         </div>
       </div>
     </div>

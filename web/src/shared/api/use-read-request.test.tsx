@@ -50,9 +50,7 @@ it("keeps loading beyond six seconds and ignores a late aborted response", async
   });
   expect(result.current.state.status).toBe("loading");
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(
-      READ_ATTEMPT_TIMEOUT_MS + READ_RETRY_DELAY_MS - 6_000,
-    );
+    await vi.advanceTimersByTimeAsync(READ_ATTEMPT_TIMEOUT_MS + READ_RETRY_DELAY_MS - 6_000);
   });
   expect(result.current.state).toEqual({ status: "ready", data: "fresh" });
   await act(async () => finishOld("obsolete"));

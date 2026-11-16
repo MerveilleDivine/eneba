@@ -78,7 +78,8 @@ function OrderList({ page }: { page: number }) {
     failure,
     timeout: "unavailable" as OrderFailure,
   });
-  if (state.status === "loading") return <LoadingSkeleton kind="orders" label="Loading your orders…" />;
+  if (state.status === "loading")
+    return <LoadingSkeleton kind="orders" label="Loading your orders…" />;
   if (state.status === "failed") return <OrderError kind={state.kind} retry={retry} />;
   const { items, total, pageSize } = state.data;
   return (
@@ -213,7 +214,8 @@ function OrderReceipt({ id }: { id: string }) {
     failure,
     timeout: "unavailable" as OrderFailure,
   });
-  if (state.status === "loading") return <LoadingSkeleton kind="receipt" label="Loading your order…" />;
+  if (state.status === "loading")
+    return <LoadingSkeleton kind="receipt" label="Loading your order…" />;
   if (state.status === "failed") return <OrderError kind={state.kind} retry={retry} />;
   const order = state.data;
   const cartWarning =

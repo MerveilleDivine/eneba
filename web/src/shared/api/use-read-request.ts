@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 
 type ReadState<T, K extends string> =
-  | { status: "loading" }
-  | { status: "ready"; data: T }
-  | { status: "failed"; kind: K };
+  { status: "loading" } | { status: "ready"; data: T } | { status: "failed"; kind: K };
 type ReadProfile<T, K extends string> = {
   read: (signal: AbortSignal) => Promise<T>;
   failure: (error: unknown) => K;
@@ -44,18 +42,18 @@ export function useReadRequest<T, K extends string>(profile: ReadProfile<T, K>) 
       let timedOut = false;
       // Promise.race also settles when a mocked or broken transport ignores abort.
       const deadline = new Promise<never>((_resolve, reject) => {
-        requestTimer = window.setTimeout(() => {
-          timedOut = true;
-          current.abort();
-          reject(new Error("Read deadline exceeded"));
-        }, Math.min(READ_ATTEMPT_TIMEOUT_MS, remaining));
+        requestTimer = window.setTimeout(
+          () => {
+            timedOut = true;
+            current.abort();
+            reject(new Error("Read deadline exceeded"));
+          },
+          Math.min(READ_ATTEMPT_TIMEOUT_MS, remaining),
+        );
       });
 
       try {
-        const data = await Promise.race([
-          request.read(current.signal),
-          deadline,
-        ]);
+        const data = await Promise.race([request.read(current.signal), deadline]);
         if (active && controller === current) setState({ status: "ready", data });
       } catch (error) {
         if (!active || controller !== current) return;

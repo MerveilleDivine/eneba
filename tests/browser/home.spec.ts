@@ -48,7 +48,9 @@ test("a transient banner outage leaves the home skeleton until content returns",
   );
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Featured games" }).getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Featured games" }).getByRole("alert")).toHaveCount(
+    0,
+  );
   await expect(page.locator("main")).not.toContainText("private PostgreSQL connection");
   expect(attempts).toBeGreaterThanOrEqual(2);
 });
