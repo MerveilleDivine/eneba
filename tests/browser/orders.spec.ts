@@ -90,3 +90,46 @@ test("history contains receipts without keys and opens the selected order", asyn
   await page.getByRole("link", { name: "View order & keys" }).click();
   await expect(page.getByLabel("Nonredeemable key")).toHaveValue(code);
 });
+
+test("a held order response keeps the receipt skeleton without revealing keys", async ({ page }) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/v1/orders/*", async (route) => {
+    await gate;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(order) });
+  });
+  await page.goto(`/orders/${id}`, { waitUntil: "domcontentloaded" });
+  const status = page.getByRole("status");
+  await expect(status).toContainText("Loading your order");
+  await expect(page.getByLabel("Nonredeemable key")).toHaveCount(0);
+  try {
+    await page.waitForTimeout(6_500);
+    await expect(status).toContainText("Loading your order");
+    await expect(page.getByRole("alert")).toHaveCount(0);
+  } finally {
+    release();
+  }
+  await expect(page.getByLabel("Nonredeemable key")).toHaveValue(code);
+});
+
+for (const width of [360, 1280]) {
+  test(`receipt and key layout are usable at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.route("**/api/v1/orders/*", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(order) }),
+    );
+    await page.goto(`/orders/${id}`);
+    await expect(page.getByLabel("Nonredeemable key")).toHaveValue(code);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    await page.screenshot({
+      path: testInfo.outputPath(`receipt-${width}.jpg`),
+      fullPage: true,
+      quality: 82,
+      animations: "disabled",
+    });
+  });
+}

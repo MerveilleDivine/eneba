@@ -1,24 +1,41 @@
 # Final submission verification — 16 November 2026
 
-This is an evidence ledger for Eneba's internship assignment, **not** a declaration that the project has passed final acceptance. The development branch is `feature/slice-2-catalog`. At the start of this review its head was [`f0d16ed`](https://github.com/MerveilleDivine/eneba/commit/f0d16ed5ba464ee7d7d6fab9e1f7b5b7443478fd); `main` remained at `d5f85f9`. Update the revision and rerun all gates after later changes.
+This is an evidence ledger for Eneba's internship assignment, **not** a declaration that the project has passed final acceptance. The development branch is `feature/slice-2-catalog`. The reviewed frontend preview revision is [`2f7cf89`](https://github.com/MerveilleDivine/eneba/commit/2f7cf890dd525c643545a4c3d59292dc2cfc0a23); `main` remains at `d5f85f9`. Later browser-test and documentation changes require exact-head verification again.
 
 ## Implemented in source; final release not yet accepted
 
 - **Slices 0–5:** Go/PostgreSQL catalog, independent homepage blocks, seller offers, cart, buyer accounts and deployed-session groundwork. Earlier commits record corresponding test and hosted smoke evidence.
 - **Slice 6:** Read-only live quote, buyer-locked idempotent purchase, transaction-protected key allocation, simulated checkout and retry handling. [`e3b5155`](https://github.com/MerveilleDivine/eneba/commit/e3b5155ac1d88fc34e466ae53dd552aaf43afc05) records prior local/unit/integration/browser verification, **not verification of the present head**.
 - **Slice 7:** Owner-scoped order list/detail endpoints, historical receipt snapshots, private demo-key delivery, session invalidation on tab/account changes and related tests. Added in [`f0d16ed`](https://github.com/MerveilleDivine/eneba/commit/f0d16ed5ba464ee7d7d6fab9e1f7b5b7443478fd). At review time this change had not passed an exact-head backend integration/browser run.
-- **Slice 8:** Frontend styling revisions exist. A visual, accessibility, live checkout and final release review is still pending.
+- **Slice 8:** The storefront styling refresh now has a shared animated skeleton system for catalog, homepage, products, orders, cart and checkout, with reduced-motion support. The Vercel frontend deployment gate checks TypeScript, ESLint, 199 unit tests and Vite build. **Actual Playwright screenshots and public backend smoke remain unverified.**
 - **Free-host loading recovery:** Read-only API screens now keep their existing skeleton/loading states while transient network, gateway and availability errors are retried silently for a bounded 90-second recovery window. The buyer's purchase mutation is not automatically replayed. Exact-head tests and an actual sleeping-Render smoke check remain pending.
+
+## Slice 7 independent weakness check
+
+| Review target | Finding | Action |
+| --- | --- | --- |
+| Private order detail | SQL constrains both order ID and buyer ID **before** selecting the allocated digital key; responses are private/no-store; foreign orders return indistinguishable 404s | Preserve security model and integration tests |
+| Session switching | Protected React pages remount and abort in-flight reads on logout, storage events, focus and visibility changes; late prior-buyer response tests exist | Keep and expand regression coverage |
+| Order-history consistency | Client previously accepted mismatched pages, duplicated summaries and incomplete counts | **Fixed in `3d22d6b`**: reject mismatched/unsafe history responses with new unit tests |
+| Order/order-key loading | Plain progress text did not match the requested uninterrupted skeleton experience | **Fixed in `347a7a1`**: accessible animated receipt/order placeholders with reduced-motion handling |
+| Public browser contract | Browser test suite contained stale labels and six-second outage assumptions after the silent-recovery change | Browser fixtures updated; full Playwright execution still required |
+| Hosted release integrity | Exact-head Go integration, cross-account purchase→reload and Render deployment status not confirmed | **Release blocker**, not an assertion of failure or success |
+
+## Slice 8 check execution
+
+Vercel build [`2f7cf89`](https://github.com/MerveilleDivine/eneba/commit/2f7cf890dd525c643545a4c3d59292dc2cfc0a23): TypeScript **passed**, ESLint **passed**, 19 frontend test files **passed** (199/199 tests), production Vite build **passed**. npm install audit at build reported zero dependency vulnerabilities **for its installed npm dependency set**. This does not substitute for a full `npm run audit` including the Go vulnerability scanner.
+
+The browser suite includes automated responsive screenshots and accessibility scans, but it has **not** been executed on the latest revision with a real API. New acceptance fixtures exercise a delayed private receipt, no key leakage before loading completes, and order detail at mobile/desktop sizes. Their execution status is **pending**.
 
 ## Evidence confirmed at review time
 
 | Gate | Current evidence | Release status |
 | --- | --- | --- |
 | GitHub branch | Feature branch ahead of `main`, draft PR #2 open | Retain draft; do not merge automatically |
-| Vercel preview | Deployment of `f0d16ed` reports **READY** | Build status only; not end-to-end acceptance |
+| Vercel preview | [`2f7cf89`](https://github.com/MerveilleDivine/eneba/commit/2f7cf890dd525c643545a4c3d59292dc2cfc0a23) **READY**: TypeScript, ESLint, 19 test files / 199 unit tests, Vite production build | **Frontend passed**; preview URLs are deployment-protected; not public checkout acceptance |
 | Production frontend | Most recent observed production deployment points to `606d3ed` | Behind the current feature head |
 | GitHub Actions exact-head | Runs [#43926801580](https://github.com/MerveilleDivine/eneba/actions/runs/43926801580) and [#43926789114](https://github.com/MerveilleDivine/eneba/actions/runs/43926789114) report failure with no executed job steps in the connector | **Not passing**; account Actions capacity has been reported exhausted, but the exact cause of these runs is not independently confirmed |
-| Local exact-head verify | Earlier Windows `gofmt` PATH issue was addressed by the developer; no complete `npm run verify` result for `f0d16ed` is recorded here | **Unverified** |
+| Local exact-head verify | Earlier Windows `gofmt` PATH issue was addressed by the developer; no complete `npm run verify` result for the latest feature head is recorded here | **Unverified** |
 | Hosted Go API / database | Previous Slice 5 acceptance exists in `hosted-slice5-2026-11-16.md` | Latest order/checkout API deployment and migration state **unverified** |
 | AI chat archive | `docs/ai-history/` does not exist in this branch's current tree | **Missing: blocking submission evidence** |
 | Public repository | Repository remains private and older `main` history contains previously committed conversation artifacts | **Privacy review required** before visibility change |

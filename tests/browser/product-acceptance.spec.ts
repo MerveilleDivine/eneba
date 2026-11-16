@@ -124,7 +124,7 @@ test("empty seller lists and failed artwork retain useful game details", async (
   await expect(page.getByRole("heading", { name: "No active seller offers" })).toBeVisible();
   await expect(page.getByRole("radio")).toHaveCount(0);
   await expect(page.getByRole("status", { name: "Your seller choice" })).toContainText(
-    "No offers are available for selection right now",
+    "No seller offers are available right now.",
   );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

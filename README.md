@@ -2,7 +2,7 @@
 
 An independent internship project: discover games, compare sellers, purchase with simulated payments and retrieve nonredeemable keys from your account.
 
-**[Open the application](https://eneba-marketplace-demo.vercel.app)** | **[Development branch](https://github.com/MerveilleDivine/eneba/tree/feature/slice-2-catalog)**
+**[Public website (earlier release)](https://eneba-marketplace-demo.vercel.app)** | **[Development branch](https://github.com/MerveilleDivine/eneba/tree/feature/slice-2-catalog)**
 
 ## Features
 
@@ -12,7 +12,7 @@ An independent internship project: discover games, compare sellers, purchase wit
 - Persistent cart, registration, sign-in and secure server-side sessions.
 - Server-priced checkout with atomic inventory allocation and safe idempotent retries.
 - Buyer-only order history, historical receipts and key delivery with accessible copy controls.
-- Responsive layouts, keyboard navigation and recoverable loading/error states.
+- Responsive layouts, keyboard navigation and animated skeletons that survive slow backend startup with silent, bounded recovery.
 
 All game artwork is original; see [asset provenance](docs/assets/README.md). Payments are simulated and keys cannot be redeemed. The project is not affiliated with Eneba.
 
@@ -74,6 +74,8 @@ Run transaction race checks on Linux with a C compiler:
 ```sh
 node scripts/run-go.mjs test -race -tags=integration -p 1 ./... -count=1
 ```
+
+Vercel preview builds additionally run TypeScript, ESLint and the full frontend unit suite before the static bundle is published. The latest recorded check passed **199 frontend tests in 19 files** at commit `2f7cf89`; this does not cover Go, Playwright or hosted purchases.
 
 The pre-commit hook verifies the complete staged snapshot. [Final verification](docs/verification/final-submission.md) distinguishes local, Linux, browser and hosted results, exact revisions and pending checks. GitHub Actions remains pending because account capacity is unavailable; workflow configuration alone is not a passing run.
 

@@ -37,26 +37,20 @@ test("global search from Home preserves catalog query and keyboard usability", a
   await expect(page).toHaveURL(/\/catalog\?q=circut/);
 });
 
-test("a failed banner endpoint can retry without exposing server details", async ({ page }) => {
-  await page.route("**/api/v1/home/banners", async (route) => {
-    await route.fulfill({ status: 503, body: "private PostgreSQL connection" });
-  });
+test("a transient banner outage leaves the home skeleton until content returns", async ({
+  page,
+}) => {
+  let attempts = 0;
+  await page.route("**/api/v1/home/banners", (route) =>
+    attempts++ === 0
+      ? route.fulfill({ status: 503, body: "private PostgreSQL connection" })
+      : route.continue(),
+  );
   await page.goto("/");
-  const alert = page.getByRole("alert");
-  await expect(alert).toContainText("Featured games are temporarily unavailable");
-  await expect(alert).not.toContainText("private PostgreSQL connection");
-  await expect(
-    page
-      .getByRole("region", { name: "Featured games" })
-      .getByRole("link", { name: "Browse games" }),
-  ).toBeVisible();
-  await page.unroute("**/api/v1/home/banners");
-  await page
-    .getByRole("region", { name: "Featured games" })
-    .getByRole("button", { name: "Try again" })
-    .click();
   await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Discover your next world" })).toBeFocused();
+  await expect(page.getByRole("region", { name: "Featured games" }).getByRole("alert")).toHaveCount(0);
+  await expect(page.locator("main")).not.toContainText("private PostgreSQL connection");
+  expect(attempts).toBeGreaterThanOrEqual(2);
 });
 
 test("empty banner data shows a working browse route rather than fake content", async ({

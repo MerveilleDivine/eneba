@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("real connectivity loss recovers without losing filters or keyboard focus", async ({
+test("offline browsing keeps skeletons and recovers without losing filters", async ({
   page,
   context,
 }, testInfo) => {
@@ -9,7 +9,8 @@ test("real connectivity loss recovers without losing filters or keyboard focus",
   await context.setOffline(true);
   try {
     await page.getByLabel("Region").selectOption("global");
-    await expect(page.getByRole("alert")).toContainText("Connection problem");
+    await expect(page.getByRole("status")).toContainText("Loading games");
+    await expect(page.getByRole("alert")).toHaveCount(0);
     await expect(page.getByLabel("Platform")).toHaveValue("steam");
     await expect(page.getByLabel("Region")).toHaveValue("global");
     await page.screenshot({
@@ -20,14 +21,12 @@ test("real connectivity loss recovers without losing filters or keyboard focus",
   } finally {
     await context.setOffline(false);
   }
-  const retry = page.getByRole("button", { name: "Try again" });
-  await retry.focus();
-  await retry.press("Enter");
-  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Browse games", exact: true })).toBeFocused();
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(page).toHaveURL(/platform=steam&region=global/);
   await page.screenshot({
-    path: testInfo.outputPath("catalog-keyboard-focus.jpg"),
+    path: testInfo.outputPath("catalog-recovered.jpg"),
     fullPage: true,
     quality: 85,
   });

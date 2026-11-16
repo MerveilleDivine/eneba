@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const bannerRegion = "Featured games";
-const bestSellerRegion = "Best sellers in this demo";
+const bestSellerRegion = "Best sellers";
 const dealRegion = "Deals worth discovering";
 
 test("the complete homepage reads three real Go/PostgreSQL sources", async ({ page, request }) => {

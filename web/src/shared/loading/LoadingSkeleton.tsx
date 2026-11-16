@@ -6,7 +6,7 @@ type SkeletonKind = "orders" | "receipt" | "product" | "quote" | "account";
 // The only announced content is the accessible loading label.
 export function LoadingSkeleton({ kind, label }: { kind: SkeletonKind; label: string }) {
   return (
-    <div className={`${styles.loading} ${styles[kind]}`} role="status" aria-busy="true">
+    <div className={`${styles.loading} ${styles[kind]}`} role="status">
       <span className={styles.screenReaderOnly}>{label}</span>
       <div className={styles.body} aria-hidden="true">
         {kind === "product" && <div className={styles.cover} />}
