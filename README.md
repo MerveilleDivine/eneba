@@ -1,8 +1,12 @@
 # Eneba marketplace demo
 
-An unofficial game marketplace built as an engineering internship project. React and TypeScript provide the interface, a single Go REST API owns business rules, and PostgreSQL owns durable data and integrity constraints.
+An independent marketplace internship project built with React/TypeScript, a Go REST API and PostgreSQL. The interface demonstrates browsing, seller comparison, persistent carts and account sessions using original game artwork and controlled demo data.
 
-**Current milestone: Slice 4 product-details, seller selection, activation guidance and client cart are implemented for local verification. The previously committed Slice 5 authentication code remains unverified and is not yet accepted.** The homepage independently loads banners, Best Sellers and Deals from Go/PostgreSQL sources. Catalog and Best Sellers open product pages with SKU identity, artwork, description and real seller offers. Offer selection uses URL identity and current server data, without reserving stock or making a purchase. See the [engineering audit and delivery record](docs/verification/slice-3-audit-slice-4.md), [product API contract](docs/api/product.md) and historical [Phase 3 record](docs/verification/slice-3-design.md) for evidence and limitations. All games, ratings and keys are fictional; keys are nonredeemable. Account registration, sign-in, sign-out and protected session reads use Go/PostgreSQL and HTTP-only cookies. See [Auth API](docs/api/auth.md) and [Slice 5 verification](docs/verification/slice-5-auth.md). Neither the Slice 4 cart follow-up nor Slice 5 auth checkpoint is yet evidence of passing tests or hosted authentication. Purchasing, physical-device/screen-reader review and public deployment remain separate work.
+**Current milestone — 16 November 2026:** Slices 1–5 are implemented, and the core hosted authentication checks have passed. Simulated checkout (Slice 6), order history and owner-only key delivery (Slice 7), and final submission audit (Slice 8) remain to be completed. No real payments or redeemable game codes are involved.
+
+**Live site:** https://eneba-marketplace-demo.vercel.app — Vercel frontend, Render Go API and Neon PostgreSQL. The production site deploys from the private `feature/slice-2-catalog` branch; `main` remains unchanged.
+
+**Evidence:** [Independent hosted auth checks](docs/verification/hosted-slice5-2026-11-16.md) · [Off-Actions engineering verification](docs/verification/off-actions-2026-11-16.md) · [Checkout implementation plan](docs/plans/slice-6-checkout.md). Hosted browser checks and the frontend production build have passed for the recent releases, but the full exact-head CI matrix and physical-device/screen-reader acceptance are still pending.
 
 ## Verify before committing
 
