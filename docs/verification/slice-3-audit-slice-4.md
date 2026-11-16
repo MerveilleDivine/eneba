@@ -180,3 +180,11 @@ remote source inspection. Finish with local `npm run format`, `npm run verify`,
 `npm run test:integration`, `npm run test:browser`, `npm run audit`, Go
 race tests and screenshot review at all agreed viewport/text-size combinations.
 After verification, audit Slice 5 separately; no production deployment or merge.
+
+### Independent Slice 4 pre-deployment review (16 November)
+
+- A module-level cart snapshot could remain stale if an external browser tab edited localStorage while no cart listeners were mounted. The next subscriber now reconciles the persisted snapshot even without a storage event; added tests for remount and remote-tab update/removal.
+- Browser acceptance previously checked sold-out selections, but not a **previously added** offer becoming sold out. Added explicit mocked API recovery tests: saved sold-out offers remain removable, never count as available, and display no available subtotal. A 503 response likewise cannot produce a fabricated subtotal or leak the response body.
+- Rechecked the contract: product details expose stored activation notes, edition/platform/region, and distinct seller ratings. Cart storage is constrained to verified IDs, a slug navigation hint and quantity one; prices and keys are never browser-authoritative. Production quote and purchase transaction must still revalidate every offer in later slices.
+
+**Approval status: source-reviewed and fixed, but not locally verified.** Before public hosting, run real Go/PostgreSQL integration, Vitest, Chromium/Playwright at 320/360/768/1280 including 200% text, local formatting/lint/type/build, and a deployment smoke test through a same-origin reverse proxy. No positive test result is asserted for this commit.

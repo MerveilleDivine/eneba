@@ -62,3 +62,64 @@ test("cart and account navigation remain usable at enlarged text size", async ({
   );
   expect(overflow).toBe(false);
 });
+
+test("saved offer remains visible but is not priced as purchasable after stock runs out", async ({ page }) => {
+  const savedOffer = "30000000-0000-4000-8000-000000000001";
+  await page.addInitScript((id) => {
+    window.localStorage.setItem("eneba:cart:v1", JSON.stringify([
+      { offerId: id, slug: "solar-drift", quantity: 1 },
+    ]));
+  }, savedOffer);
+  await page.route("**/api/v1/products/solar-drift", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        currency: "EUR",
+        product: {
+          id: "10000000-0000-4000-8000-000000000001",
+          slug: "solar-drift",
+          name: "Solar Drift",
+          edition: "Standard",
+          platform: "steam",
+          region: "global",
+          coverUrl: "/images/covers/solar-drift.webp",
+          description: "Fictional demo.",
+          activationInstructions: "Nonredeemable demo key.",
+          available: false,
+          lowestPriceCents: null,
+        },
+        offers: [{
+          offerId: savedOffer,
+          sellerId: "20000000-0000-4000-8000-000000000002",
+          sellerName: "Orbit Games",
+          sellerRatingPercent: 96,
+          priceCents: 1136,
+          listPriceCents: null,
+          available: false,
+        }],
+      }),
+    });
+  });
+  await page.goto("/cart");
+  await expect(page.getByRole("heading", { name: "Solar Drift" })).toBeVisible();
+  await expect(page.getByText("Sold out — cannot be purchased")).toBeVisible();
+  await expect(page.getByText("Current estimated subtotal")).toHaveCount(0);
+  await page.getByRole("button", { name: "Remove offer" }).click();
+  await expect(page.getByRole("heading", { name: "Your cart is empty" })).toBeVisible();
+});
+
+test("an unavailable product API never produces a made-up subtotal", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("eneba:cart:v1", JSON.stringify([
+      { offerId: "30000000-0000-4000-8000-000000000001", slug: "solar-drift", quantity: 1 },
+    ]));
+  });
+  await page.route("**/api/v1/products/solar-drift", async (route) => {
+    await route.fulfill({ status: 503, contentType: "application/json", body: "private error" });
+  });
+  await page.goto("/cart");
+  await expect(page.getByText("Current offer details could not be verified.")).toBeVisible();
+  await expect(page.getByText("Current estimated subtotal")).toHaveCount(0);
+  await expect(page.getByText("private error")).toHaveCount(0);
+});

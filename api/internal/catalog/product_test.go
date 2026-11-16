@@ -41,6 +41,8 @@ func TestProductProjectionValidation(t *testing.T) {
 		{"missing activation", func(d *ProductDetails) { d.Product.ActivationInstructions = "" }},
 		{"invisible activation", func(d *ProductDetails) { d.Product.ActivationInstructions = "\uFEFF\uFEFF" }},
 		{"bidi activation", func(d *ProductDetails) { d.Product.ActivationInstructions = "Codes\u202e" }},
+		{"zero width activation", func(d *ProductDetails) { d.Product.ActivationInstructions = "\u200b" }},
+		{"zero width seller", func(d *ProductDetails) { d.Offers[0].SellerName = "Seller\u200b" }},
 		{"long activation", func(d *ProductDetails) { d.Product.ActivationInstructions = strings.Repeat("x", 1001) }},
 		{"unsafe cover", func(d *ProductDetails) { d.Product.CoverURL = "/\n/external.example/cover.webp" }},
 		{"unknown facet", func(d *ProductDetails) { d.Product.Region = "mars" }},

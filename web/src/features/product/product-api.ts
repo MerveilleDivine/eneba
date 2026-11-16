@@ -35,7 +35,7 @@ function publicText(value: unknown, maximum: number, multiline = false): value i
     typeof value === "string" &&
     (multiline || value.trim().length > 0) &&
     Array.from(value).length <= maximum &&
-    !/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/u.test(value) &&
+    !/\p{Cf}/u.test(value) &&
     !Array.from(value).some(
       (c) =>
         (c.charCodeAt(0) < 32 && !(multiline && ["\n", "\r", "\t"].includes(c))) ||

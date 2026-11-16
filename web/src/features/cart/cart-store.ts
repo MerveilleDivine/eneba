@@ -70,6 +70,10 @@ function subscribe(notify: () => void) {
   const first = subscribers.size === 0;
   subscribers.add(notify);
   if (first && typeof window !== "undefined") window.addEventListener("storage", syncStorage);
+  // Reconcile storage changed while no cart listener was mounted. Storage events
+  // are not replayed to new subscribers when users return from another tab.
+  const latest = fromStorage();
+  if (JSON.stringify(getSnapshot()) !== JSON.stringify(latest)) publish(latest);
   return () => {
     subscribers.delete(notify);
     if (subscribers.size === 0 && typeof window !== "undefined")

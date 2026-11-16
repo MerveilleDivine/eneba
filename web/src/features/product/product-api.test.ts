@@ -66,6 +66,8 @@ describe("product contract", () => {
     { ...fixture, product: { ...fixture.product, activationInstructions: "" } },
     { ...fixture, product: { ...fixture.product, activationInstructions: "\uFEFF" } },
     { ...fixture, product: { ...fixture.product, activationInstructions: "Codes\u202e" } },
+    { ...fixture, product: { ...fixture.product, activationInstructions: "\u200b" } },
+    { ...fixture, offers: [{ ...offer, sellerName: "Seller\u200b" }] },
     { ...fixture, product: { ...fixture.product, activationInstructions: "x".repeat(1001) } },
     { ...fixture, offers: Array.from({ length: 51 }, () => offer) },
   ])("rejects inconsistent or unsafe public data %#", (value) => {

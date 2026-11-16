@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import {
   MAX_CART_LINES,
   addCartLine,
   parseCart,
   removeCartLine,
+  useCart,
 } from "./cart-store";
 
 const offer = "30000000-0000-4000-8000-000000000001";
@@ -51,5 +53,39 @@ describe("browser-owned client cart", () => {
     } finally {
       Storage.prototype.setItem = original;
     }
+  });
+});
+
+describe("mounted cart synchronization", () => {
+  it("reconciles storage edits made while no cart listeners were mounted", async () => {
+    const initial = renderHook(() => useCart());
+    await waitFor(() => expect(initial.result.current).toEqual([]));
+    initial.unmount();
+    window.localStorage.setItem(
+      "eneba:cart:v1",
+      JSON.stringify([{ offerId: offer, slug: "solar-drift", quantity: 1 }]),
+    );
+    const resumed = renderHook(() => useCart());
+    await waitFor(() => expect(resumed.result.current.map((line) => line.offerId)).toEqual([offer]));
+    resumed.unmount();
+  });
+
+  it("observes remote-tab changes and clears the cart on storage deletion", async () => {
+    const mounted = renderHook(() => useCart());
+    await waitFor(() => expect(mounted.result.current).toEqual([]));
+    act(() => {
+      window.localStorage.setItem(
+        "eneba:cart:v1",
+        JSON.stringify([{ offerId: offer, slug: "solar-drift", quantity: 1 }]),
+      );
+      window.dispatchEvent(new StorageEvent("storage", { key: "eneba:cart:v1" }));
+    });
+    await waitFor(() => expect(mounted.result.current).toHaveLength(1));
+    act(() => {
+      window.localStorage.removeItem("eneba:cart:v1");
+      window.dispatchEvent(new StorageEvent("storage", { key: "eneba:cart:v1" }));
+    });
+    await waitFor(() => expect(mounted.result.current).toHaveLength(0));
+    mounted.unmount();
   });
 });

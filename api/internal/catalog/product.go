@@ -107,8 +107,7 @@ func validProductText(value string, limit int, multiline bool) bool {
 	}
 	for _, r := range value {
 		if (r < 32 && !(multiline && (r == '\n' || r == '\r' || r == '\t'))) || r == 127 ||
-			(r >= '\u200e' && r <= '\u200f') || (r >= '\u202a' && r <= '\u202e') ||
-			(r >= '\u2066' && r <= '\u2069') {
+			unicode.Is(unicode.Cf, r) {
 			return false
 		}
 	}
