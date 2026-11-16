@@ -125,6 +125,7 @@
 
 .pagination {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 1rem;
@@ -169,6 +170,10 @@
 }
 
 @media (max-width: 380px) {
+  .intro h1 {
+    /* Preserve whole words at the minimum supported width with enlarged text. */
+    font-size: clamp(2rem, 5vw, 2.6rem);
+  }
   .grid {
     gap: 0.65rem;
   }

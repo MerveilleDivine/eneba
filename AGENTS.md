@@ -2,7 +2,7 @@
 
 ## Current scope
 
-Implement and review coherent checkpoints within each slice. The user's 14 November request authorizes the independent audit, justified repairs, and Slice 2 checkpoints E/F on `feature/slice-2-catalog`, with commits, pushes, and a draft PR. Continue through those checkpoints and stop after Slice 2. Do not begin Slice 3, merge into main, provision cloud resources, or change deployment infrastructure without explicit approval. Public deployment remains deliberately deferred. The archived master prompt does not override this agreement.
+The user's 15 November assignment authorizes an independent Slice 3B–3E audit and justified corrections, followed by complete Slice 4 product details, seller comparison and seller-offer selection. Work on `feature/slice-2-catalog`; verify and commit coherent checkpoints, inspect exact-head CI, and stop after Slice 4. Preserve existing work and history. Do not create another branch, merge into main, rewrite history, deploy, provision cloud resources, commit conversations/transcript archives, or begin cart, authentication, checkout, payments or digital-key delivery. Physical-device/screen-reader and hosted acceptance remain distinct. The archived master prompt does not override this agreement.
 
 ## Boundaries
 
@@ -21,10 +21,21 @@ Implement and review coherent checkpoints within each slice. The user's 14 Novem
 
 Before each checkpoint, state its behavior, affected modules, architectural boundaries, and acceptance checks. Run relevant formatting, lint/type checks, unit/integration tests, and builds. Correct failed checks before leaving the checkpoint. Report tested, visually reviewed, and pending evidence separately; explicitly identify architectural risks that remain. Commit coherent verified checkpoints. A passing CI run alone never authorizes a merge or work beyond the user's current scope.
 
+## Git history and checkpoint discipline
+
+- Keep the currently authorized feature branch; do not make extra branches or merge into main without approval.
+- Make changes in a local worktree or a single staged patch when possible. **Run formatting and focused tests before committing**; run the full required CI on the exact final checkpoint commit. Enable the versioned `.githooks/pre-commit` with `npm run hooks:install` in local checkouts so `npm run verify` blocks unverified commits. The hook refuses unstaged tracked changes so the verified worktree matches the staged tracked files. Remote Git API commits bypass local hooks and require explicit final CI verification.
+- Commit a **coherent, reviewable milestone**, not individual file saves. Prefer one commit for a completed checkpoint, with a small follow-up only if its independently verified fix warrants separate review.
+- Do not commit temporary CI/formatter diagnostic scripts, speculative experiments, or intermediate debugging churn. Keep these in the worktree and consolidate any necessary fixes before the checkpoint is marked complete.
+- A commit message describes a delivered behavior or verified architectural decision; record test evidence in the PR/verification notes, not dozens of near-duplicate commits.
+- Do not force-push, squash published shared history, or change the PR's base without explicit authorization. Any approved rewrite must verify the exact content tree and preserve an identified rollback SHA.
+- Conversation-transcript exports are **deferred until the final employer submission checkpoint**. Do not commit partial chat exports or manifests during feature development. At submission, audit completeness and redact private information before tracking any transcript.
+- **Privacy release gate:** the old `docs/ai-history` archive remains in the private `main` tree and historical commits. Do not make the repository public, merge, or rewrite history without explicit approval and a careful transcript/privacy audit.
+
 ## Local data
 
 Never print or commit credentials, .env files, administrator access, session tokens, or raw secret-bearing logs. Provision only named Eneba databases and roles after inspecting for collisions. Database integration tests must use eneba_test. Keep archived reference files unchanged.
 
 ## Sources
 
-The PDF in docs/reference/blueprint-v3.2/reference defines employer requirements. Other archived documents are design context. Active README and docs/decisions.md describe adopted implementation choices. Preserve complete user prompts and visible assistant responses; never fabricate missing history or export hidden model instructions/reasoning.
+The PDF in docs/reference/blueprint-v3.2/reference defines employer requirements. Other archived documents are design context. Active README and docs/decisions.md describe adopted implementation choices. At the final submission checkpoint, preserve complete user prompts and visible assistant responses; do not invent missing history, expose private information, or export hidden model instructions/reasoning.

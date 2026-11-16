@@ -2,6 +2,8 @@
 
 These decisions describe the implementation. The supplied blueprint remains unchanged under reference.
 
+**Hosting decision update (14 November 2026):** the user selected Neon PostgreSQL as the proposed database host with Render Go and Vercel web. Earlier Supabase-specific paragraphs below document historical design assumptions and existing maintenance safeguards; they are not a claim that Supabase was provisioned or remains the deployment target. PostgreSQL provider compatibility, credentials/roles, SSL, endpoint identity, and cold-start behavior still require hosted verification. This checkpoint makes no deployment changes.
+
 ## One modular Go API
 
 Checkout, key allocation, and idempotency need one PostgreSQL transaction. One deployable keeps that boundary explicit. Feature ownership gives us understandable modules without adding distributed infrastructure. Constructor wiring lives in cmd/server; shared HTTP helpers do not import feature packages.
@@ -230,3 +232,35 @@ The user explicitly deferred hosting and authorized completing E/F in this revie
 Continue on the existing feature branch, keep a follow-up draft PR, and stop after
 Slice 2. Do not merge, create another development branch, change deployment
 infrastructure or begin Slice 3 without further authorization.
+
+## Slice 3A — adopted homepage boundaries (design, not implementation)
+
+The independently sourced homepage follows archived Blueprint v3.2, not a hardcoded promotional catalog response. Three existing tables (homepage_banners, homepage_best_sellers and homepage_deals) each own their content and one public GET endpoint. Three small services belong to the future home feature within the **same Go application and pgx pool**, not three deployables. Service, repository and handler boundaries follow the existing catalog pattern. Do not create unused interfaces, abstractions, or folders during 3A.
+
+The best-seller rank comes from explicitly **fictional** seeded demo_weekly_sales. Its product card availability and lowest in-stock seller price must match the catalog. A deal refers to one selected seller offer; its savings must be calculated against **that same offer's** higher list price, never against a different seller's lowest catalog price. Stock allocation stays defined solely by order_items references to digital_keys. A single small shared read boundary may be introduced only when an actual implementation demonstrates a need; correctness tests are mandatory either way.
+
+At 3B, / becomes the real homepage, /catalog remains a deep-link-safe catalog, and global search continues to navigate into its canonical query state. The header brand and explicit Home navigation may then point to /. Until Slice 4 there are no product-detail purchase destinations or fake buy actions; all displayed links must lead to existing useful routes. Banner destinations require a strict safe internal-route policy. Use a new immutable seed for the old /store banner link and original artwork; never revise applied seed 001/002.
+
+The three sections independently load and recover from failures. Their public transport and payload rules, ordering, finite limits, source-update tests and the stop gates for 3B–3E are in [Home API](api/home.md) and [Phase 3 design](verification/slice-3-design.md). The user has authorized **3.0 and 3A only** at this stage. No homepage feature code, data migration, frontend route, deployment infrastructure or main merge was changed by this decision record.
+
+## Slice 3B — implemented banner ownership
+
+The promotional homepage is one vertical slice backed by marketplace.homepage_banners. The Go banner repository owns one bounded SQL query; the service owns source and URL validation; the handler owns GET/HEAD and safe public failures. It stays within the existing Go process and PostgreSQL database. Catalog and banners now share database.ClassifyReadError for identical network/connection semantics without duplicated classifiers.
+
+The root path is the real homepage, the brand/Home link points to it, and /catalog plus global search retain their behavior. Banner text, illustration URL and destination originate from the API. The original hardcoded marketing teaser was deliberately removed: every promotional homepage block must have its own source. Static interaction labels and failure messages are interface copy, not fake promotional data.
+
+Seed 003 conditionally corrects the original /store fixture link and placeholder illustration without rewriting previous seeds or customizing users' banners. The committed hero asset is an original static SVG. Unsafe links fail closed; valid catalog query links are checked by the catalog owner. Retry preserves keyboard focus on its loading state and returns focus to the resulting heading.
+
+Best sellers, deals, cart, product details, authentication, checkout, production hosting and merges remain outside 3B.
+
+## Slice 3C — independent best-seller ranking, shared availability semantics
+
+The source for Best Sellers is **only** `marketplace.homepage_best_sellers`, joined to active products and the shared available-price projection. A separate BestSellerService/Repository/Handler inside the existing Go API preserves independent ownership and bounded reads. Ranking uses seeded fictional weekly counts with stable normalized name and product-ID ties, never the catalog's sort order or invented production analytics.
+
+The canonical lowest active, unallocated-key offer price predicate previously embedded in catalog SQL is now a single reused CTE in `api/internal/marketplace`. The catalog service's validated EUR-cent/availability projection is reused by Best Sellers instead of reimplementing its stock and money rules. This sharing arises from two concrete consumers, not a speculative framework.
+
+React independently fetches and retries Best Sellers, while the banner stays available if ranking fails. Existing ProductCard presentation is reused without creating unsupported product pages or purchase actions. The UI explicitly labels the fictional demo ranking and navigates to valid catalog searches. No schema, fixtures, supplier offer data, buyer state or deployment change was required.
+
+## Phase 3D — seller-offer Deals are not catalog prices
+
+The homepage Deals section is keyed by homepage_deals.offer_id and joins that exact active seller offer and product. Its current/list price and rounded-down discount belong exclusively to that offer; the lowest catalog price is a different product-level read projection and must not be reused here. Eligible offers require an unallocated key for their own offer ID, with the stock-existence SQL predicate shared by catalog/Best Sellers and Deals. Seller-specific text, cover paths and safe cent bounds are independently validated. The section loads independently, does not reveal key codes, and links to catalog search without pretending to select an offer. No migrations, inventory refills, extra server processes, global state or placeholder checkout actions were introduced. Verify the current feature branch in CI before treating this implementation as accepted.

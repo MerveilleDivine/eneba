@@ -49,6 +49,10 @@
 }
 
 .navigation {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
   margin-left: auto;
 }
 
@@ -73,6 +77,7 @@
   width: min(100% - 3rem, 1440px);
   margin: auto;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   color: var(--color-muted);
   padding-bottom: 0.85rem;
@@ -84,7 +89,8 @@
   color: var(--color-purple);
 }
 
-@media (max-width: 760px) {
+/* Keep global search from collapsing at large user font sizes. */
+@media (max-width: 1000px) {
   .inner {
     min-height: unset;
     padding: 1rem 0 0.85rem;

@@ -96,6 +96,32 @@ describe("catalog price-filter drafts", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
+  it("identifies only malformed price fields, but both endpoints of a reversed range", async () => {
+    const { onChange } = renderFilters();
+    const minimum = screen.getByRole("textbox", { name: "Min" });
+    const maximum = screen.getByRole("textbox", { name: "Max" });
+    const apply = screen.getByRole("button", { name: "Apply price" });
+
+    await userEvent.type(maximum, "not-a-price");
+    await userEvent.click(apply);
+    expect(maximum).toHaveAttribute("aria-invalid", "true");
+    expect(maximum).toHaveAccessibleDescription(/Enter valid euro prices/);
+    expect(minimum).not.toHaveAttribute("aria-invalid");
+    expect(minimum).not.toHaveAttribute("aria-describedby");
+    expect(maximum).toHaveFocus();
+
+    await userEvent.clear(maximum);
+    await userEvent.type(minimum, "40");
+    await userEvent.type(maximum, "10");
+    await userEvent.click(apply);
+    expect(minimum).toHaveAttribute("aria-invalid", "true");
+    expect(maximum).toHaveAttribute("aria-invalid", "true");
+    expect(minimum).toHaveAccessibleDescription(/minimum no higher/);
+    expect(maximum).toHaveAccessibleDescription(/minimum no higher/);
+    expect(minimum).toHaveFocus();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it("clears validation on editing and skips no-op price submissions", async () => {
     const query: CatalogQuery = { ...baseQuery, minPriceCents: 1136 };
     const { onChange } = renderFilters(query);

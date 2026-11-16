@@ -2,14 +2,11 @@ package catalog
 
 import (
 	"context"
-	"errors"
-	"io"
-	"net"
 	"strings"
 
 	"github.com/MerveilleDivine/eneba/api/internal/database"
+	"github.com/MerveilleDivine/eneba/api/internal/marketplace"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -20,32 +17,22 @@ func NewRepository(pool *pgxpool.Pool) *Repository { return &Repository{pool: po
 func (r *Repository) List(ctx context.Context, filter Filter) (Page, error) {
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly})
 	if err != nil {
-		return Page{}, classifyReadError(err)
+		return Page{}, database.ClassifyReadError(err)
 	}
 	defer tx.Rollback(ctx)
 	page, err := readPage(ctx, tx, filter)
 	if err != nil {
-		return Page{}, classifyReadError(err)
+		return Page{}, database.ClassifyReadError(err)
 	}
 	if err := tx.Commit(ctx); err != nil {
-		return Page{}, classifyReadError(err)
+		return Page{}, database.ClassifyReadError(err)
 	}
 	return page, nil
 }
 
 // Both reads share one snapshot. The same predicate defines the total and the
 // page, including available inventory, search and price bounds.
-const catalogSQL = `WITH available_prices AS (
-  SELECT o.product_id, min(o.price_cents) AS lowest_price_cents
-  FROM marketplace.offers o
-  WHERE o.active AND EXISTS (
-    SELECT 1 FROM marketplace.digital_keys k
-    WHERE k.offer_id = o.id AND NOT EXISTS (
-      SELECT 1 FROM marketplace.order_items item WHERE item.digital_key_id = k.id
-    )
-  )
-  GROUP BY o.product_id
-), catalog AS (
+const catalogSQL = "WITH " + marketplace.AvailablePricesCTE + `, catalog AS (
   SELECT p.id, p.slug, p.name, p.edition, p.platform, p.region, p.cover_url,
     prices.lowest_price_cents,
     CASE
@@ -115,23 +102,4 @@ func sortSQL(sort string) (string, error) {
 	default:
 		return "", ErrInvalidQuery
 	}
-}
-
-func classifyReadError(err error) error {
-	var connectionError *pgconn.ConnectError
-	var networkError net.Error
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) || errors.As(err, &connectionError) || errors.As(err, &networkError) {
-		return database.ErrUnavailable
-	}
-	var postgresError *pgconn.PgError
-	if errors.As(err, &postgresError) {
-		if strings.HasPrefix(postgresError.Code, "08") || strings.HasPrefix(postgresError.Code, "28") || strings.HasPrefix(postgresError.Code, "53") {
-			return database.ErrUnavailable
-		}
-		switch postgresError.Code {
-		case "57014", "57P01", "57P02", "57P03":
-			return database.ErrUnavailable
-		}
-	}
-	return err
 }

@@ -1,0 +1,257 @@
+.home {
+  width: min(100% - 3rem, 1440px);
+  margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 2.5rem) 0 3rem;
+}
+
+.banners {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.banner,
+.fallback,
+.loading {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-border);
+  background: linear-gradient(125deg, #241043, #52327f 75%, #322055);
+}
+
+.primaryBanner {
+  min-height: clamp(26rem, 43vw, 39rem);
+}
+
+.secondaryBanner {
+  min-height: 20rem;
+}
+
+.bannerImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(17, 7, 35, 0.94) 0%,
+    rgba(24, 8, 47, 0.83) 27%,
+    rgba(30, 11, 53, 0.28) 67%,
+    rgba(30, 11, 53, 0.06) 100%
+  );
+}
+
+.bannerContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: center;
+  min-height: inherit;
+  max-width: 46rem;
+  padding: clamp(1.5rem, 5vw, 5.5rem);
+}
+
+.eyebrow {
+  margin: 0 0 0.85rem;
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bannerContent h1,
+.bannerContent h2 {
+  margin: 0;
+  max-width: 12ch;
+  font-size: clamp(2.35rem, 6vw, 5.4rem);
+  line-height: 1.04;
+  font-weight: 850;
+  letter-spacing: -0.055em;
+  overflow-wrap: anywhere;
+}
+
+.secondaryBanner .bannerContent h2 {
+  font-size: clamp(2rem, 4.2vw, 3.6rem);
+}
+
+.subtitle {
+  margin: 1.2rem 0 2.25rem;
+  max-width: 37ch;
+  color: #f0e8fa;
+  line-height: 1.55;
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
+}
+
+.primaryLink,
+.secondaryLink,
+.retry {
+  display: inline-flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.35rem;
+  border-radius: 0.65rem;
+  text-decoration: none;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.25;
+  max-width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.primaryLink,
+.retry {
+  background: var(--color-accent);
+  color: var(--color-background);
+  border: 2px solid var(--color-accent);
+}
+
+.primaryLink:hover,
+.retry:hover {
+  background: #f4ffb7;
+}
+
+.secondaryLink {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-control-border);
+}
+
+.secondaryLink:hover {
+  border-color: var(--color-accent);
+}
+
+.primaryLink:focus-visible,
+.secondaryLink:focus-visible,
+.retry:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.loading,
+.fallback {
+  min-height: clamp(20rem, 38vw, 31rem);
+  padding: clamp(1.5rem, 5vw, 5.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.loading {
+  background: linear-gradient(115deg, #29164c, #4d297a, #281543);
+}
+
+.loadingCopy {
+  display: grid;
+  width: min(80%, 32rem);
+  gap: 1rem;
+}
+
+.loadingLine {
+  height: 1.5rem;
+  width: 100%;
+  border-radius: 0.4rem;
+  background: #ffffff21;
+}
+
+.loadingLine:nth-child(2) {
+  width: 72%;
+}
+
+.loadingLine:nth-child(3) {
+  width: 48%;
+}
+
+.loadingCopy p {
+  color: var(--color-muted);
+}
+
+.fallback h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.fallback > p,
+.fallback [role="alert"] > p:last-child {
+  max-width: 43rem;
+  color: var(--color-muted);
+  line-height: 1.65;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.retry {
+  cursor: pointer;
+}
+
+@media (max-width: 740px) {
+  .home {
+    width: min(100% - 2rem, 1440px);
+  }
+
+  .primaryBanner {
+    min-height: 28rem;
+  }
+
+  .overlay {
+    background: linear-gradient(
+      90deg,
+      rgba(17, 7, 35, 0.94),
+      rgba(26, 9, 52, 0.77) 53%,
+      rgba(26, 9, 52, 0.19)
+    );
+  }
+}
+
+@media (max-width: 380px) {
+  .bannerContent,
+  .fallback,
+  .loading {
+    padding: 0.875rem;
+  }
+
+  .bannerContent h1 {
+    font-size: clamp(1.5rem, 9vw, 2.45rem);
+  }
+
+  .primaryLink,
+  .secondaryLink,
+  .retry {
+    gap: 0.4rem;
+    padding: 0.5rem 0.65rem;
+    overflow-wrap: normal;
+  }
+
+  .bannerContent h2 {
+    font-size: 1.85rem;
+  }
+
+  .subtitle {
+    margin-bottom: 1.5rem;
+  }
+
+  .home {
+    width: min(100% - 1.25rem, 1440px);
+  }
+}

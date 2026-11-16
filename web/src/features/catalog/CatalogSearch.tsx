@@ -129,7 +129,7 @@ export function CatalogSearch() {
         ref={input}
         id="global-game-search"
         type="search"
-        placeholder="Search games"
+        placeholder="Search"
         autoComplete="off"
         defaultValue={query.q}
         onChange={onInputChange}

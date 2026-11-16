@@ -75,12 +75,12 @@ func parseFilter(rawQuery string) (Filter, error) {
 		case "sort":
 			filter.Sort = value
 		case "page":
-			filter.Page, parseError = strconv.ParseInt(value, 10, 64)
+			filter.Page, parseError = parseCatalogInteger(value)
 		case "pageSize":
-			filter.PageSize, parseError = strconv.ParseInt(value, 10, 64)
+			filter.PageSize, parseError = parseCatalogInteger(value)
 		case "minPriceCents", "maxPriceCents":
 			var amount int64
-			amount, parseError = strconv.ParseInt(value, 10, 64)
+			amount, parseError = parseCatalogInteger(value)
 			if key == "minPriceCents" {
 				filter.MinPriceCents = &amount
 			} else {
@@ -94,4 +94,11 @@ func parseFilter(rawQuery string) (Filter, error) {
 		}
 	}
 	return filter, nil
+}
+
+// Browser URLs and API queries share unsigned decimal spelling. ParseUint
+// rejects signs (including -0) without a second promotional-link parser.
+func parseCatalogInteger(value string) (int64, error) {
+	amount, err := strconv.ParseUint(value, 10, 63)
+	return int64(amount), err
 }

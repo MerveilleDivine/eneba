@@ -1,7 +1,8 @@
-import { Link, Navigate, Route, Routes } from "react-router";
+import { Link, Route, Routes } from "react-router";
 import { SiteHeader } from "../shared/layout/SiteHeader";
 import { CatalogPage } from "../features/catalog/CatalogPage";
 import { CatalogSearch } from "../features/catalog/CatalogSearch";
+import { HomePage } from "../features/home/HomePage";
 import styles from "./App.module.css";
 
 function NotFound() {
@@ -26,7 +27,7 @@ export function App() {
       <SiteHeader search={<CatalogSearch />} />
       <main id="main" tabIndex={-1} className={styles.main}>
         <Routes>
-          <Route path="/" element={<Navigate to="/catalog" replace />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

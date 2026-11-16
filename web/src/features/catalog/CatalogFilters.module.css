@@ -146,6 +146,15 @@
 }
 
 @media (max-width: 610px) {
+  .sidebar {
+    /* Keep form controls readable when mobile users enlarge text to 200%. */
+    padding-inline: clamp(0.5rem, 4vw, 0.875rem);
+  }
+  .field select,
+  .field input,
+  .sortGroup select {
+    padding-inline: 0.4rem;
+  }
   .priceForm {
     flex-basis: 100%;
   }

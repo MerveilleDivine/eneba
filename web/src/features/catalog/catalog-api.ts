@@ -65,6 +65,12 @@ function nonEmptyText(value: unknown): value is string {
 
 function validCoverUrl(value: unknown): value is string {
   if (!nonEmptyText(value)) return false;
+  if (
+    Array.from(value).some(
+      (character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127,
+    )
+  )
+    return false;
   if (value.startsWith("/") && !value.startsWith("//") && !value.includes("\\")) return true;
   try {
     const url = new URL(value);
@@ -74,7 +80,7 @@ function validCoverUrl(value: unknown): value is string {
   }
 }
 
-function isProduct(value: unknown): value is CatalogProduct {
+export function isCatalogProduct(value: unknown): value is CatalogProduct {
   if (!record(value)) return false;
   return (
     ["id", "slug", "name", "edition"].every((field) => nonEmptyText(value[field])) &&
@@ -95,7 +101,7 @@ export function parseCatalogResponse(
   if (
     !record(value) ||
     !Array.isArray(value.items) ||
-    !value.items.every(isProduct) ||
+    !value.items.every(isCatalogProduct) ||
     !safeNumber(value.total) ||
     !safeNumber(value.page) ||
     value.page < 1 ||

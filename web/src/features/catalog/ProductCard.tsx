@@ -3,7 +3,9 @@ import { displayEuro, type CatalogProduct } from "./catalog-api";
 import styles from "./ProductCard.module.css";
 import { platformLabels, regionLabels } from "./catalog-labels";
 
-type Props = { product: CatalogProduct };
+// Catalog cards are standalone articles; linked homepage cards use a neutral div
+// so assistive technology can derive the link name from visible card text.
+type Props = { product: CatalogProduct; as?: "article" | "div" };
 
 // Use stable product identity rather than list order to choose a cover gradient.
 function coverVariation(id: string): number {
@@ -14,10 +16,10 @@ function coverVariation(id: string): number {
   return variation;
 }
 
-export function ProductCard({ product }: Props) {
+export function ProductCard({ product, as: Root = "article" }: Props) {
   const [failedCoverUrl, setFailedCoverUrl] = useState<string>();
   return (
-    <article className={styles.productCard}>
+    <Root className={styles.productCard}>
       <div className={styles.cover} data-variation={coverVariation(product.id)}>
         {failedCoverUrl !== product.coverUrl && (
           <img
@@ -51,6 +53,6 @@ export function ProductCard({ product }: Props) {
           <p className={styles.soldOutPrice}>Currently unavailable</p>
         )}
       </div>
-    </article>
+    </Root>
   );
 }

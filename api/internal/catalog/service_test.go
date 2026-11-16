@@ -25,6 +25,9 @@ func TestCatalogFilterContract(t *testing.T) {
 		{"zero page", "page=0"},
 		{"negative page", "page=-1"},
 		{"empty page", "page="},
+		{"signed page", "page=%2B1"},
+		{"signed price", "minPriceCents=%2B1"},
+		{"negative zero price", "minPriceCents=-0"},
 		{"fractional page", "page=1.5"},
 		{"offset overflow", "page=9223372036854775807&pageSize=50"},
 		{"integer overflow", "page=9223372036854775808"},
@@ -108,12 +111,12 @@ func TestCatalogMoneyProjection(t *testing.T) {
 
 func TestReadErrorPolicy(t *testing.T) {
 	for _, err := range []error{context.Canceled, context.DeadlineExceeded, &pgconn.PgError{Code: "08006"}, &pgconn.PgError{Code: "28P01"}, &pgconn.PgError{Code: "53300"}, &pgconn.PgError{Code: "57014"}, &pgconn.PgError{Code: "57P01"}} {
-		if !errors.Is(classifyReadError(err), database.ErrUnavailable) {
+		if !errors.Is(database.ClassifyReadError(err), database.ErrUnavailable) {
 			t.Fatal("operational failure must be unavailable")
 		}
 	}
 	unexpected := &pgconn.PgError{Code: "42P01", Message: "private SQL details"}
-	if errors.Is(classifyReadError(unexpected), database.ErrUnavailable) {
+	if errors.Is(database.ClassifyReadError(unexpected), database.ErrUnavailable) {
 		t.Fatal("SQL programming errors must remain internal failures")
 	}
 }

@@ -68,6 +68,19 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
     platformInput.current?.focus();
   }
 
+  // Describe only the fields that actually need correcting. A reversed range
+  // involves both endpoints; malformed text in one input does not invalidate the other.
+  const minimum = parseEuroInput(draft.min);
+  const maximum = parseEuroInput(draft.max);
+  const reversedRange =
+    minimum !== null &&
+    minimum !== undefined &&
+    maximum !== null &&
+    maximum !== undefined &&
+    minimum > maximum;
+  const invalidMinimum = Boolean(draft.error) && (minimum === null || reversedRange);
+  const invalidMaximum = Boolean(draft.error) && (maximum === null || reversedRange);
+
   const hasFilters = Boolean(
     query.platform ||
     query.region ||
@@ -131,8 +144,8 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
                 <span>Min</span>
                 <input
                   ref={minimumInput}
-                  aria-invalid={draft.error ? true : undefined}
-                  aria-describedby={draft.error ? "catalog-price-error" : undefined}
+                  aria-invalid={invalidMinimum || undefined}
+                  aria-describedby={invalidMinimum ? "catalog-price-error" : undefined}
                   type="text"
                   inputMode="decimal"
                   value={draft.min}
@@ -146,8 +159,8 @@ export function CatalogFilters({ query, onChange, onClear }: Props) {
                 <span>Max</span>
                 <input
                   ref={maximumInput}
-                  aria-invalid={draft.error ? true : undefined}
-                  aria-describedby={draft.error ? "catalog-price-error" : undefined}
+                  aria-invalid={invalidMaximum || undefined}
+                  aria-describedby={invalidMaximum ? "catalog-price-error" : undefined}
                   type="text"
                   inputMode="decimal"
                   value={draft.max}

@@ -6,7 +6,7 @@ export function SiteHeader({ search }: { search: ReactNode }) {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link className={styles.brand} to="/catalog">
+        <Link className={styles.brand} to="/">
           <span className={styles.brandMark} aria-hidden="true">
             e
           </span>
@@ -16,6 +16,9 @@ export function SiteHeader({ search }: { search: ReactNode }) {
         </Link>
         <div className={styles.searchSlot}>{search}</div>
         <nav aria-label="Main navigation" className={styles.navigation}>
+          <NavLink to="/" end>
+            Home
+          </NavLink>
           <NavLink to="/catalog" end>
             Browse games
           </NavLink>

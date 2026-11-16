@@ -128,3 +128,115 @@ production application gained no dependency. The new seed is independently
 versioned and its application to existing allocated inventory is tested inside a
 rollback transaction. Existing source documents and applied seed checksums remain
 unchanged.
+
+## Checkpoint F — final local-stack integration acceptance
+
+14 November 2026. F extends D4's already-proven cross-layer contracts rather than
+duplicating the catalog business tests. The new real-Chromium acceptance cases exercise
+offline navigation and retry with persistent filters and keyboard focus, modified
+pagination links opening a new tab without stealing focus, and 200% text at 360px and
+1280px without horizontal clipping or unreadable filter controls.
+
+### Findings corrected during final acceptance
+
+1. At commit `a728f8a`, both PostgreSQL CI jobs stopped at Prettier because the
+   new `tests/browser/acceptance.spec.ts` did not match repository formatting.
+   Commit `b361881` formatted the test without removing or weakening assertions.
+2. The next matrix run
+   [43615614823](https://github.com/MerveilleDivine/eneba/actions/runs/43615614823)
+   reached the browser suite: 48 tests passed in each job, but a 360px/200%-text
+   assertion exposed a clipped Platform selector label. This was a genuine mobile
+   usability defect, not a test-infrastructure failure. Commit `7cb8a0a` adjusted
+   narrow-screen filter panel and control horizontal spacing; the test remains intact.
+
+### Complete code verification
+
+The exact code commit `7cb8a0aeeea8bff34130298ab9e523711eef7815` passed
+[Engineering checks run 43615986341](https://github.com/MerveilleDivine/eneba/actions/runs/43615986341)
+on both PostgreSQL 17.12 and 18.7.
+
+- Formatting, tooling tests, Go vet/tests/build, frontend typecheck/lint/build passed.
+- All 96 frontend unit tests passed on each database matrix job.
+- All 49 real-Chromium browser tests passed on each job, including the new F journeys,
+  earlier catalog/URL/keyboard tests, accessibility scans, and Go API integration.
+- Database integration tests passed in both jobs, including earlier Slice 0/1 contracts.
+- npm and Go dependency audits reported no detected vulnerabilities.
+- Go race checks passed for both database versions.
+- Database provisioning, migration, and immutable seeding completed before verification;
+  the workflow also checks repeated migration/seed application.
+
+This is automated verification of the local CI stack, not a public-hosted acceptance
+claim. Check the current exact-head PR checks after any subsequent documentation-only
+commit; the successful code-commit run is linked above. The authoritative live
+release gate remains [draft PR #2](https://github.com/MerveilleDivine/eneba/pull/2).
+
+### Final adversarial review and boundaries
+
+The F repairs are confined to an acceptance test's formatting and a narrow-screen
+CSS media rule. The production change does not alter API contracts, React query
+ownership, request cancellation, money handling, database schema, seed history,
+inventory allocation, or authentication. The responsive override is applied only
+at the existing 610px breakpoint and preserves the enlarged-text assertion.
+Automated success is still not proof of physical-device or screen-reader usability.
+
+The global header, catalog search, and URL parsing remain separate responsibilities.
+The root route currently redirects to `/catalog`; Slice 3 must replace that route
+deliberately without breaking catalog deep links, Back/Forward, search navigation,
+or the shared layout. Product cards remain informational until later product/offer
+slices; homepage blocks must not invent purchases or popularity data.
+
+**Pending outside Slice 2's automated acceptance:** user visual sign-off, physical
+mobile/tablet checks, hands-on screen-reader review, hosted HTTPS/proxy verification,
+and production infrastructure. Public deployment was expressly deferred. Do not
+treat this checkpoint as authority to merge, deploy, or start Slice 3 without review.
+
+## Independent adversarial follow-up after checkpoint F
+
+14 November 2026. Re-review of the successfully verified Slice 2F head
+`9a711533b27fc2da79dda5f243986302fb4f9cf7` focused on accessibility
+accuracy, minimum supported viewport width and text enlargement. No Slice 3
+implementation, production database provisioning, or merge was performed.
+
+### Defects and regression coverage
+
+1. **Price-validation ARIA accuracy:** submitting an invalid price marked both
+   inputs as invalid even when only one contained malformed text. The filter
+   now derives each field's invalid status separately; a reversed numeric
+   range correctly marks both endpoints. A new focused component regression
+   checks descriptions, field-specific ARIA, correction focus and the absence
+   of an unintended query update. Draft ownership and URL state remain intact.
+2. **Minimum-width enlarged-text overflow:** the existing 200% text tests
+   covered 360px/1280px but missed 320px. Extending the real-browser matrix to
+   320px/768px reproduced horizontal overflow at 320px on both PostgreSQL
+   versions; 50 other browser tests passed in each job. The first detailed
+   diagnostic identified a demo-strip span beyond the right viewport edge
+   and pagination extending beyond both sides. Header disclosure and
+   pagination now wrap naturally, without concealing overflow. A second run
+   found remaining excess document width despite no element box outside
+   the viewport; the 320px heading needed a smaller responsive minimum
+   font size to keep its unbroken title within the page. The narrow-screen
+   typography adjustment removed the remaining overflow.
+
+These are user-interface and acceptance-test changes only. API, Go business
+rules, database constraints/seeds, query canonicalization, request lifecycle,
+and navigation/focus ownership were not modified. Assertions were preserved;
+diagnostic information now distinguishes overflowing element boxes from
+overflowing intrinsic content if a new regression occurs.
+
+### Verified follow-up result
+
+The exact follow-up code head
+`af28e764906453455a5f35dd201588be43b6643e` passed
+[Engineering checks 43618332800](https://github.com/MerveilleDivine/eneba/actions/runs/43618332800)
+on PostgreSQL **17.12 and 18.7**:
+
+- Formatting, tooling checks, frontend typecheck/lint/build, Go vet/tests/build passed.
+- **97 frontend unit tests** and **51 real Chromium browser tests** passed
+  for each matrix job, including 200% text at 320, 360, 768 and 1280px.
+- The real-PostgreSQL integration suites and Go race checks passed.
+- npm and Go security audits reported no detected vulnerabilities.
+
+This review does not imply physical-device or screen-reader testing. The
+public deployment and production-domain HTTPS/proxy/cookie checks remain
+separate release and authentication gates. Verify the final branch-head CI
+after this documentation commit before approving a merge.
