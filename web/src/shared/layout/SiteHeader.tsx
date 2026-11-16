@@ -22,6 +22,9 @@ export function SiteHeader({ search }: { search: ReactNode }) {
           <NavLink to="/catalog" end>
             Browse games
           </NavLink>
+          <NavLink to="/account" end>
+            Account
+          </NavLink>
         </nav>
       </div>
       <div className={styles.demoStrip}>

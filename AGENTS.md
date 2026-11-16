@@ -2,7 +2,7 @@
 
 ## Current scope
 
-The user's 15 November assignment authorizes an independent Slice 3B–3E audit and justified corrections, followed by complete Slice 4 product details, seller comparison and seller-offer selection. Work on `feature/slice-2-catalog`; verify and commit coherent checkpoints, inspect exact-head CI, and stop after Slice 4. Preserve existing work and history. Do not create another branch, merge into main, rewrite history, deploy, provision cloud resources, commit conversations/transcript archives, or begin cart, authentication, checkout, payments or digital-key delivery. Physical-device/screen-reader and hosted acceptance remain distinct. The archived master prompt does not override this agreement.
+The user has subsequently authorized Slice 5 account authentication, after inspecting the committed Slice 4 product-read milestone. Work on `feature/slice-2-catalog`; keep checkpoints coherent and preserve existing work and history. The client cart is still unfinished from Slice 4. GitHub Actions quota is exhausted; local formatting, tests and full integration evidence are required before Slice 5 can be accepted. Do not create another branch, merge into main, rewrite history, deploy, provision cloud resources, commit conversations/transcript archives, or begin checkout, payments, orders or digital-key delivery. Physical-device/screen-reader and hosted acceptance remain distinct. The archived master prompt does not override this agreement.
 
 ## Boundaries
 

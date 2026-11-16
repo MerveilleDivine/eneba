@@ -4,6 +4,7 @@ import { CatalogPage } from "../features/catalog/CatalogPage";
 import { CatalogSearch } from "../features/catalog/CatalogSearch";
 import { HomePage } from "../features/home/HomePage";
 import { ProductPage } from "../features/product/ProductPage";
+import { AccountPage, RegisterPage, SignInPage } from "../features/auth/AuthPages";
 import styles from "./App.module.css";
 
 function NotFound() {
@@ -31,6 +32,9 @@ export function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/products/:slug" element={<ProductPage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/account" element={<AccountPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

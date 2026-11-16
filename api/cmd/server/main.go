@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/MerveilleDivine/eneba/api/internal/auth"
 	"github.com/MerveilleDivine/eneba/api/internal/catalog"
 	"github.com/MerveilleDivine/eneba/api/internal/config"
 	"github.com/MerveilleDivine/eneba/api/internal/database"
@@ -56,6 +57,9 @@ func run(logger *slog.Logger) error {
 	dealRepository := home.NewDealRepository(pool)
 	dealService := home.NewDealService(dealRepository)
 	home.NewDealHandler(dealService, logger).RegisterRoutes(mux)
+	authRepository := auth.NewRepository(pool)
+	authService := auth.NewService(authRepository)
+	auth.NewHandler(authService, logger, cfg.Origin, cfg.Environment == "production").RegisterRoutes(mux)
 	mux.HandleFunc("/", httpapi.NotFound)
 	server := &http.Server{
 		Addr:              net.JoinHostPort(host, cfg.Port),
