@@ -98,6 +98,8 @@
   height: 18rem;
   border-radius: 0.3rem;
   background: linear-gradient(135deg, #35234f, #483368, #291a48);
+  background-size: 220% 100%;
+  animation: skeletonSweep 1.6s ease-in-out infinite;
 }
 
 .feedback h3 {
@@ -126,4 +128,12 @@
     padding: 0.5rem 0.7rem;
     font-size: 0.8rem;
   }
+}
+
+@keyframes skeletonSweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
 }

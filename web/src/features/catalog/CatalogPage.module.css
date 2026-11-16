@@ -121,6 +121,8 @@
   background: linear-gradient(115deg, #2a1a46, #3c285b, #2a1a46);
   border-radius: 0.8rem;
   opacity: 0.8;
+  background-size: 220% 100%;
+  animation: skeletonSweep 1.6s ease-in-out infinite;
 }
 
 .pagination {
@@ -177,4 +179,12 @@
   .grid {
     gap: 0.65rem;
   }
+}
+
+@keyframes skeletonSweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
 }

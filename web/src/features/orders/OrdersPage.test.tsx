@@ -96,3 +96,20 @@ it("discards a late key response after another tab changes the account", async (
   await act(async () => resolve(new Response(JSON.stringify(order))));
   expect(screen.queryByDisplayValue(code)).not.toBeInTheDocument();
 });
+
+it("shows only an accessible receipt skeleton until the private server response arrives", async () => {
+  let release!: (value: Response) => void;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockImplementation(
+      () => new Promise<Response>((done) => {
+        release = done;
+      }),
+    ),
+  );
+  open();
+  expect(screen.getByRole("status")).toHaveTextContent("Loading your order");
+  expect(screen.queryByDisplayValue(code)).not.toBeInTheDocument();
+  await act(async () => release(new Response(JSON.stringify(order))));
+  expect(await screen.findByDisplayValue(code)).toBeVisible();
+});

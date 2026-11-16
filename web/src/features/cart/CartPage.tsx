@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { useReadRequest } from "../../shared/api/use-read-request";
+import { LoadingSkeleton } from "../../shared/loading/LoadingSkeleton";
 import { displayEuro } from "../../shared/format/money";
 import { productHref } from "../../shared/navigation/product-links";
 import { platformLabels, regionLabels } from "../../shared/product/identity";
@@ -46,7 +47,9 @@ function CartItems({ lines }: { lines: readonly CartLine[] }) {
           We couldn't update your cart. Check your browser's storage settings and try again.
         </p>
       )}
-      {state.status === "loading" && <p role="status">Checking prices and availability…</p>}
+      {state.status === "loading" && (
+        <LoadingSkeleton kind="quote" label="Checking prices and availability…" />
+      )}
       {state.status === "failed" && (
         <p role="alert" className={styles.warning}>
           {quoteMessages[state.kind]}

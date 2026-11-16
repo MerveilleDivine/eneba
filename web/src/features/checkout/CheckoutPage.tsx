@@ -9,6 +9,7 @@ import {
   type CartQuote,
 } from "../cart/quote-api";
 import { useReadRequest } from "../../shared/api/use-read-request";
+import { LoadingSkeleton } from "../../shared/loading/LoadingSkeleton";
 import { displayEuro } from "../../shared/format/money";
 import { productHref } from "../../shared/navigation/product-links";
 import { platformLabels, regionLabels } from "../../shared/product/identity";
@@ -182,7 +183,7 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
     <div className={styles.columns}>
       <div>
         {quoted.state.status === "loading" && (
-          <p role="status">Checking current prices and availability…</p>
+          <LoadingSkeleton kind="quote" label="Checking current prices and availability…" />
         )}
         {quoted.state.status === "failed" && (
           <p className={styles.warning} role="alert">
@@ -209,7 +210,9 @@ function CheckoutContent({ lines }: { lines: readonly CartLine[] }) {
       </div>
       <aside className={styles.card} aria-labelledby="checkout-payment-title">
         <h2 id="checkout-payment-title">Complete your order</h2>
-        {account.state.status === "loading" && <p role="status">Checking your account…</p>}
+        {account.state.status === "loading" && (
+          <LoadingSkeleton kind="account" label="Checking your account…" />
+        )}
         {account.state.status === "failed" && (
           <div role="alert" className={styles.warning}>
             <p>{accountErrors[account.state.kind]}</p>

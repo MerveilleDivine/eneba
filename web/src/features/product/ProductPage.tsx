@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useNavigationType, useParams } from "react-router";
 import { useReadRequest } from "../../shared/api/use-read-request";
+import { LoadingSkeleton } from "../../shared/loading/LoadingSkeleton";
 import { displayEuro } from "../../shared/format/money";
 import { productHref } from "../../shared/navigation/product-links";
 import { platformLabels, regionLabels } from "../../shared/product/identity";
@@ -145,9 +146,7 @@ function ProductContent({ slug }: { slug: string }) {
         )}
       </header>
       {state.status === "loading" && (
-        <div className={styles.feedback} role="status">
-          <p>Loading game and seller offers…</p>
-        </div>
+        <LoadingSkeleton kind="product" label="Loading game and seller offers…" />
       )}
       {failure && (
         <section className={styles.feedback} role="alert">

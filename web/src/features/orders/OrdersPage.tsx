@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useParams, useSearchParams } from "react-router";
 import { useReadRequest } from "../../shared/api/use-read-request";
+import { LoadingSkeleton } from "../../shared/loading/LoadingSkeleton";
 import { displayEuro } from "../../shared/format/money";
 import { watchSessionChanges } from "../auth/session-events";
 import {
@@ -77,7 +78,7 @@ function OrderList({ page }: { page: number }) {
     failure,
     timeout: "unavailable" as OrderFailure,
   });
-  if (state.status === "loading") return <p role="status">Loading your orders…</p>;
+  if (state.status === "loading") return <LoadingSkeleton kind="orders" label="Loading your orders…" />;
   if (state.status === "failed") return <OrderError kind={state.kind} retry={retry} />;
   const { items, total, pageSize } = state.data;
   return (
@@ -212,7 +213,7 @@ function OrderReceipt({ id }: { id: string }) {
     failure,
     timeout: "unavailable" as OrderFailure,
   });
-  if (state.status === "loading") return <p role="status">Loading your order…</p>;
+  if (state.status === "loading") return <LoadingSkeleton kind="receipt" label="Loading your order…" />;
   if (state.status === "failed") return <OrderError kind={state.kind} retry={retry} />;
   const order = state.data;
   const cartWarning =

@@ -165,7 +165,9 @@
   height: 1.5rem;
   width: 100%;
   border-radius: 0.4rem;
-  background: #ffffff21;
+  background: linear-gradient(105deg, #ffffff18, #ffffff40, #ffffff18);
+  background-size: 220% 100%;
+  animation: loadingSweep 1.6s ease-in-out infinite;
 }
 
 .loadingLine:nth-child(2) {
@@ -404,4 +406,12 @@
   .categories {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+@keyframes loadingSweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loadingLine { animation: none; }
 }
