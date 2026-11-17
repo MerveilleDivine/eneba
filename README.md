@@ -8,6 +8,10 @@ My focus was the whole buying experience, not just the product pages. A seller's
 
 > This is an independent project, not affiliated with Eneba. Checkout is simulated and the delivered keys are not redeemable.
 
+![Eneba Marketplace homepage, showing featured games and the storefront](docs/screenshots/homepage.jpg)
+
+[See the catalog screenshot](docs/screenshots/catalog.jpg)
+
 ## What you can do
 
 - **Find games:** Browse the catalog, search by name (including partial matches and common typos), and filter by platform, region or price.
