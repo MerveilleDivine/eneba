@@ -2,9 +2,9 @@
 
 **Production:** [eneba-marketplace-demo.vercel.app](https://eneba-marketplace-demo.vercel.app)
 
-**Application revision:** `04b0e7ff970094cdb475f1f35d5d3c59402dba9a`
+**Application revision covered by these checks:** `04b0e7ff970094cdb475f1f35d5d3c59402dba9a`
 
-**Independent handoff review:** 16 November 2026. The final checkpoint changes documentation and the conversation index only; application source is unchanged.
+**Verification review:** 16 November 2026. This record separates live checks from earlier test results. Later documentation and copy changes are not included in these historical test results.
 
 ## Freshly verified in the final review
 
@@ -35,14 +35,13 @@ These are recorded results from the application handoff, not new runs in this do
 ## Limits and handoff
 
 - Final documentation checks passed: Prettier on the changed Markdown, all 3 tooling tests and Git whitespace validation. This checkpoint contains no application changes.
-- The full application suite was **not rerun** in this documentation review. A fresh offline npm install stalled and was stopped; it produced no new test result.
-- GitHub Actions remains **pending by user choice** after runner-capacity failures. No passing final Actions run or new PostgreSQL 17 compatibility result is claimed.
+- The full application suite was **not rerun** during this documentation review; the completed tests are recorded in the earlier evidence above.
+- The final GitHub Actions run was not completed after runner-capacity failures. No passing final Actions run or new PostgreSQL 17 compatibility result is claimed.
 - Production replay/concurrency stress tests were not executed. Transaction tests use isolated databases. Hosted purchases and allocations were preserved.
 - Automated accessibility results are not a complete manual screen-reader, physical-device, 320 px or enlarged-text audit. No new full visual review is claimed here.
 - Real sleeping-Render wake-up duration was not measured; cold-start loading behavior has frontend test coverage.
 - Render still tracks `feature/slice-2-catalog` with auto-deploy disabled. Connected tools cannot update that setting. **Before the next backend release, select `main` in the existing service's dashboard.** The running API matches the reviewed source.
 - The repository was already public. The recorded bounded scan covered 861 reachable Git blobs across 122 commits, finding no common provider-token or private-key markers; PostgreSQL password patterns were in test fixtures. This is not a comprehensive history/privacy audit. Repository visibility and Git history were not changed.
-- The [history index](ai-history/README.md) distinguishes the 213-entry inspected snapshot from the later public sharing cutoff. The old 89-entry snapshot is no longer presented as complete.
-- The submission email has **not** been sent. The CV is excluded from this handoff, following the owner's instruction.
+- The [history index](ai-history/README.md) records the 213-entry inspected snapshot and the public conversation link. The shared link is a snapshot, not a claim that every later exchange is included.
 
 See [architecture decisions](decisions.md) and the [original assignment](assignment.pdf).

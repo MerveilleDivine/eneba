@@ -1,33 +1,50 @@
 # Eneba Marketplace
 
-A full-stack digital game marketplace built for the Eneba Software Engineer Internship assignment. Browse games, compare seller offers, create an account, complete a simulated purchase, and retrieve a nonredeemable digital key from your own order history.
+I built a digital game marketplace inspired by Eneba, with a React storefront, a Go API and a PostgreSQL database. You can explore games, compare prices from different sellers, create an account and place an order to receive a digital key.
 
-**[Live application](https://eneba-marketplace-demo.vercel.app)** · **[Original assignment](docs/assignment.pdf)** · **[Verification results](docs/verification.md)**
+My focus was the whole buying experience, not just the product pages. A seller's offer has its own price and stock, checkout checks both again, and the database prevents the same key from being sold twice.
 
-This is an independent project and is not affiliated with Eneba. No real payments or redeemable game keys are used.
+**[Explore the live site](https://eneba-marketplace-demo.vercel.app)** · [Architecture](docs/decisions.md) · [API reference](docs/api/)
 
-## What works
+> This is an independent project, not affiliated with Eneba. Checkout is simulated and the delivered keys are not redeemable.
 
-- Database-driven banners, best sellers and deals, loaded independently.
-- Search, sorting, filters and pagination across real PostgreSQL catalog records.
-- Game details, edition/platform/region information and competing seller offers.
-- Persistent cart, registration, sign-in and authenticated buyer sessions.
-- Server-priced checkout with transactional inventory allocation and idempotent retries.
-- Buyer-only order receipts and key delivery; other accounts cannot retrieve an order's key.
-- Responsive pages, keyboard interaction and animated skeletons during slow API responses.
+## What you can do
 
-## Stack
+- **Find games:** Browse the catalog, search by name (including partial matches and common typos), and filter by platform, region or price.
+- **Explore the storefront:** See featured games, best sellers and deals. Each section receives its content independently from the API.
+- **Compare offers:** Check a game's edition, platform and region, then choose a specific seller and price.
+- **Buy a game:** Save offers to your cart, sign in, review current prices and complete a simulated purchase.
+- **Keep your purchases:** Return to your order history to view receipts and access the keys issued to your account.
 
-- **Frontend:** React, TypeScript, Vite, CSS Modules; deployed on Vercel.
-- **Backend:** Go REST API using pgx and SQL; deployed on Render.
-- **Database:** PostgreSQL on Neon, with Goose migrations and checksum-verified seed data.
-- **Tests:** Vitest, Playwright, Axe, Go unit/integration tests and the Go race detector.
+The layout works on mobile and desktop, with keyboard navigation, useful empty states and loading screens that handle slower API responses.
 
-Application source lives in `web/` and `api/`. Versioned schema and demo data live in `db/`. The `scripts/` directory contains local setup, verification and maintenance commands.
+## Tech stack
 
-## Run locally
+| Part     | Built with                                              |
+| -------- | ------------------------------------------------------- |
+| Frontend | React, TypeScript, Vite, CSS Modules                    |
+| Backend  | Go, REST, pgx                                           |
+| Database | PostgreSQL, Goose migrations and versioned seed data    |
+| Hosting  | Vercel (web), Render (API), Neon (database)             |
+| Testing  | Vitest, Playwright, Axe, Go tests and the race detector |
 
-The checked-in bootstrap scripts target Windows PowerShell. They install pinned development tools under ignored directories and provision an isolated local PostgreSQL cluster.
+The application is split into three main areas: `web/` for the storefront, `api/` for the Go service and `db/` for the schema and sample data.
+
+## A few decisions behind the build
+
+**Prices belong to the server.** The cart stores offer IDs, not trusted prices. The API checks the latest price and available inventory before completing an order.
+
+**Purchases are atomic.** A PostgreSQL transaction creates the order and allocates its keys together. Database constraints prevent two buyers from receiving the same key. An idempotency key makes a retried checkout safe.
+
+**Orders are private.** Accounts use server-side sessions and secure cookies. Order queries are scoped to the signed-in buyer, and delivered keys never go into browser storage.
+
+**The homepage is data-driven.** Banners, best sellers and deals come from separate backend queries. A slow section doesn't stop the rest of the page from working.
+
+I kept the architecture deliberately straightforward: one Go API, clear feature boundaries and PostgreSQL as the source of truth. The [architecture notes](docs/decisions.md) cover the trade-offs in more detail.
+
+## Run it locally
+
+The setup scripts currently target **Windows PowerShell**. They install the pinned development tools and set up a dedicated local PostgreSQL cluster.
 
 From the repository root:
 
@@ -42,11 +59,11 @@ npm run db:seed
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. Provisioning is a **one-time** operation. On later runs, start PostgreSQL, load the environment helper and run `npm run dev`; never provision over an existing database.
+Open **http://127.0.0.1:5173**.
 
-If you use an existing PostgreSQL installation instead, configure isolated owner/application roles and follow [`.env.example`](.env.example). Secrets belong in ignored local environment files, never in frontend variables or committed files.
+Run `db:provision` **only once** for a new local database. On later starts, load the environment, start PostgreSQL and run `npm run dev`. If you already have PostgreSQL installed, you can instead configure isolated local roles and connections using [`.env.example`](.env.example). Never use a production database for local setup or integration tests.
 
-## Verify
+## Run the checks
 
 ```sh
 npm ci
@@ -56,35 +73,21 @@ npm run test:browser
 npm run audit
 ```
 
-The integration suite requires the separate `eneba_test` database. Browser tests require a Chromium/Chrome installation. To test transaction races on Linux with CGO and a C compiler:
+The integration suite needs a separate `eneba_test` database. Browser tests need Chromium and a running application. For the PostgreSQL concurrency checks on Linux with CGO enabled:
 
 ```sh
 node scripts/run-go.mjs test -race -tags=integration -p 1 ./... -count=1
 ```
 
-See [verification evidence](docs/verification.md) for exact executed results and remaining limitations. GitHub Actions may report failed runs when the account's runner allowance is exhausted; those runs are not evidence of application test failures or passes.
+I kept the meaningful tests in the repository. The [verification record](docs/verification.md) distinguishes tests that ran from checks that still have limitations.
 
-## Design and security
+## More about the project
 
-- Money is represented in integer EUR cents. The API calculates and validates prices, stock and totals.
-- Orders allocate keys in one PostgreSQL transaction. Uniqueness and foreign-key constraints protect each allocation.
-- Checkout checks an idempotent replay before current stock, and locks the buyer before seller offers in deterministic order.
-- Session cookies are `HttpOnly`, `Secure` and `SameSite` in production; mutating requests validate their origin.
-- Order detail SQL is scoped to the authenticated buyer. Key responses are not cached and keys are never stored in browser persistence.
-- Read-only pages retry transient API failures quietly with bounded loading skeletons. Checkout mutations are never automatically repeated without their idempotency safeguards.
+- [API reference](docs/api/) — routes, request rules and response shapes
+- [Architecture decisions](docs/decisions.md) — data model, checkout, security and trade-offs
+- [Verification](docs/verification.md) — test results and deployment checks
+- [Artwork credits](docs/assets/README.md) — where the cover art came from
+- [Development conversations](docs/ai-history/README.md) — original AI-assisted development history and what was preserved
+- [Original assignment](docs/assignment.pdf) — the brief that started the project
 
-## Supporting documents
-
-- [API contracts](docs/api/) — request and response behavior.
-- [Architecture decisions](docs/decisions.md) — important design choices and trade-offs.
-- [Artwork provenance](docs/assets/README.md) — original illustrations and asset manifest.
-- [Verification evidence](docs/verification.md) — unit, database, browser and hosted checks.
-- [AI conversation records](docs/ai-history/README.md) - original public conversation, source information and snapshot coverage.
-
-The [original project conversation](https://chatgpt.com/s/cx_6afb756ca4f481919259b760b8a85bcb) is publicly readable without signing in. The history index records source provenance, independently checked message counts and the snapshot cutoff.
-
-## Hosting
-
-Vercel serves the browser app and proxies `/api` requests to Render. Neon provides persistent PostgreSQL storage. API startup never migrates or seeds production data.
-
-**Deployment maintenance:** the running Render service was last verified with the matching application source, but its automatic deployment setting is disabled and its configured Git branch is still `feature/slice-2-catalog`. For future backend changes made on `main`, change the Render service branch to `main` in its dashboard before deploying. This repository does not contain production credentials.
+The live app uses Vercel, Render and Neon. The API never runs migrations or reloads seed data on startup; those are separate maintenance steps.

@@ -50,7 +50,7 @@ export function App() {
       </main>
       <footer className={styles.footer}>
         <span>Discover your next game</span>
-        <span>Unofficial internship project. Not affiliated with Eneba.</span>
+        <span>Independent project. Not affiliated with Eneba.</span>
       </footer>
     </div>
   );

@@ -19,8 +19,8 @@ never sent to this endpoint.
     "coverUrl": "/images/covers/neon-circuit.webp",
     "lowestPriceCents": 1410,
     "available": true,
-    "description": "A fictional game used to demonstrate the marketplace. No redeemable game license is sold.",
-    "activationInstructions": "Nonredeemable demo key. This code cannot be activated on any real gaming platform."
+    "description": "Race through a glowing metropolis of rooftop shortcuts and razor-sharp turns. Speed is everything, and precision wins.",
+    "activationInstructions": "In PlayStation Store, select Redeem Codes and follow the prompts."
   },
   "offers": [
     {
@@ -86,16 +86,15 @@ foreign-product or malformed offer links produce a recoverable notice without a
 cheapest-seller fallback. A matching sold-out offer is shown checked and disabled;
 its price never becomes an available selection. Available radio choices update
 URL history. Refresh/new tabs preserve identity and read current server data;
-selection changes alone reuse the page's snapshot. Future purchasing must revalidate
-stock and price transactionally; this slice performs no purchase or reservation.
+selection changes alone reuse the page's snapshot. The product read does not reserve
+inventory; checkout revalidates stock and price transactionally.
 
-## Client-side cart (Slice 4)
+## Client-side cart
 
 The product page includes an Add to cart action only after the buyer explicitly
 chooses an available seller offer. The client saves at most ten distinct lines:
 `{ offerId, quantity: 1, slug }`. The slug is a **navigation/read hint**, not
-purchase authority; the eventual quote and checkout request sends only the
-verified offer ID and fixed quantity. No prices, seller labels, key IDs, sessions,
+purchase authority; the public quote request uses the offer ID and fixed quantity; checkout also includes the buyer-confirmed price. No prices, seller labels, key IDs, sessions,
 or stock counts are stored in the cart. Duplicate selected offers are idempotent.
 
 `/cart` fetches current product and seller data from the product API on each
@@ -103,5 +102,5 @@ visit or refresh, and does not silently replace unavailable, removed or foreign
 seller offers with a cheaper seller. The estimated subtotal is displayed only
 if every line is currently available, and is explicitly nonbinding. Remove is
 always possible, including during outages. Storage corruption, quota denial and
-cross-tab changes fail safely. The cart cannot buy anything until later slices
-implement server-owned quote and checkout with full inventory and pricing checks.
+cross-tab changes fail safely. The cart's subtotal is only a quote. Checkout performs its own authenticated
+price and inventory checks before allocating any key.

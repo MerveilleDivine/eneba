@@ -41,4 +41,4 @@ Amounts are positive integer cents within JavaScript's safe range. Lines preserv
 
 HTTP: 200 success, 400 invalid_cart, 415 wrong content type, 405 unsupported method, 503 unavailable database, 500 unexpected error. No-store and nosniff response headers. No digital keys, password/session data or allocation identifiers.
 
-Inventory availability means there exists a key for the offer not referenced by `order_items`. The quote uses one bounded read with a consistent statement snapshot; it does not reserve keys or guarantee future stock. Slice 6B must lock the buyer then offers and revalidate under a purchase transaction.
+Inventory availability means there exists a key for the offer not referenced by `order_items`. The quote uses one bounded read with a consistent statement snapshot; it does not reserve keys or guarantee future stock. The checkout endpoint locks the buyer and offers, then revalidates price and inventory inside the purchase transaction.

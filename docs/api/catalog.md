@@ -31,7 +31,7 @@ Example: `/api/v1/products?q=solar&platform=steam&region=global&sort=price_asc&p
       "edition": "Standard",
       "platform": "steam",
       "region": "global",
-      "coverUrl": "/images/demo-cover.svg",
+      "coverUrl": "/images/covers/solar-drift.webp",
       "lowestPriceCents": 1136,
       "available": true
     }
@@ -66,4 +66,4 @@ Responses are JSON, use Cache-Control: no-store and include X-Request-ID. Storag
 
 The catalog service owns validation and safe monetary projection. The SQL repository owns availability, filtering and ordering. It performs at most two set-based data reads in one read-only repeatable-read transaction; BEGIN/COMMIT are additional transaction commands. The shared snapshot keeps count and rows consistent within a response. An empty/out-of-range result needs only the count read.
 
-Reusing one SQL predicate for both reads prevents count/page drift. Two ordinary reads also preserve totals for an empty page without complicated window-count result mapping. At the current 16-product demo scale, bounded scans are acceptable; the fuzzy function predicate is not claimed to use the existing GIN index. Optimize only after measuring representative usage. No new migration, dependency, stock cache or search service was introduced.
+Reusing one SQL predicate for both reads prevents count/page drift. Two ordinary reads also preserve totals for an empty page without complicated window-count result mapping. For the current 16-product catalog, bounded scans are sufficient. The fuzzy matching predicate is not assumed to use the GIN index; performance changes should be driven by measured usage.
