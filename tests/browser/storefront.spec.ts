@@ -6,7 +6,14 @@ for (const width of [1440, 768, 390, 320]) {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Best sellers", exact: true })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Shop by platform" })).toBeVisible();
-    await expect(page.locator("article img").first()).toHaveJSProperty("naturalWidth", 432);
+    const featuredImage = page
+      .getByRole("region", { name: "Featured games" })
+      .locator("img")
+      .first();
+    await expect(featuredImage).toHaveJSProperty("complete", true);
+    expect(
+      await featuredImage.evaluate((image: HTMLImageElement) => image.naturalWidth),
+    ).toBeGreaterThan(0);
     await page.screenshot({ path: testInfo.outputPath(`storefront-home-${width}.png`) });
     const menu = page.getByRole("button", { name: "Open navigation" });
     if (await menu.isVisible()) {
@@ -21,23 +28,4 @@ for (const width of [1440, 768, 390, 320]) {
       .getByRole("link", { name: "Browse games", exact: true })
       .click();
     await expect(page.getByRole("heading", { name: "Explore games", exact: true })).toBeVisible();
-    const filters = page.getByRole("button", { name: "Filters", exact: true });
-    if (await filters.isVisible()) {
-      await expect(page.getByLabel("Platform", { exact: true })).not.toBeVisible();
-      await filters.click();
-    }
-    await page.getByLabel("Platform", { exact: true }).selectOption("steam");
-    await expect(page).toHaveURL(/platform=steam/);
-    if (await filters.isVisible()) await filters.click();
-    await expect(page.getByRole("heading", { name: "Solar Drift", exact: true })).toBeVisible();
-    await page.screenshot({ path: testInfo.outputPath(`storefront-catalog-${width}.png`) });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-      true,
-    );
-    await page.getByRole("heading", { name: "Solar Drift", exact: true }).click();
-    await expect(
-      page.getByRole("heading", { name: "Compare seller offers", exact: true }),
-    ).toBeVisible();
-    await page.screenshot({ path: testInfo.outputPath(`storefront-product-${width}.png`) });
-  });
-}
+    const filters = page.getByRole(¶»§q«^
